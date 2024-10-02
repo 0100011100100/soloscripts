@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>chat</title>
+    <title></title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -50,6 +50,11 @@
         button:hover {
             background-color: #4cae4c;
         }
+        img {
+            max-width: 100%;
+            height: auto;
+            margin-top: 10px;
+        }
         .hidden {
             display: none;
         }
@@ -58,7 +63,7 @@
 <body>
 
     <div class="forum-container">
-        <h1>Chat</h1>
+        <h1>Simple Forum</h1>
 
         <div id="auth">
             <h2>Sign Up</h2>
@@ -89,6 +94,7 @@
         <div id="post-container" class="hidden">
             <h2>Create Post</h2>
             <textarea id="post-content" placeholder="Write your post..." required></textarea>
+            <input type="text" id="post-image-url" placeholder="Image URL (optional)">
             <button onclick="createPost()">Post</button>
 
             <h2>Posts</h2>
@@ -98,7 +104,10 @@
 
     <script>
         const users = JSON.parse(localStorage.getItem('users')) || [];
+        const bannedUsers = JSON.parse(localStorage.getItem('bannedUsers')) || [];
         let loggedInUser = localStorage.getItem('loggedInUser');
+
+        const inappropriateWords = ["curse", "badword"]; // Add more inappropriate words here
 
         function checkUserStatus() {
             if (loggedInUser) {
@@ -129,6 +138,11 @@
             const username = document.getElementById('login-username').value;
             const password = document.getElementById('login-password').value;
 
+            if (bannedUsers.includes(username)) {
+                alert('You are banned from this forum.');
+                return;
+            }
+
             const user = users.find(user => user.username === username && user.password === password);
             if (user) {
                 loggedInUser = username;
@@ -143,21 +157,49 @@
 
         function createPost() {
             const content = document.getElementById('post-content').value;
+            const imageUrl = document.getElementById('post-image-url').value;
+
+            if (filterContent(content)) {
+                banUser(loggedInUser);
+                return;
+            }
 
             if (content) {
                 const postElement = document.createElement('div');
                 postElement.className = 'post';
                 postElement.innerHTML = `<strong>${loggedInUser}:</strong> <p>${content}</p>`;
-                
+                if (imageUrl) {
+                    postElement.innerHTML += `<img src="${imageUrl}" alt="Post Image">`;
+                }
+
                 document.getElementById('posts').appendChild(postElement);
                 document.getElementById('post-content').value = '';
+                document.getElementById('post-image-url').value = '';
             } else {
                 alert('Please write a post before submitting.');
             }
         }
 
+        function filterContent(content) {
+            for (const word of inappropriateWords) {
+                if (content.includes(word)) {
+                    return true; // Content is inappropriate
+                }
+            }
+            return false; // Content is acceptable
+        }
+
+        function banUser(username) {
+            bannedUsers.push(username);
+            localStorage.setItem('bannedUsers', JSON.stringify(bannedUsers));
+            loggedInUser = null;
+            localStorage.removeItem('loggedInUser');
+            document.getElementById('post-container').classList.add('hidden');
+            document.getElementById('login').classList.remove('hidden');
+            alert('You have been banned and logged out.');
+        }
+
         function loadPosts() {
-            // Here you would typically load posts from a server
             document.getElementById('posts').innerHTML = ''; // Clear previous posts
         }
 
