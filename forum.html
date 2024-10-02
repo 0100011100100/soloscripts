@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Forum</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .forum-container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .post {
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+        .post:last-child {
+            border-bottom: none;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"], input[type="password"], textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #5cb85c;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #4cae4c;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="forum-container">
+        <h1>Simple Forum</h1>
+
+        <div id="auth">
+            <h2>Sign Up</h2>
+            <div class="form-group">
+                <label for="signup-username">Username:</label>
+                <input type="text" id="signup-username" placeholder="Enter your username" required>
+            </div>
+            <div class="form-group">
+                <label for="signup-password">Password:</label>
+                <input type="password" id="signup-password" placeholder="Enter your password" required>
+            </div>
+            <button onclick="signUp()">Sign Up</button>
+        </div>
+
+        <div id="login" class="hidden">
+            <h2>Login</h2>
+            <div class="form-group">
+                <label for="login-username">Username:</label>
+                <input type="text" id="login-username" placeholder="Enter your username" required>
+            </div>
+            <div class="form-group">
+                <label for="login-password">Password:</label>
+                <input type="password" id="login-password" placeholder="Enter your password" required>
+            </div>
+            <button onclick="login()">Login</button>
+        </div>
+
+        <div id="post-container" class="hidden">
+            <h2>Create Post</h2>
+            <textarea id="post-content" placeholder="Write your post..." required></textarea>
+            <button onclick="createPost()">Post</button>
+
+            <h2>Posts</h2>
+            <div id="posts"></div>
+        </div>
+    </div>
+
+    <script>
+        const users = JSON.parse(localStorage.getItem('users')) || [];
+        let loggedInUser = localStorage.getItem('loggedInUser');
+
+        // Show the appropriate section based on the user's logged-in status
+        function checkUserStatus() {
+            if (loggedInUser) {
+                document.getElementById('post-container').classList.remove('hidden');
+                document.getElementById('auth').classList.add('hidden');
+            } else {
+                document.getElementById('login').classList.remove('hidden');
+            }
+        }
+
+        // Sign Up Function
+        function signUp() {
+            const username = document.getElementById('signup-username').value;
+            const password = document.getElementById('signup-password').value;
+
+            if (users.some(user => user.username === username)) {
+                alert('Username already exists.');
+                return;
+            }
+
+            users.push({ username, password });
+            localStorage.setItem('users', JSON.stringify(users));
+            alert('User registered successfully!');
+            document.getElementById('auth').classList.add('hidden');
+            document.getElementById('login').classList.remove('hidden');
+        }
+
+        // Login Function
+        function login() {
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+
+            const user = users.find(user => user.username === username && user.password === password);
+            if (user) {
+                loggedInUser = username;
+                localStorage.setItem('loggedInUser', username);
+                document.getElementById('login').classList.add('hidden');
+                document.getElementById('post-container').classList.remove('hidden');
+                loadPosts();
+            } else {
+                alert('Invalid username or password.');
+            }
+        }
+
+        // Create Post Function
+        function createPost() {
+            const content = document.getElementById('post-content').value;
+
+            if (content) {
+                const postElement = document.createElement('div');
+                postElement.className = 'post';
+                postElement.innerHTML = `<strong>${loggedInUser}:</strong> <p>${content}</p>`;
+                
+                document.getElementById('posts').appendChild(postElement);
+                document.getElementById('post-content').value = '';
+            } else {
+                alert('Please write a post before submitting.');
+            }
+        }
+
+        // Load Posts (on login)
+        function loadPosts() {
+            // In a real application, you would load posts from a server
+            // Here, we're just resetting the posts for demonstration
+            document.getElementById('posts').innerHTML = ''; // Clear previous posts
+        }
+
+        // Check user status on page load
+        checkUserStatus();
+    </script>
+
+</body>
+</html>
