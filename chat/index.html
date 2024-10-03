@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title></title>
+    <title>Discord-like Chat System</title>
     <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-firestore.js"></script>
@@ -86,29 +86,6 @@
             font-size: 0.8em;
             margin-left: 5px;
         }
-
-        .emoji {
-            cursor: pointer;
-        }
-
-        .emoji-picker {
-            display: none;
-            position: absolute;
-            background-color: #2C2F33;
-            border: 1px solid #7289DA;
-            border-radius: 5px;
-            padding: 5px;
-        }
-
-        .emoji-picker div {
-            cursor: pointer;
-            display: inline-block;
-            padding: 5px;
-        }
-
-        .emoji-picker div:hover {
-            background-color: #5B6EAE;
-        }
     </style>
 </head>
 <body>
@@ -118,22 +95,22 @@
             <input type="email" id="email" placeholder="Email" required>
             <input type="password" id="password" placeholder="Password" required>
             <button id="loginButton">Login</button>
+            <button id="showRegisterButton">Register</button>
+        </div>
+
+        <div id="register" style="display: none;">
+            <h2>Register</h2>
+            <input type="email" id="registerEmail" placeholder="Email" required>
+            <input type="password" id="registerPassword" placeholder="Password" required>
             <button id="registerButton">Register</button>
+            <button id="showLoginButton">Back to Login</button>
         </div>
 
         <div id="chat" style="display: none;">
-            <h2></h2>
+            <h2>Chat Room</h2>
             <form id="chatForm" style="position: relative;">
                 <input type="text" id="message" placeholder="Message" required>
-                <button type="button" id="emojiButton">😀</button>
                 <button type="submit">Send</button>
-                <div class="emoji-picker" id="emojiPicker">
-                    <div class="emoji">😀</div>
-                    <div class="emoji">😂</div>
-                    <div class="emoji">😢</div>
-                    <div class="emoji">😎</div>
-                    <div class="emoji">🎉</div>
-                </div>
             </form>
             <div id="messages"></div>
             <button id="logoutButton">Logout</button>
@@ -156,6 +133,18 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
+        // Show Registration Form
+        document.getElementById('showRegisterButton').addEventListener('click', () => {
+            document.getElementById('login').style.display = 'none';
+            document.getElementById('register').style.display = 'block';
+        });
+
+        // Show Login Form
+        document.getElementById('showLoginButton').addEventListener('click', () => {
+            document.getElementById('register').style.display = 'none';
+            document.getElementById('login').style.display = 'block';
+        });
+
         // Login Function
         document.getElementById('loginButton').addEventListener('click', async () => {
             const email = document.getElementById('email').value;
@@ -174,8 +163,8 @@
 
         // Registration Function
         document.getElementById('registerButton').addEventListener('click', async () => {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
 
             if (!email || !password) {
                 alert("Please enter both email and password.");
@@ -185,8 +174,10 @@
             try {
                 await auth.createUserWithEmailAndPassword(email, password);
                 alert("User registered successfully!");
-                document.getElementById('email').value = '';
-                document.getElementById('password').value = '';
+                document.getElementById('registerEmail').value = '';
+                document.getElementById('registerPassword').value = '';
+                document.getElementById('register').style.display = 'none';
+                document.getElementById('login').style.display = 'block';
             } catch (error) {
                 console.error("Registration Error:", error);
                 alert(error.message);
@@ -227,23 +218,6 @@
                 document.getElementById('chat').style.display = 'none';
                 document.getElementById('login').style.display = 'block';
             });
-        });
-
-        // Emoji Picker
-        const emojiButton = document.getElementById('emojiButton');
-        const emojiPicker = document.getElementById('emojiPicker');
-
-        emojiButton.addEventListener('click', () => {
-            emojiPicker.style.display = emojiPicker.style.display === 'none' || emojiPicker.style.display === '' ? 'block' : 'none';
-        });
-
-        // Add Emoji to Message Input
-        emojiPicker.addEventListener('click', (e) => {
-            if (e.target.classList.contains('emoji')) {
-                const emoji = e.target.textContent;
-                document.getElementById('message').value += emoji;
-                emojiPicker.style.display = 'none';
-            }
         });
     </script>
 </body>
