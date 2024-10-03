@@ -151,7 +151,7 @@
                 const userCredential = await auth.signInWithEmailAndPassword(username + "@example.com", password);
                 document.getElementById('login').style.display = 'none';
                 document.getElementById('chat').style.display = 'block';
-                loadMessages(username);
+                loadMessages();
             } catch (error) {
                 console.error("Login Error:", error);
                 alert(error.message);
@@ -170,6 +170,7 @@
 
             try {
                 const userCredential = await auth.createUserWithEmailAndPassword(username + "@example.com", password);
+                await userCredential.user.updateProfile({ displayName: username });
                 alert("User registered successfully!");
                 document.getElementById('registerUsername').value = '';
                 document.getElementById('registerPassword').value = '';
@@ -197,7 +198,7 @@
         });
 
         // Load Messages Function
-        function loadMessages(username) {
+        function loadMessages() {
             db.collection('messages').orderBy('timestamp').onSnapshot(snapshot => {
                 const messagesDiv = document.getElementById('messages');
                 messagesDiv.innerHTML = '';
