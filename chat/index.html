@@ -7,10 +7,109 @@
     <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-firestore.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #2C2F33;
+            color: white;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+        }
+
+        #login, #chat {
+            background-color: #23272A;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            width: 350px;
+            text-align: center;
+        }
+
+        h1, h2 {
+            margin: 0;
+            color: #7289DA;
+        }
+
+        input[type="email"],
+        input[type="password"],
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            background-color: #99AAB5;
+            color: black;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #7289DA;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background-color: #5B6EAE;
+        }
+
+        #messages {
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 10px 0;
+            background-color: #2C2F33;
+            border-radius: 5px;
+            padding: 10px;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+        }
+
+        #messages p {
+            margin: 5px 0;
+        }
+
+        .username {
+            color: #7289DA;
+            font-weight: bold;
+        }
+
+        .timestamp {
+            color: #99AAB5;
+            font-size: 0.8em;
+            margin-left: 5px;
+        }
+
+        .emoji {
+            cursor: pointer;
+        }
+
+        .emoji-picker {
+            display: none;
+            position: absolute;
+            background-color: #2C2F33;
+            border: 1px solid #7289DA;
+            border-radius: 5px;
+            padding: 5px;
+        }
+
+        .emoji-picker div {
+            cursor: pointer;
+            display: inline-block;
+            padding: 5px;
+        }
+
+        .emoji-picker div:hover {
+            background-color: #5B6EAE;
+        }
+    </style>
 </head>
 <body>
-    <h1></h1>
-
     <div id="login">
         <h2>Login</h2>
         <input type="email" id="email" placeholder="Email" required>
@@ -19,9 +118,18 @@
     </div>
 
     <div id="chat" style="display: none;">
-        <form id="chatForm">
+        <h2></h2>
+        <form id="chatForm" style="position: relative;">
             <input type="text" id="message" placeholder="Message" required>
+            <button type="button" id="emojiButton">😀</button>
             <button type="submit">Send</button>
+            <div class="emoji-picker" id="emojiPicker">
+                <div class="emoji">😀</div>
+                <div class="emoji">😂</div>
+                <div class="emoji">😢</div>
+                <div class="emoji">😎</div>
+                <div class="emoji">🎉</div>
+            </div>
         </form>
         <div id="messages"></div>
         <button id="logoutButton">Logout</button>
@@ -80,7 +188,8 @@
                 messagesDiv.innerHTML = '';
                 snapshot.forEach(doc => {
                     const msg = doc.data();
-                    messagesDiv.innerHTML += `<p><strong>${msg.username}:</strong> ${msg.message}</p>`;
+                    const timestamp = new Date(msg.timestamp.seconds * 1000).toLocaleTimeString();
+                    messagesDiv.innerHTML += `<p><span class="username">${msg.username}:</span> ${msg.message} <span class="timestamp">${timestamp}</span></p>`;
                 });
             });
         }
@@ -91,6 +200,23 @@
                 document.getElementById('chat').style.display = 'none';
                 document.getElementById('login').style.display = 'block';
             });
+        });
+
+        // Emoji Picker
+        const emojiButton = document.getElementById('emojiButton');
+        const emojiPicker = document.getElementById('emojiPicker');
+
+        emojiButton.addEventListener('click', () => {
+            emojiPicker.style.display = emojiPicker.style.display === 'none' || emojiPicker.style.display === '' ? 'block' : 'none';
+        });
+
+        // Add Emoji to Message Input
+        emojiPicker.addEventListener('click', (e) => {
+            if (e.target.classList.contains('emoji')) {
+                const emoji = e.target.textContent;
+                document.getElementById('message').value += emoji;
+                emojiPicker.style.display = 'none';
+            }
         });
     </script>
 </body>
