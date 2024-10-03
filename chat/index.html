@@ -11,19 +11,20 @@
         body {
             font-family: 'Arial', sans-serif;
             background-color: #2C2F33;
-            color: white;
+            background-image: url('https://www.transparenttextures.com/patterns/black-noise.png'); /* Optional background texture */
             margin: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
             height: 100vh;
         }
 
-        #login, #chat {
-            background-color: #23272A;
+        #container {
+            background-color: rgba(35, 39, 42, 0.95);
             border-radius: 8px;
             padding: 20px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
             width: 350px;
             text-align: center;
         }
@@ -110,29 +111,32 @@
     </style>
 </head>
 <body>
-    <div id="login">
-        <h2>Login</h2>
-        <input type="email" id="email" placeholder="Email" required>
-        <input type="password" id="password" placeholder="Password" required>
-        <button id="loginButton">Login</button>
-    </div>
+    <div id="container">
+        <div id="login">
+            <h2>Login</h2>
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="password" id="password" placeholder="Password" required>
+            <button id="loginButton">Login</button>
+            <button id="registerButton">Register</button>
+        </div>
 
-    <div id="chat" style="display: none;">
-        <h2></h2>
-        <form id="chatForm" style="position: relative;">
-            <input type="text" id="message" placeholder="Message" required>
-            <button type="button" id="emojiButton">😀</button>
-            <button type="submit">Send</button>
-            <div class="emoji-picker" id="emojiPicker">
-                <div class="emoji">😀</div>
-                <div class="emoji">😂</div>
-                <div class="emoji">😢</div>
-                <div class="emoji">😎</div>
-                <div class="emoji">🎉</div>
-            </div>
-        </form>
-        <div id="messages"></div>
-        <button id="logoutButton">Logout</button>
+        <div id="chat" style="display: none;">
+            <h2></h2>
+            <form id="chatForm" style="position: relative;">
+                <input type="text" id="message" placeholder="Message" required>
+                <button type="button" id="emojiButton">😀</button>
+                <button type="submit">Send</button>
+                <div class="emoji-picker" id="emojiPicker">
+                    <div class="emoji">😀</div>
+                    <div class="emoji">😂</div>
+                    <div class="emoji">😢</div>
+                    <div class="emoji">😎</div>
+                    <div class="emoji">🎉</div>
+                </div>
+            </form>
+            <div id="messages"></div>
+            <button id="logoutButton">Logout</button>
+        </div>
     </div>
 
     <script>
@@ -150,19 +154,6 @@
         const app = firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-// Registration Function (add this above your login function)
-document.getElementById('registerButton').addEventListener('click', async () => {
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-
-    try {
-        await auth.createUserWithEmailAndPassword(email, password);
-        alert("User registered successfully!");
-    } catch (error) {
-        console.error("Registration Error:", error);
-        alert(error.message);
-    }
-});
 
         // Login Function
         document.getElementById('loginButton').addEventListener('click', async () => {
@@ -175,6 +166,21 @@ document.getElementById('registerButton').addEventListener('click', async () => 
                 document.getElementById('chat').style.display = 'block';
                 loadMessages();
             } catch (error) {
+                console.error("Login Error:", error);
+                alert(error.message);
+            }
+        });
+
+        // Registration Function
+        document.getElementById('registerButton').addEventListener('click', async () => {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                await auth.createUserWithEmailAndPassword(email, password);
+                alert("User registered successfully!");
+            } catch (error) {
+                console.error("Registration Error:", error);
                 alert(error.message);
             }
         });
@@ -232,6 +238,5 @@ document.getElementById('registerButton').addEventListener('click', async () => 
             }
         });
     </script>
-<button id="registerButton">Register</button>
 </body>
 </html>
