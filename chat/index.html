@@ -150,6 +150,19 @@
         const app = firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
+// Registration Function (add this above your login function)
+document.getElementById('registerButton').addEventListener('click', async () => {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    try {
+        await auth.createUserWithEmailAndPassword(email, password);
+        alert("User registered successfully!");
+    } catch (error) {
+        console.error("Registration Error:", error);
+        alert(error.message);
+    }
+});
 
         // Login Function
         document.getElementById('loginButton').addEventListener('click', async () => {
@@ -219,5 +232,6 @@
             }
         });
     </script>
+<button id="registerButton">Register</button>
 </body>
 </html>
