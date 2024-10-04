@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #2d2d2d;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        .button {
+            background-color: #e63946;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        .button:hover {
+            background-color: #d62839;
+            transform: scale(1.05);
+        }
+        .coming-soon {
+            color: rgba(200, 200, 200, 0.5);
+            text-align: center;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+
+<h1 id="welcomeMessage"></h1>
+<p class="coming-soon">(Coming Soon)</p>
+<div class="button" onclick="window.location.href='https://www.example1.com'">Game 1</div>
+<div class="button" onclick="window.location.href='https://www.example2.com'">Game 2</div>
+<div class="button" onclick="window.location.href='https://www.example3.com'">Game 3</div>
+<div class="button" onclick="window.location.href='https://www.example4.com'">Game 4</div>
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const username = params.get('username');
+    document.getElementById('welcomeMessage').innerText = `Welcome, ${username}!`;
+</script>
+
+</body>
+</html>
