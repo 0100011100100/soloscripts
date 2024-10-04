@@ -16,7 +16,7 @@
         /* Minecraft Font */
         @font-face {
             font-family: 'Minecraft';
-            src: url('https://0100011100100.github.io/zeptionalsscripts/assets/fonts/MinecraftRegular-Bmg3.ttf') format('truetype');
+            src: url('https://0100011100100.github.io/zeptionalsscripts/assets/fonts/MinecraftFont.ttf') format('truetype');
         }
 
         .header {
@@ -42,6 +42,16 @@
             height: 40px;
             border-radius: 50%;
             margin-right: 10px;
+        }
+
+        .profile-owner-badge {
+            font-family: 'Minecraft', cursive;
+            font-size: 12px;
+            padding: 3px 10px;
+            background: linear-gradient(90deg, #ffcc00, #e63946);
+            color: white;
+            border-radius: 5px;
+            margin-left: 10px;
         }
 
         .chat-box {
@@ -80,9 +90,10 @@
 <body>
 
 <div class="header">
-    <div class="username">Welcome, <span id="username-display"></span></div>
     <div class="profile">
         <img id="profile-pic" src="" alt="Profile Picture">
+        <div class="username">Welcome, <span id="username-display"></span></div>
+        <div id="owner-badge" class="profile-owner-badge" style="display: none;">Owner</div>
     </div>
 </div>
 
@@ -97,6 +108,7 @@
 <script>
     const usernameDisplay = document.getElementById('username-display');
     const profilePic = document.getElementById('profile-pic');
+    const ownerBadge = document.getElementById('owner-badge');
     const messagesContainer = document.getElementById('messages-container');
 
     // Get username and profile picture from localStorage
@@ -107,8 +119,13 @@
     usernameDisplay.textContent = username;
     profilePic.src = profilePictureUrl;
 
-    // Simulate a message in the chat with the profile picture
-    function addMessage() {
+    // Show the Owner badge if the username is 'zeptional'
+    if (username === 'zeptional') {
+        ownerBadge.style.display = 'inline-block';
+    }
+
+    // Function to simulate a message in the chat with the profile picture
+    function addMessage(messageText) {
         const message = document.createElement('div');
         message.classList.add('message');
 
@@ -116,15 +133,24 @@
         profileImage.src = profilePictureUrl;
 
         const text = document.createElement('span');
-        text.textContent = `Message from ${username}`;
+        text.textContent = `${messageText}`;
 
         message.appendChild(profileImage);
         message.appendChild(text);
         messagesContainer.appendChild(message);
     }
 
-    // Example chat message
-    addMessage();
+    // Event listener for chat input
+    document.getElementById('chat-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && this.value.trim() !== '') {
+            const messageText = this.value.trim();
+            addMessage(messageText);
+            this.value = '';
+        }
+    });
+
+    // Example chat message for 'zeptional'
+    addMessage('Hello! This is your chat system.');
 </script>
 
 </body>
