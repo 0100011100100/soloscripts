@@ -34,6 +34,18 @@
         .header button:hover {
             color: #e63946;
         }
+        .add-friend {
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+        }
+        .add-friend input {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            margin-right: 10px;
+            flex: 1;
+        }
         .content {
             flex: 1;
             display: flex;
@@ -65,6 +77,8 @@
             padding: 5px;
             border-radius: 5px;
             background-color: #555;
+            display: flex;
+            align-items: center;
         }
         .message img {
             width: 30px;
@@ -94,6 +108,16 @@
         .input-container button:hover {
             background-color: #d62839;
         }
+        .timestamp {
+            font-size: 12px;
+            color: #ccc;
+            margin-left: 10px;
+        }
+        .reply {
+            margin-left: 40px;
+            margin-top: 5px;
+            background-color: #666;
+        }
     </style>
 </head>
 <body>
@@ -103,6 +127,11 @@
     <button onclick="window.location.href='#'">Community</button>
     <button onclick="openSettings()">Settings</button>
     <button onclick="signOut()">Sign Out</button>
+</div>
+
+<div class="add-friend">
+    <input type="text" id="friendUsername" placeholder="Add a friend by username">
+    <button onclick="addFriend()">Add Friend</button>
 </div>
 
 <div class="content">
@@ -116,7 +145,7 @@
     </div>
     
     <div class="input-container">
-        <input type="text" id="messageInput" placeholder="Type a message...">
+        <input type="text" id="messageInput" placeholder="Type a message..." onkeydown="if (event.key === 'Enter') sendMessage()">
         <button onclick="sendMessage()">Send</button>
     </div>
 </div>
@@ -133,9 +162,10 @@
         
         if (messageText) {
             const chatContainer = document.getElementById('chatContainer');
+            const timestamp = new Date().toLocaleTimeString();
             const messageDiv = document.createElement('div');
             messageDiv.className = 'message';
-            messageDiv.innerHTML = `<img src="${document.getElementById('profilePic').src}" alt="Profile Pic"> ${messageText}`;
+            messageDiv.innerHTML = `<img src="${document.getElementById('profilePic').src}" alt="Profile Pic"> ${username}: ${messageText} <span class="timestamp">${timestamp}</span>`;
             chatContainer.appendChild(messageDiv);
             messageInput.value = ''; // Clear input
             chatContainer.scrollTop = chatContainer.scrollHeight; // Scroll to bottom
@@ -144,6 +174,14 @@
 
     function openSettings() {
         window.location.href = 'settings.html?username=' + encodeURIComponent(username);
+    }
+
+    function addFriend() {
+        const friendUsername = document.getElementById('friendUsername').value.trim();
+        if (friendUsername) {
+            alert(`Friend ${friendUsername} added!`);
+            document.getElementById('friendUsername').value = ''; // Clear input
+        }
     }
 
     function signOut() {
