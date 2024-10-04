@@ -19,7 +19,6 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
         }
 
         .header {
@@ -44,6 +43,21 @@
             color: #e63946;
         }
 
+        .add-friend {
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .add-friend input {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            margin-right: 10px;
+            flex: 1;
+        }
+
         .content {
             flex: 1;
             display: flex;
@@ -64,55 +78,99 @@
             border-radius: 50%;
         }
 
-        /* Welcome and Sign Out Popup */
-        .popup {
-            display: none;
+        .username {
+            display: inline-block;
+            font-family: 'Minecraft', cursive;
+            font-size: 20px;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 600px;
+            margin-top: 20px;
+            background-color: #444;
+            border-radius: 10px;
+            padding: 10px;
+            overflow-y: auto;
+            max-height: 200px;
+        }
+
+        .message {
+            margin: 5px 0;
+            padding: 5px;
+            border-radius: 5px;
+            background-color: #555;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-container {
+            display: flex;
+            margin-top: 10px;
+        }
+
+        .input-container input {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+        }
+
+        .input-container button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #e63946;
+            color: white;
+            cursor: pointer;
+        }
+
+        .input-container button:hover {
+            background-color: #d62839;
+        }
+
+        .timestamp {
+            font-size: 12px;
+            color: #ccc;
+            margin-left: 10px;
+        }
+
+        /* Animation */
+        .notification {
             position: absolute;
-            top: -100px;
+            top: -60px;
             left: 50%;
             transform: translateX(-50%);
             background-color: green;
             color: black;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 18px;
-            font-weight: bold;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
-            transition: top 0.5s ease-in-out;
+            padding: 15px 30px;
+            border-radius: 10px;
+            transition: top 0.5s;
         }
 
-        .dev-avatar {
-            display: none;
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-            z-index: 100;
+        .blur {
+            filter: blur(5px);
         }
-
-        .dev-avatar img {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            margin-right: 10px;
-        }
-
-        .dev-avatar span {
-            font-size: 18px;
-            color: #fff;
-        }
-
     </style>
 </head>
 <body>
 
+<audio id="clickSound" src="path/to/click-sound.mp3" preload="auto"></audio>
+<audio id="hoverSound" src="path/to/hover-sound.mp3" preload="auto"></audio>
+<audio id="explosionSound" src="path/to/explosion-sound.mp3" preload="auto"></audio>
+
 <div class="header">
-    <button onclick="window.location.href='discover.html'">Discover</button>
-    <button onclick="window.location.href='community.html'">Community</button>
-    <button onclick="window.location.href='settings.html'">Settings</button>
+    <button onclick="navigate('discover.html')">Discover</button>
+    <button onclick="navigate('community.html')">Community</button>
+    <button onclick="openSettings()">Settings</button>
     <button onclick="signOut()">Sign Out</button>
+</div>
+
+<div class="add-friend">
+    <input type="text" id="friendUsername" placeholder="Add a friend by username">
+    <button onclick="addFriend()">Add Friend</button>
 </div>
 
 <div class="content">
@@ -120,76 +178,125 @@
         <img id="profilePic" src="https://via.placeholder.com/100" alt="Profile Picture">
         <h2 class="username" id="username">Guest</h2>
     </div>
+    
+    <div class="chat-container" id="chatContainer">
+        <!-- Messages will be appended here -->
+    </div>
+    
+    <div class="input-container">
+        <input type="text" id="messageInput" placeholder="Type a message..." onkeydown="if (event.key === 'Enter') sendMessage()">
+        <button onclick="sendMessage()">Send</button>
+    </div>
 </div>
 
-<!-- Developer Avatar -->
-<div class="dev-avatar" id="devAvatar">
-    <img src="https://avatars.githubusercontent.com/u/183566187?v=4" alt="zeptional">
-    <span>zeptional</span>
-</div>
-
-<!-- Popup for Welcome and Sign Out -->
-<div id="popup" class="popup"></div>
+<div class="notification" id="notification" style="display:none;"></div>
 
 <script>
-    // Extract username and password from URL
+    let currentUser = 'Guest';
     const params = new URLSearchParams(window.location.search);
     const username = params.get('username') || 'Guest';
-    const password = params.get('password');
+    const profilePicSrc = 'https://via.placeholder.com/100'; // Placeholder for profile picture URL
 
-    // Display the username in the dashboard
-    document.getElementById('username').innerText = username;
+    document.getElementById('username').innerHTML = username === 'zeptional' 
+        ? 'zeptional <span style="font-size: 0.8em; color: #ccc;">(Owner)</span>' 
+        : username;
 
-    // Check for developer mode (zeptional login)
-    if (username === 'zeptional' && password === 'corndogs123') {
-        document.getElementById('devAvatar').style.display = 'flex'; // Show dev avatar
-        showPopup('Welcome, zeptional!', true);
-    } else {
-        showPopup(`Welcome, ${username}!`, false);
-    }
-
-    // Function to show the welcome popup with different styles
-    function showPopup(message, isDeveloper) {
-        const popup = document.getElementById('popup');
-        popup.innerText = message;
-
-        if (isDeveloper) {
-            popup.style.backgroundColor = 'red'; // Developer specific color
-        } else {
-            popup.style.backgroundColor = 'green'; // Regular user
+    function sendMessage() {
+        const messageInput = document.getElementById('messageInput');
+        const messageText = messageInput.value.trim();
+        
+        if (messageText) {
+            const chatContainer = document.getElementById('chatContainer');
+            const timestamp = new Date().toLocaleTimeString();
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+            messageDiv.innerHTML = `<strong>${username}:</strong> ${messageText} <span class="timestamp">${timestamp}</span>`;
+            chatContainer.appendChild(messageDiv);
+            messageInput.value = ''; // Clear input
+            chatContainer.scrollTop = chatContainer.scrollHeight; // Scroll to bottom
         }
-
-        popup.style.display = 'block';
-        setTimeout(() => {
-            popup.style.top = '20px';
-        }, 100);
-
-        setTimeout(() => {
-            popup.style.top = '-100px';
-            setTimeout(() => popup.style.display = 'none', 500);
-        }, 3000);
     }
 
-    // Sign out function
-    function signOut() {
-        const popup = document.getElementById('popup');
-        popup.innerText = 'Signed out successfully';
-        popup.style.backgroundColor = 'red'; // Red background for sign out
-        popup.style.color = 'black'; // Black text for sign out
-        popup.style.display = 'block';
-        setTimeout(() => {
-            popup.style.top = '20px';
-        }, 100);
+    function navigate(page) {
+        window.location.href = page;
+    }
 
+    function openSettings() {
+        window.location.href = 'settings.html?username=' + encodeURIComponent(username);
+    }
+
+    function addFriend() {
+        const friendUsername = document.getElementById('friendUsername').value.trim();
+        if (friendUsername && friendUsername !== username) {
+            alert(`Friend ${friendUsername} added!`);
+            document.getElementById('friendUsername').value = ''; // Clear input
+        } else {
+            alert('Please enter a valid username.');
+        }
+    }
+
+    function signOut() {
+        const notification = document.getElementById('notification');
+        notification.innerText = 'Signed out successfully!';
+        notification.style.display = 'block';
         setTimeout(() => {
-            popup.style.top = '-100px';
+            notification.style.top = '20px';
             setTimeout(() => {
-                popup.style.display = 'none';
-                window.location.href = 'login.html'; // Redirect to login page
-            }, 500);
-        }, 3000);
+                notification.style.top = '-60px';
+                setTimeout(() => {
+                    notification.style.display = 'none';
+                    window.location.href = 'login.html'; // Redirect to login
+                }, 500);
+            }, 2000);
+        }, 100);
+    }
+
+    // Listen for the Ctrl + 1 + 2 key combination
+    document.addEventListener('keydown', function(event) {
+        if (event.ctrlKey && event.key === '2' && event.key === '1') {
+            openDeveloperTools();
+        }
+    });
+
+    function openDeveloperTools() {
+        const overlay = document.createElement('div');
+        overlay.style.position = 'fixed';
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        overlay.style.width = '100%';
+        overlay.style.height = '100%';
+        overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+        overlay.style.display = 'flex';
+        overlay.style.alignItems = 'center';
+        overlay.style.justifyContent = 'center';
+        overlay.style.zIndex = '1000';
+        overlay.classList.add('blur');
+        document.body.appendChild(overlay);
+
+        const devLoginDiv = document.createElement('div');
+        devLoginDiv.style.backgroundColor = 'white';
+        devLoginDiv.style.padding = '20px';
+        devLoginDiv.style.borderRadius = '10px';
+        devLoginDiv.innerHTML = `
+            <h2>Developer Login</h2>
+            <input type="text" id="devUsername" placeholder="Username">
+            <input type="password" id="devPassword" placeholder="Password">
+            <button onclick="loginAsDeveloper()">Login</button>
+            <button onclick="document.body.removeChild(overlay)">Cancel</button>
+        `;
+        overlay.appendChild(devLoginDiv);
+    }
+
+    function loginAsDeveloper() {
+        const devUsername = document.getElementById('devUsername').value;
+        const devPassword = document.getElementById('devPassword').value;
+
+        if (devUsername === 'zeptional' && devPassword === 'corndogs123') {
+            window.location.href = 'developer-tools.html';
+        } else {
+            alert('Invalid username or password.');
+        }
     }
 </script>
-
 </body>
 </html>
