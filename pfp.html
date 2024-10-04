@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Picture Upload</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #1e1e1e;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        .upload-box {
+            text-align: center;
+        }
+
+        .upload-box input {
+            margin: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            background-color: #333;
+            color: white;
+        }
+
+        .upload-box button {
+            padding: 10px 20px;
+            background-color: #555;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .upload-box button:hover {
+            background-color: #777;
+        }
+    </style>
+</head>
+<body>
+
+<div class="upload-box">
+    <h2>Upload Your Profile Picture</h2>
+    <input type="file" id="fileInput">
+    <button onclick="uploadPicture()">Upload</button>
+</div>
+
+<script>
+    function uploadPicture() {
+        const fileInput = document.getElementById('fileInput');
+        const file = fileInput.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                localStorage.setItem('profilePic', event.target.result);
+                alert('Profile picture uploaded successfully!');
+                window.location.href = 'dashboard.html';
+            };
+            reader.readAsDataURL(file);
+        } else {
+            alert('Please select a file to upload.');
+        }
+    }
+</script>
+
+</body>
+</html>
