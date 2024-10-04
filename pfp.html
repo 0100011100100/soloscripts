@@ -7,61 +7,85 @@
     <style>
         body {
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
+            justify-content: center;
             height: 100vh;
-            background-color: #1e1e1e;
-            color: white;
+            background-color: #2d2d2d;
+            color: #ffffff;
             font-family: Arial, sans-serif;
+            margin: 0;
         }
-
-        .pfp-container {
-            text-align: center;
+        input {
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            margin: 10px;
         }
-
-        input[type="file"] {
-            margin-top: 10px;
-        }
-
         button {
             padding: 10px 20px;
+            border-radius: 5px;
+            border: none;
             background-color: #e63946;
             color: white;
-            border: none;
-            border-radius: 5px;
             cursor: pointer;
-            margin-top: 10px;
+        }
+        .popup {
+            position: fixed;
+            top: -60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: green;
+            color: black;
+            padding: 15px;
+            border-radius: 10px;
+            transition: top 0.5s;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
 
-<div class="pfp-container">
+<div>
     <h1>Set Your Profile Picture</h1>
-    <input type="file" id="pfpInput" accept="image/*">
-    <br>
-    <button onclick="submitPFP()">Submit</button>
-    <button onclick="skipPFP()">Skip</button>
+    <input type="file" id="profilePic" accept="image/*">
+    <button onclick="saveProfilePic()">Save Profile Picture</button>
 </div>
 
+<div id="popup" class="popup" style="display:none;"></div>
+
 <script>
-    function submitPFP() {
-        const fileInput = document.getElementById('pfpInput');
-        const file = fileInput.files[0];
+    function showPopup(message) {
+        const popup = document.getElementById('popup');
+        popup.innerText = message;
+        popup.style.display = 'block';
+        popup.style.top = '20px';
 
-        if (file) {
-            // Save the profile picture (you would typically upload it to a server here)
-            localStorage.setItem('profilePicture', URL.createObjectURL(file));
-        }
-
-        // Redirect to dashboard
-        window.location.href = 'dashboard.html';
+        popup.onclick = function() {
+            popup.style.top = '-60px';
+            setTimeout(() => {
+                popup.style.display = 'none';
+            }, 500);
+        };
     }
 
-    function skipPFP() {
-        // Skip and go to the dashboard
-        window.location.href = 'dashboard.html';
+    function saveProfilePic() {
+        const profilePic = document.getElementById('profilePic').files[0];
+        if (!profilePic) {
+            showPopup('Please select a profile picture.');
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            localStorage.setItem('profilePic', event.target.result); // Store profile picture
+            showPopup('Profile picture saved!');
+            setTimeout(() => {
+                window.location.href = 'dashboard.html'; // Redirect to dashboard
+            }, 1500);
+        };
+        reader.readAsDataURL(profilePic);
     }
 </script>
+
 </body>
 </html>
