@@ -52,26 +52,22 @@
         }
         .notification {
             position: absolute;
-            top: -60px; /* Start off-screen */
+            top: -60px;
             left: 50%;
             transform: translateX(-50%);
-            background-color: rgba(255, 0, 0, 0.9);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 50px;
+            background-color: green;
+            color: gray;
+            padding: 15px 30px;
+            border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
             font-size: 18px;
             opacity: 0;
             transition: all 0.5s ease;
-            cursor: pointer;
             z-index: 10;
         }
         .notification.show {
-            top: 20px; /* Slide down */
-            opacity: 1; /* Fade in */
-        }
-        .notification:hover {
-            transform: translateX(-50%) scale(0.9); /* Shrink on hover */
+            top: 20px;
+            opacity: 1;
         }
     </style>
 </head>
@@ -80,7 +76,6 @@
 <div class="container">
     <h2>Login</h2>
     <input type="text" id="username" placeholder="Enter Username" required>
-    <input type="password" id="password" placeholder="Enter Password" required>
     <button class="button" onclick="login()">Login</button>
 </div>
 
@@ -89,16 +84,11 @@
 <script>
     function login() {
         const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
-
-        // Basic validation (you would typically check these against a database)
-        if (username === "" || password === "") {
-            showNotification("Please enter both username and password.");
-        } else if (username !== "testUser" || password !== "testPass") {
-            showNotification("Incorrect Username or Password");
+        if (username.trim() === "") {
+            showNotification("Please enter a username.");
         } else {
-            // Redirect to a new page after logging in
-            window.location.href = `dashboard.html`;
+            // Redirect to the dashboard
+            window.location.href = `dashboard.html?username=${encodeURIComponent(username)}`;
         }
     }
 
@@ -106,14 +96,11 @@
         const notification = document.getElementById('notification');
         notification.textContent = message;
         notification.classList.add('show');
-
-        // Remove notification after a brief moment
         setTimeout(() => {
             notification.classList.remove('show');
-        }, 3000); // Show for 3 seconds
+        }, 3000);
     }
 
-    // Click to dismiss the notification
     document.getElementById('notification').addEventListener('click', () => {
         const notification = document.getElementById('notification');
         notification.classList.remove('show');
