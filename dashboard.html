@@ -54,6 +54,28 @@
             margin-left: 10px;
         }
 
+        /* Navigation Buttons */
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .nav-buttons button {
+            margin: 0 10px;
+            padding: 10px 20px;
+            background-color: #555;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-family: 'Minecraft', cursive;
+            cursor: pointer;
+        }
+
+        .nav-buttons button:hover {
+            background-color: #777;
+        }
+
         .chat-box {
             padding: 20px;
         }
@@ -95,6 +117,13 @@
         <div class="username">Welcome, <span id="username-display"></span></div>
         <div id="owner-badge" class="profile-owner-badge" style="display: none;">Owner</div>
     </div>
+</div>
+
+<!-- Navigation buttons -->
+<div class="nav-buttons">
+    <button onclick="window.location.href='settings.html'">Settings</button>
+    <button onclick="window.location.href='discovery.html'">Discovery</button>
+    <button onclick="window.location.href='community.html'">Community</button>
 </div>
 
 <div class="chat-box">
@@ -148,9 +177,6 @@
             this.value = '';
         }
     });
-
-    // Example chat message for 'zeptional'
-    addMessage('Hello! This is your chat system.');
 </script>
 
 </body>
