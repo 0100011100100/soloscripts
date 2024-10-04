@@ -14,47 +14,163 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
+        }
+        .header {
+            background-color: #3a3a3a;
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            border-bottom: 2px solid #e63946;
+        }
+        .header button {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 10px 20px;
+            font-size: 16px;
+            transition: color 0.3s;
+        }
+        .header button:hover {
+            color: #e63946;
+        }
+        .notification {
+            position: absolute;
+            top: -60px; /* Start off-screen */
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: green;
+            color: gray;
+            padding: 15px 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            font-size: 18px;
+            opacity: 0;
+            transition: all 0.5s ease;
+            z-index: 10;
+        }
+        .notification.show {
+            top: 20px; /* Slide down */
+            opacity: 1; /* Fade in */
+        }
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
             align-items: center;
+            justify-content: flex-start;
+            padding: 20px;
+        }
+        .friends-list {
+            background-color: #3a3a3a;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+        }
+        .friend {
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #444;
+        }
+        .friend img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        .add-friend {
+            margin-top: 20px;
+            display: flex;
             justify-content: center;
+            width: 100%;
+            max-width: 600px;
         }
-        h1 {
-            margin-bottom: 20px;
+        .add-friend input {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            width: 80%;
+            margin-right: 10px;
         }
-        .button {
+        .add-friend button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
             background-color: #e63946;
             color: white;
-            border: none;
-            padding: 15px 30px;
-            font-size: 16px;
-            border-radius: 5px;
             cursor: pointer;
-            margin: 10px;
-            transition: background-color 0.3s, transform 0.3s;
         }
-        .button:hover {
+        .add-friend button:hover {
             background-color: #d62839;
-            transform: scale(1.05);
-        }
-        .coming-soon {
-            color: rgba(200, 200, 200, 0.5);
-            text-align: center;
-            margin: 20px 0;
         }
     </style>
 </head>
 <body>
 
-<h1 id="welcomeMessage"></h1>
-<p class="coming-soon">(Coming Soon)</p>
-<div class="button" onclick="window.location.href='https://www.example1.com'">Game 1</div>
-<div class="button" onclick="window.location.href='https://www.example2.com'">Game 2</div>
-<div class="button" onclick="window.location.href='https://www.example3.com'">Game 3</div>
-<div class="button" onclick="window.location.href='https://www.example4.com'">Game 4</div>
+<div class="notification" id="welcomeNotification"></div>
+
+<div class="header">
+    <button onclick="window.location.href='#'">Discover</button>
+    <button onclick="window.location.href='#'">Community</button>
+    <button onclick="window.location.href='#'">Avatar</button>
+    <button onclick="window.location.href='#'">Messages</button>
+    <button onclick="window.location.href='#'">Settings</button>
+</div>
+
+<div class="content">
+    <h1>Dashboard</h1>
+    <div class="friends-list" id="friendsList">
+        <h3>Friends List</h3>
+        <!-- Friends will be dynamically added here -->
+    </div>
+
+    <div class="add-friend">
+        <input type="text" id="friendUsername" placeholder="Add a friend by username">
+        <button onclick="addFriend()">Add Friend</button>
+    </div>
+</div>
 
 <script>
     const params = new URLSearchParams(window.location.search);
     const username = params.get('username');
-    document.getElementById('welcomeMessage').innerText = `Welcome, ${username}!`;
+
+    // Set welcome message
+    document.getElementById('welcomeNotification').innerText = `Welcome, ${username}!`;
+    
+    // Show welcome notification
+    const welcomeNotification = document.getElementById('welcomeNotification');
+    welcomeNotification.classList.add('show');
+
+    // Remove notification after a brief moment
+    setTimeout(() => {
+        welcomeNotification.classList.remove('show');
+    }, 3000); // Show for 3 seconds
+
+    // Add friend functionality
+    const friendsList = document.getElementById('friendsList');
+
+    function addFriend() {
+        const friendUsername = document.getElementById('friendUsername').value.trim();
+        if (friendUsername) {
+            const friendDiv = document.createElement('div');
+            friendDiv.className = 'friend';
+            friendDiv.innerHTML = `<img src="https://via.placeholder.com/40" alt="Profile Picture"> ${friendUsername} <button onclick="removeFriend(this)">Remove</button>`;
+            friendsList.appendChild(friendDiv);
+            document.getElementById('friendUsername').value = ''; // Clear input
+        }
+    }
+
+    function removeFriend(button) {
+        const friendDiv = button.parentElement;
+        friendsList.removeChild(friendDiv);
+    }
 </script>
 
 </body>
