@@ -5,298 +5,54 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
     <style>
-        @font-face {
-            font-family: 'Minecraft';
-            src: url('minecraftregular-bmg3.ttf') format('truetype');
-        }
-
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: #2d2d2d;
-            color: #ffffff;
-            font-family: Arial, sans-serif;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .header {
-            background-color: #3a3a3a;
-            display: flex;
-            justify-content: space-between;
-            padding: 15px;
-            border-bottom: 2px solid #e63946;
-        }
-
-        .header button {
-            background: none;
-            border: none;
-            color: white;
-            cursor: pointer;
-            padding: 10px 20px;
-            font-size: 14px;
-            transition: color 0.3s;
-        }
-
-        .header button:hover {
-            color: #e63946;
-        }
-
-        .add-friend {
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            margin-top: 10px;
-        }
-
-        .add-friend input {
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            margin-right: 10px;
-            flex: 1;
-        }
-
-        .content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            padding: 20px;
-        }
-
-        .profile {
-            margin: 20px;
-            text-align: center;
-        }
-
-        .profile img {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-        }
-
-        .username {
-            display: inline-block;
-            font-family: 'Minecraft', cursive;
-            font-size: 20px;
-            padding: 5px 10px;
-            border-radius: 5px;
-        }
-
-        .chat-container {
-            width: 100%;
-            max-width: 600px;
+        .chat {
             margin-top: 20px;
-            background-color: #444;
-            border-radius: 10px;
-            padding: 10px;
-            overflow-y: auto;
-            max-height: 200px;
         }
-
         .message {
-            margin: 5px 0;
-            padding: 5px;
-            border-radius: 5px;
-            background-color: #555;
-            display: flex;
-            align-items: center;
-        }
-
-        .input-container {
-            display: flex;
-            margin-top: 10px;
-        }
-
-        .input-container input {
-            flex: 1;
+            margin: 10px 0;
             padding: 10px;
-            border: none;
-            border-radius: 5px;
-        }
-
-        .input-container button {
-            padding: 10px 15px;
-            border: none;
-            border-radius: 5px;
-            background-color: #e63946;
+            background-color: #444;
             color: white;
-            cursor: pointer;
-        }
-
-        .input-container button:hover {
-            background-color: #d62839;
-        }
-
-        .timestamp {
-            font-size: 12px;
-            color: #ccc;
-            margin-left: 10px;
-        }
-
-        /* Animation */
-        .notification {
-            position: absolute;
-            top: -60px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: green;
-            color: black;
-            padding: 15px 30px;
-            border-radius: 10px;
-            transition: top 0.5s;
-        }
-
-        .blur {
-            filter: blur(5px);
+            border-radius: 5px;
         }
     </style>
 </head>
 <body>
+    <h1>Dashboard</h1>
 
-<audio id="clickSound" src="path/to/click-sound.mp3" preload="auto"></audio>
-<audio id="hoverSound" src="path/to/hover-sound.mp3" preload="auto"></audio>
-<audio id="explosionSound" src="path/to/explosion-sound.mp3" preload="auto"></audio>
-
-<div class="header">
-    <button onclick="navigate('discover.html')">Discover</button>
-    <button onclick="navigate('community.html')">Community</button>
-    <button onclick="openSettings()">Settings</button>
-    <button onclick="signOut()">Sign Out</button>
-</div>
-
-<div class="add-friend">
-    <input type="text" id="friendUsername" placeholder="Add a friend by username">
-    <button onclick="addFriend()">Add Friend</button>
-</div>
-
-<div class="content">
-    <div class="profile">
-        <img id="profilePic" src="https://via.placeholder.com/100" alt="Profile Picture">
-        <h2 class="username" id="username">Guest</h2>
-    </div>
+    <div id="welcomeMessage"></div>
     
-    <div class="chat-container" id="chatContainer">
-        <!-- Messages will be appended here -->
-    </div>
-    
-    <div class="input-container">
-        <input type="text" id="messageInput" placeholder="Type a message..." onkeydown="if (event.key === 'Enter') sendMessage()">
+    <div class="chat">
+        <input type="text" id="messageInput" placeholder="Type a message">
         <button onclick="sendMessage()">Send</button>
+        <div id="chatContainer"></div>
     </div>
-</div>
 
-<div class="notification" id="notification" style="display:none;"></div>
+    <script>
+        // Retrieve logged-in user info from sessionStorage
+        const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
 
-<script>
-    let currentUser = 'Guest';
-    const params = new URLSearchParams(window.location.search);
-    const username = params.get('username') || 'Guest';
-    const profilePicSrc = 'https://via.placeholder.com/100'; // Placeholder for profile picture URL
-
-    document.getElementById('username').innerHTML = username === 'zeptional' 
-        ? 'zeptional <span style="font-size: 0.8em; color: #ccc;">(Owner)</span>' 
-        : username;
-
-    function sendMessage() {
-        const messageInput = document.getElementById('messageInput');
-        const messageText = messageInput.value.trim();
-        
-        if (messageText) {
-            const chatContainer = document.getElementById('chatContainer');
-            const timestamp = new Date().toLocaleTimeString();
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message';
-            messageDiv.innerHTML = `<strong>${username}:</strong> ${messageText} <span class="timestamp">${timestamp}</span>`;
-            chatContainer.appendChild(messageDiv);
-            messageInput.value = ''; // Clear input
-            chatContainer.scrollTop = chatContainer.scrollHeight; // Scroll to bottom
+        if (!currentUser) {
+            // Redirect to login if no user is logged in
+            window.location.href = 'login.html';
         }
-    }
 
-    function navigate(page) {
-        window.location.href = page;
-    }
+        const { username, tag } = currentUser;
 
-    function openSettings() {
-        window.location.href = 'settings.html?username=' + encodeURIComponent(username);
-    }
+        // Display welcome message
+        document.getElementById('welcomeMessage').innerText = `Welcome, ${username}#${tag}!`;
 
-    function addFriend() {
-        const friendUsername = document.getElementById('friendUsername').value.trim();
-        if (friendUsername && friendUsername !== username) {
-            alert(`Friend ${friendUsername} added!`);
-            document.getElementById('friendUsername').value = ''; // Clear input
-        } else {
-            alert('Please enter a valid username.');
+        function sendMessage() {
+            const messageInput = document.getElementById('messageInput').value.trim();
+            if (messageInput) {
+                const chatContainer = document.getElementById('chatContainer');
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message';
+                messageDiv.innerText = `${username}#${tag}: ${messageInput}`;
+                chatContainer.appendChild(messageDiv);
+                document.getElementById('messageInput').value = ''; // Clear input
+            }
         }
-    }
-
-    function signOut() {
-        const notification = document.getElementById('notification');
-        notification.innerText = 'Signed out successfully!';
-        notification.style.display = 'block';
-        setTimeout(() => {
-            notification.style.top = '20px';
-            setTimeout(() => {
-                notification.style.top = '-60px';
-                setTimeout(() => {
-                    notification.style.display = 'none';
-                    window.location.href = 'login.html'; // Redirect to login
-                }, 500);
-            }, 2000);
-        }, 100);
-    }
-
-    // Listen for the Esc + 1 key combination
-    document.addEventListener('keydown', function(event) {
-        if (event.key === '1' && event.key === 'Escape') {
-            openDeveloperTools();
-        }
-    });
-
-    function openDeveloperTools() {
-        const overlay = document.createElement('div');
-        overlay.style.position = 'fixed';
-        overlay.style.top = '0';
-        overlay.style.left = '0';
-        overlay.style.width = '100%';
-        overlay.style.height = '100%';
-        overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-        overlay.style.display = 'flex';
-        overlay.style.alignItems = 'center';
-        overlay.style.justifyContent = 'center';
-        overlay.style.zIndex = '1000';
-        overlay.classList.add('blur');
-        document.body.appendChild(overlay);
-
-        const devLoginDiv = document.createElement('div');
-        devLoginDiv.style.backgroundColor = 'white';
-        devLoginDiv.style.padding = '20px';
-        devLoginDiv.style.borderRadius = '10px';
-        devLoginDiv.innerHTML = `
-            <h2>Developer Login</h2>
-            <input type="text" id="devUsername" placeholder="Username">
-            <input type="password" id="devPassword" placeholder="Password">
-            <button onclick="loginAsDeveloper()">Login</button>
-            <button onclick="document.body.removeChild(overlay)">Cancel</button>
-        `;
-        overlay.appendChild(devLoginDiv);
-    }
-
-    function loginAsDeveloper() {
-        const devUsername = document.getElementById('devUsername').value;
-        const devPassword = document.getElementById('devPassword').value;
-
-        if (devUsername === 'zeptional' && devPassword === 'corndogs123') {
-            window.location.href = 'developer-tools.html';
-        } else {
-            alert('Invalid username or password.');
-        }
-    }
-</script>
+    </script>
 </body>
 </html>
