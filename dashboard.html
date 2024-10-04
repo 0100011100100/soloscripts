@@ -71,7 +71,7 @@
         }
         .popup {
             position: fixed;
-            top: -60px;
+            top: -60px; /* Start off-screen */
             left: 50%;
             transform: translateX(-50%);
             background-color: green;
@@ -111,19 +111,18 @@
 <body>
 
 <div class="header">
-    <button onclick="window.location.href='settings.html'">Settings</button>
-    <button onclick="window.location.href='discovery.html'">Discovery</button>
-    <button onclick="window.location.href='community.html'">Community</button>
+    <h1>Dashboard</h1>
+    <button onclick="logout()">Logout</button>
 </div>
 
 <div class="content">
-    <div class="profile">
-        <img id="profilePic" src="" alt="Profile Picture" style="display:none;">
-        <span id="usernameDisplay"></span>
+    <div id="profile" class="profile">
+        <img id="profilePic" src="" alt="Profile Picture" style="display: none;">
+        <h2 id="usernameDisplay">Welcome, <span id="usernameText"></span>!</h2>
     </div>
     <div class="chat-container" id="chatContainer"></div>
     <div class="input-container">
-        <input type="text" id="message" placeholder="Type your message...">
+        <input type="text" id="chatInput" placeholder="Type a message...">
         <button onclick="sendMessage()">Send</button>
     </div>
 </div>
@@ -135,44 +134,62 @@
         const popup = document.getElementById('popup');
         popup.innerText = message;
         popup.style.display = 'block';
-        popup.style.top = '20px';
+        popup.style.top = '20px'; // Bring popup into view
 
         popup.onclick = function() {
-            popup.style.top = '-60px';
+            popup.style.top = '-60px'; // Move popup off-screen
             setTimeout(() => {
                 popup.style.display = 'none';
-            }, 500);
+            }, 500); // Delay hiding
         };
     }
 
-    function sendMessage() {
-        const messageInput = document.getElementById('message');
-        const messageText = messageInput.value.trim();
-        if (messageText === '') return;
-
-        const username = localStorage.getItem('username') || 'Guest';
-        const profilePicSrc = localStorage.getItem('profilePic') || '';
-        
-        const messageElement = document.createElement('div');
-        messageElement.classList.add('message');
-        messageElement.innerHTML = `<img src="${profilePicSrc}" alt="Profile Picture"><strong>${username}:</strong> ${messageText}`;
-        
-        document.getElementById('chatContainer').appendChild(messageElement);
-        messageInput.value = ''; // Clear input field
+    function logout() {
+        localStorage.removeItem('username');
+        localStorage.removeItem('profilePic');
+        window.location.href = 'login.html'; // Redirect to login page
     }
 
-    function loadProfile() {
-        const username = localStorage.getItem('username') || 'Guest';
-        const profilePicSrc = localStorage.getItem('profilePic');
+    function sendMessage() {
+        const chatInput = document.getElementById('chatInput');
+        const messageText = chatInput.value.trim();
+        const username = localStorage.getItem('username');
 
-        document.getElementById('usernameDisplay').innerText = username;
-        if (profilePicSrc) {
-            document.getElementById('profilePic').src = profilePicSrc;
-            document.getElementById('profilePic').style.display = 'block';
+        if (!messageText) return;
+
+        const chatContainer = document.getElementById('chatContainer');
+        const profilePicSrc = localStorage.getItem('profilePic') || '';
+        const messageElement = document.createElement('div');
+
+        messageElement.className = 'message';
+        messageElement.innerHTML = `<img src="${profilePicSrc}" alt="Profile Picture">${username}: ${messageText}`;
+        
+        const time = new Date().toLocaleTimeString();
+        messageElement.innerHTML += ` <span style="font-size: 0.8em; color: #aaa;">(${time})</span>`;
+
+        chatContainer.appendChild(messageElement);
+        chatInput.value = ''; // Clear input after sending
+        chatContainer.scrollTop = chatContainer.scrollHeight; // Auto scroll to the bottom
+    }
+
+    // Initialize dashboard with stored data
+    window.onload = function() {
+        const username = localStorage.getItem('username');
+        const profilePic = localStorage.getItem('profilePic');
+
+        document.getElementById('usernameText').innerText = username;
+        if (profilePic) {
+            const profileImage = document.getElementById('profilePic');
+            profileImage.src = profilePic;
+            profileImage.style.display = 'block'; // Show profile picture if it exists
+        }
+
+        // Check if username is "zeptional" and password matches
+        if (username === 'zeptional' && localStorage.getItem('password') !== 'corndogs123') {
+            // Remove gradient or owner badge if not the correct password
+            document.body.classList.remove('owner-badge'); // Assuming a class for owner badge
         }
     }
-
-    document.addEventListener('DOMContentLoaded', loadProfile);
 </script>
 
 </body>
