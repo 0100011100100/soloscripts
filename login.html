@@ -58,10 +58,19 @@
         const username = document.getElementById('usernameInput').value;
         const password = document.getElementById('passwordInput').value;
 
-        if (username === 'zeptional' && password === 'corndogs123') {
-            window.location.href = 'dashboard.html?username=' + encodeURIComponent(username);
+        if (username && password) {
+            // Store username in localStorage
+            localStorage.setItem('username', username);
+            localStorage.setItem('password', password);
+            
+            // Check for specific credentials for special access
+            if (username === 'zeptional' && password === 'corndogs123') {
+                window.location.href = 'dashboard.html?username=' + encodeURIComponent(username);
+            } else {
+                window.location.href = 'dashboard.html?username=' + encodeURIComponent(username);
+            }
         } else {
-            alert('Invalid username or password.');
+            alert('Please enter a username and password.');
         }
     }
 
