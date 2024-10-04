@@ -7,7 +7,7 @@
     <style>
         @font-face {
             font-family: 'Minecraft';
-            src: url('minecraftregular-bmg3.ttf') format('truetype'); /* Use your local font file */
+            src: url('MinecraftRegular-Bmg3.ttf') format('truetype');
         }
 
         body {
@@ -20,6 +20,7 @@
             display: flex;
             flex-direction: column;
         }
+
         .header {
             background-color: #3a3a3a;
             display: flex;
@@ -27,24 +28,28 @@
             padding: 15px;
             border-bottom: 2px solid #e63946;
         }
+
         .header button {
             background: none;
             border: none;
             color: white;
             cursor: pointer;
             padding: 10px 20px;
-            font-size: 14px; /* Adjusted size */
+            font-size: 14px;
             transition: color 0.3s;
         }
+
         .header button:hover {
             color: #e63946;
         }
+
         .add-friend {
             margin: 0 auto;
             display: flex;
             align-items: center;
             margin-top: 10px;
         }
+
         .add-friend input {
             padding: 10px;
             border: none;
@@ -52,6 +57,7 @@
             margin-right: 10px;
             flex: 1;
         }
+
         .content {
             flex: 1;
             display: flex;
@@ -60,27 +66,43 @@
             justify-content: flex-start;
             padding: 20px;
         }
+
         .profile {
             margin: 20px;
             text-align: center;
         }
+
         .profile img {
             width: 100px;
             height: 100px;
             border-radius: 50%;
         }
+
+        /* Default style for all usernames */
         .username {
+            font-size: 20px;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        /* Special style for the "zeptional" user */
+        .username.zeptional {
             background: linear-gradient(90deg, red, orange, yellow, green, blue, purple);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            display: inline-block;
-            font-family: 'Minecraft', cursive; /* Use Minecraft font */
-            font-size: 20px; /* Smaller font size */
-            padding: 5px 10px;
-            border-radius: 5px;
-            transition: transform 0.3s;
+            font-family: 'Minecraft', cursive;
             cursor: pointer;
+            animation: explode 0.5s;
         }
+
+        /* Animation for zeptional username */
+        @keyframes explode {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.5); }
+            100% { transform: scale(1); }
+        }
+
+        /* Chat styles */
         .chat-container {
             width: 100%;
             max-width: 600px;
@@ -91,6 +113,7 @@
             overflow-y: auto;
             max-height: 200px;
         }
+
         .message {
             margin: 5px 0;
             padding: 5px;
@@ -100,22 +123,26 @@
             align-items: center;
             flex-direction: row;
         }
+
         .message img {
             width: 30px;
             height: 30px;
             border-radius: 50%;
             margin-right: 10px;
         }
+
         .input-container {
             display: flex;
             margin-top: 10px;
         }
+
         .input-container input {
             flex: 1;
             padding: 10px;
             border: none;
             border-radius: 5px;
         }
+
         .input-container button {
             padding: 10px 15px;
             border: none;
@@ -124,34 +151,42 @@
             color: white;
             cursor: pointer;
         }
+
         .input-container button:hover {
             background-color: #d62839;
         }
+
         .timestamp {
             font-size: 12px;
             color: #ccc;
             margin-left: 10px;
         }
 
-        /* Animations */
-        @keyframes explode {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.5); }
-            100% { transform: scale(1); }
+        /* Welcome popup for non-zeptional users */
+        .welcome-popup {
+            display: none;
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: green;
+            color: black;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
         }
+
     </style>
 </head>
 <body>
 
-<audio id="clickSound" src="path/to/click-sound.mp3" preload="auto"></audio>
-<audio id="hoverSound" src="path/to/hover-sound.mp3" preload="auto"></audio>
-<audio id="explosionSound" src="path/to/explosion-sound.mp3" preload="auto"></audio>
-
 <div class="header">
-    <button onclick="playSound('click') || window.location.href='discover.html'">Discover</button>
-    <button onclick="playSound('click') || window.location.href='community.html'">Community</button>
-    <button onclick="playSound('click') || openSettings()">Settings</button>
-    <button onclick="playSound('click') || signOut()">Sign Out</button>
+    <button onclick="window.location.href='discover.html'">Discover</button>
+    <button onclick="window.location.href='community.html'">Community</button>
+    <button onclick="openSettings()">Settings</button>
+    <button onclick="signOut()">Sign Out</button>
 </div>
 
 <div class="add-friend">
@@ -162,7 +197,7 @@
 <div class="content">
     <div class="profile">
         <img id="profilePic" src="https://via.placeholder.com/100" alt="Profile Picture">
-        <h2 class="username" id="username">zeptional <span style="font-size: 0.8em; color: #ccc;">(Owner)</span></h2>
+        <h2 class="username" id="username"></h2>
     </div>
     
     <div class="chat-container" id="chatContainer">
@@ -175,12 +210,30 @@
     </div>
 </div>
 
-<script>
-    const params = new URLSearchParams(window.location.search);
-    const username = params.get('username') || 'zeptional';
-    const profilePicSrc = 'https://via.placeholder.com/100'; // Placeholder for profile picture URL
+<div id="welcomePopup" class="welcome-popup"></div>
 
-    document.getElementById('username').innerHTML = 'zeptional <span style="font-size: 0.8em; color: #ccc;">(Owner)</span>';
+<script>
+    // Get the username from the URL (assuming it's passed from login.html)
+    const params = new URLSearchParams(window.location.search);
+    const username = params.get('username') || 'Guest';
+    const profilePicSrc = 'https://via.placeholder.com/100'; // Placeholder for profile picture URL
+    const usernameElement = document.getElementById('username');
+    const welcomePopup = document.getElementById('welcomePopup');
+
+    // Check if the username is 'zeptional'
+    if (username.toLowerCase() === 'zeptional') {
+        usernameElement.classList.add('zeptional');
+        usernameElement.innerHTML = 'zeptional <span style="font-size: 0.8em; color: #ccc;">(Owner)</span>';
+    } else {
+        usernameElement.innerHTML = username;
+        
+        // Show the welcome popup for non-zeptional users
+        welcomePopup.innerText = `Welcome, ${username}!`;
+        welcomePopup.style.display = 'block';
+        setTimeout(() => {
+            welcomePopup.style.display = 'none';
+        }, 3000); // Hide after 3 seconds
+    }
 
     function sendMessage() {
         const messageInput = document.getElementById('messageInput');
@@ -191,17 +244,11 @@
             const timestamp = new Date().toLocaleTimeString();
             const messageDiv = document.createElement('div');
             messageDiv.className = 'message';
-            messageDiv.innerHTML = `<img src="${profilePicSrc}" alt="Profile Pic"> <strong style="background: linear-gradient(90deg, red, orange, yellow, green, blue, purple); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-family: 'Minecraft', cursive;">${username}:</strong> ${messageText} <span class="timestamp">${timestamp}</span>`;
+            messageDiv.innerHTML = `<img src="${profilePicSrc}" alt="Profile Pic"> <strong>${username}:</strong> ${messageText} <span class="timestamp">${timestamp}</span>`;
             chatContainer.appendChild(messageDiv);
             messageInput.value = ''; // Clear input
             chatContainer.scrollTop = chatContainer.scrollHeight; // Scroll to bottom
         }
-    }
-
-    function playSound(type) {
-        const sound = document.getElementById(type + 'Sound');
-        sound.currentTime = 0; // Reset sound
-        sound.play();
     }
 
     function openSettings() {
@@ -219,43 +266,10 @@
     }
 
     function signOut() {
-        const notification = document.createElement('div');
-        notification.style.position = 'absolute';
-        notification.style.top = '-60px';
-        notification.style.left = '50%';
-        notification.style.transform = 'translateX(-50%)';
-        notification.style.backgroundColor = 'red';
-        notification.style.color = 'black';
-        notification.style.padding = '15px 30px';
-        notification.style.borderRadius = '10px';
-        notification.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.5)';
-        notification.style.transition = 'top 0.5s';
-        notification.innerText = 'Signed out successfully!';
-        document.body.appendChild(notification);
-
-        playSound('click');
-        setTimeout(() => {
-            notification.style.top = '20px';
-            setTimeout(() => {
-                notification.style.top = '-60px';
-                setTimeout(() => {
-                    document.body.removeChild(notification);
-                    window.location.href = 'login.html'; // Redirect to login
-                }, 500);
-            }, 2000);
-        }, 100);
+        alert('Signed out successfully!');
+        window.location.href = 'login.html'; // Redirect to login
     }
-    
-    // Explosion effect on hover
-    const usernameElement = document.getElementById('username');
-    usernameElement.addEventListener('mouseover', () => {
-        usernameElement.style.animation = 'explode 0.5s';
-        playSound('explosion');
-    });
-    
-    usernameElement.addEventListener('animationend', () => {
-        usernameElement.style.animation = '';
-    });
 </script>
+
 </body>
 </html>
