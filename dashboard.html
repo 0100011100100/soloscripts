@@ -6,45 +6,39 @@
     <title>Dashboard</title>
     <style>
         body {
+            margin: 0;
             background-color: #2d2d2d;
             color: #ffffff;
-            font-family: 'Minecraft', cursive; /* Use your Minecraft font */
+            font-family: Arial, sans-serif;
             display: flex;
             flex-direction: column;
             height: 100vh;
-            overflow: hidden;
         }
-
         .header {
             background-color: #3a3a3a;
             display: flex;
             justify-content: space-between;
             padding: 15px;
-            border-bottom: 2px solid #e63946;
         }
-
-        .header button {
-            background: none;
+        button {
             border: none;
+            border-radius: 5px;
+            background-color: #e63946;
             color: white;
+            padding: 10px;
             cursor: pointer;
-            padding: 10px 20px;
-            transition: color 0.3s;
+            transition: transform 0.3s;
         }
-
-        .header button:hover {
-            color: #e63946;
+        button:hover {
+            transform: scale(1.05);
         }
-
         .content {
             flex: 1;
             display: flex;
             flex-direction: column;
-            align-items: center;
             padding: 20px;
-            overflow-y: auto;
+            align-items: center;
         }
-
         .chat-container {
             width: 100%;
             max-width: 600px;
@@ -52,10 +46,41 @@
             border-radius: 10px;
             padding: 10px;
             overflow-y: auto;
-            max-height: 300px; /* Adjusted height */
-            margin-top: 20px;
+            max-height: 300px;
+            margin-bottom: 20px;
         }
-
+        .input-container {
+            display: flex;
+            width: 100%;
+            max-width: 600px;
+        }
+        .input-container input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            margin-right: 10px;
+        }
+        .input-container button {
+            border-radius: 5px;
+            border: none;
+            background-color: #e63946;
+            color: white;
+            padding: 10px;
+            cursor: pointer;
+        }
+        .popup {
+            position: fixed;
+            top: -60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: green;
+            color: black;
+            padding: 15px;
+            border-radius: 10px;
+            transition: top 0.5s;
+            cursor: pointer;
+        }
         .message {
             margin: 5px 0;
             padding: 5px;
@@ -64,37 +89,22 @@
             display: flex;
             align-items: center;
         }
-
         .message img {
             width: 30px;
             height: 30px;
             border-radius: 50%;
             margin-right: 10px;
         }
-
-        .input-container {
+        .profile {
             display: flex;
-            margin-top: 10px;
+            align-items: center;
+            margin-bottom: 20px;
         }
-
-        .input-container input {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-        }
-
-        .input-container button {
-            padding: 10px 15px;
-            border: none;
-            border-radius: 5px;
-            background-color: #e63946;
-            color: white;
-            cursor: pointer;
-        }
-
-        .input-container button:hover {
-            background-color: #d62839;
+        .profile img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 10px;
         }
     </style>
 </head>
@@ -102,70 +112,68 @@
 
 <div class="header">
     <button onclick="window.location.href='settings.html'">Settings</button>
-    <button onclick="window.location.href='community.html'">Community</button>
     <button onclick="window.location.href='discovery.html'">Discovery</button>
-    <button onclick="signOut()">Sign Out</button>
+    <button onclick="window.location.href='community.html'">Community</button>
 </div>
 
 <div class="content">
     <div class="profile">
-        <img id="profilePic" src="" alt="Profile Picture" style="width: 100px; height: 100px; border-radius: 50%; display: none;">
-        <h2 id="username">Guest</h2>
+        <img id="profilePic" src="" alt="Profile Picture" style="display:none;">
+        <span id="usernameDisplay"></span>
     </div>
-
-    <div class="chat-container" id="chatContainer">
-        <!-- Messages will be appended here -->
-    </div>
-
+    <div class="chat-container" id="chatContainer"></div>
     <div class="input-container">
-        <input type="text" id="messageInput" placeholder="Type a message..." onkeydown="if (event.key === 'Enter') sendMessage()">
+        <input type="text" id="message" placeholder="Type your message...">
         <button onclick="sendMessage()">Send</button>
     </div>
 </div>
 
-<script>
-    // Retrieve and display the username and profile picture
-    const username = localStorage.getItem('username') || 'Guest';
-    document.getElementById('username').textContent = username;
+<div id="popup" class="popup" style="display:none;"></div>
 
-    // Retrieve and display the profile picture if it exists
-    const profilePicSrc = localStorage.getItem('profilePicture');
-    const profilePic = document.getElementById('profilePic');
-    
-    if (profilePicSrc) {
-        profilePic.src = profilePicSrc;
-        profilePic.style.display = 'block'; // Show the profile picture
+<script>
+    function showPopup(message) {
+        const popup = document.getElementById('popup');
+        popup.innerText = message;
+        popup.style.display = 'block';
+        popup.style.top = '20px';
+
+        popup.onclick = function() {
+            popup.style.top = '-60px';
+            setTimeout(() => {
+                popup.style.display = 'none';
+            }, 500);
+        };
     }
 
     function sendMessage() {
-        const messageInput = document.getElementById('messageInput');
+        const messageInput = document.getElementById('message');
         const messageText = messageInput.value.trim();
+        if (messageText === '') return;
+
+        const username = localStorage.getItem('username') || 'Guest';
+        const profilePicSrc = localStorage.getItem('profilePic') || '';
         
-        if (messageText) {
-            const chatContainer = document.getElementById('chatContainer');
-            const messageElement = document.createElement('div');
-            const timestamp = new Date().toLocaleTimeString();
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('message');
+        messageElement.innerHTML = `<img src="${profilePicSrc}" alt="Profile Picture"><strong>${username}:</strong> ${messageText}`;
+        
+        document.getElementById('chatContainer').appendChild(messageElement);
+        messageInput.value = ''; // Clear input field
+    }
 
-            // Create message element
-            messageElement.className = 'message';
-            messageElement.innerHTML = `
-                <img src="${profilePicSrc || 'default-profile-pic-url.png'}" alt="Profile Picture">
-                <strong>${username}</strong>: ${messageText} <span style="font-size: 0.8em; color: #ccc;">(${timestamp})</span>
-            `;
-            chatContainer.appendChild(messageElement);
+    function loadProfile() {
+        const username = localStorage.getItem('username') || 'Guest';
+        const profilePicSrc = localStorage.getItem('profilePic');
 
-            // Clear the input
-            messageInput.value = '';
-            chatContainer.scrollTop = chatContainer.scrollHeight; // Scroll to bottom
+        document.getElementById('usernameDisplay').innerText = username;
+        if (profilePicSrc) {
+            document.getElementById('profilePic').src = profilePicSrc;
+            document.getElementById('profilePic').style.display = 'block';
         }
     }
 
-    function signOut() {
-        if (confirm("Are you sure you want to sign out?")) {
-            localStorage.removeItem('username'); // Remove username from local storage
-            window.location.href = 'login.html'; // Redirect to login
-        }
-    }
+    document.addEventListener('DOMContentLoaded', loadProfile);
 </script>
+
 </body>
 </html>
