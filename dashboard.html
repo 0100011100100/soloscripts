@@ -19,6 +19,7 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
         }
 
         .header {
@@ -43,21 +44,6 @@
             color: #e63946;
         }
 
-        .add-friend {
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            margin-top: 10px;
-        }
-
-        .add-friend input {
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            margin-right: 10px;
-            flex: 1;
-        }
-
         .content {
             flex: 1;
             display: flex;
@@ -78,32 +64,25 @@
             border-radius: 50%;
         }
 
-        /* Default style for all usernames */
-        .username {
-            font-size: 20px;
-            padding: 5px 10px;
-            border-radius: 5px;
+        /* Welcome and Sign Out Popup */
+        .popup {
+            display: none;
+            position: absolute;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: green;
+            color: black;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+            transition: top 0.5s ease-in-out;
         }
 
-        /* Special style for the "zeptional" user */
-        .username.zeptional {
-            background: linear-gradient(90deg, red, orange, yellow, green, blue, purple);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-family: 'Minecraft', cursive;
-            cursor: pointer;
-            animation: explode 0.5s;
-        }
-
-        /* Animation for zeptional username */
-        @keyframes explode {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.5); }
-            100% { transform: scale(1); }
-        }
-
-        /* Developer Avatar on the top-right corner */
         .dev-avatar {
+            display: none;
             position: fixed;
             top: 20px;
             right: 20px;
@@ -125,160 +104,6 @@
             color: #fff;
         }
 
-        /* Chat styles */
-        .chat-container {
-            width: 100%;
-            max-width: 600px;
-            margin-top: 20px;
-            background-color: #444;
-            border-radius: 10px;
-            padding: 10px;
-            overflow-y: auto;
-            max-height: 200px;
-        }
-
-        .message {
-            margin: 5px 0;
-            padding: 5px;
-            border-radius: 5px;
-            background-color: #555;
-            display: flex;
-            align-items: center;
-            flex-direction: row;
-        }
-
-        .message img {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            margin-right: 10px;
-        }
-
-        .input-container {
-            display: flex;
-            margin-top: 10px;
-        }
-
-        .input-container input {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-        }
-
-        .input-container button {
-            padding: 10px 15px;
-            border: none;
-            border-radius: 5px;
-            background-color: #e63946;
-            color: white;
-            cursor: pointer;
-        }
-
-        .input-container button:hover {
-            background-color: #d62839;
-        }
-
-        .timestamp {
-            font-size: 12px;
-            color: #ccc;
-            margin-left: 10px;
-        }
-
-        /* Welcome popup with animation */
-        .welcome-popup {
-            display: none;
-            position: absolute;
-            top: -100px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: green;
-            color: black;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 18px;
-            font-weight: bold;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
-            transition: top 0.5s ease-in-out;
-        }
-
-        /* Modal for developer login */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-        }
-
-        .modal-content {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            width: 300px;
-            text-align: center;
-            color: black;
-        }
-
-        .modal input {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-
-        .modal button {
-            padding: 10px 15px;
-            border: none;
-            border-radius: 5px;
-            background-color: #e63946;
-            color: white;
-            cursor: pointer;
-        }
-
-        /* Blurring effect for background when modal is open */
-        .blurred {
-            filter: blur(5px);
-        }
-
-        /* Profile Modal (like Discord) */
-        .profile-modal {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: #fff;
-            padding: 30px;
-            border-radius: 10px;
-            text-align: center;
-            width: 350px;
-            color: black;
-        }
-
-        .profile-modal img {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            margin-bottom: 10px;
-        }
-
-        .profile-modal h3 {
-            margin: 10px 0;
-            font-size: 20px;
-        }
-
-        .profile-modal p {
-            color: #555;
-            font-size: 16px;
-        }
-
     </style>
 </head>
 <body>
@@ -286,97 +111,54 @@
 <div class="header">
     <button onclick="window.location.href='discover.html'">Discover</button>
     <button onclick="window.location.href='community.html'">Community</button>
-    <button onclick="openSettings()">Settings</button>
+    <button onclick="window.location.href='settings.html'">Settings</button>
     <button onclick="signOut()">Sign Out</button>
-</div>
-
-<div class="add-friend">
-    <input type="text" id="friendUsername" placeholder="Add a friend by username">
-    <button onclick="addFriend()">Add Friend</button>
 </div>
 
 <div class="content">
     <div class="profile">
         <img id="profilePic" src="https://via.placeholder.com/100" alt="Profile Picture">
-        <h2 class="username" id="username"></h2>
-    </div>
-    
-    <div class="chat-container" id="chatContainer">
-        <!-- Messages will be appended here -->
-    </div>
-    
-    <div class="input-container">
-        <input type="text" id="messageInput" placeholder="Type a message..." onkeydown="if (event.key === 'Enter') sendMessage()">
-        <button onclick="sendMessage()">Send</button>
+        <h2 class="username" id="username">Guest</h2>
     </div>
 </div>
 
 <!-- Developer Avatar -->
-<div class="dev-avatar" id="devAvatar" style="display: none;">
+<div class="dev-avatar" id="devAvatar">
     <img src="https://avatars.githubusercontent.com/u/183566187?v=4" alt="zeptional">
     <span>zeptional</span>
 </div>
 
-<!-- Welcome Popup -->
-<div id="welcomePopup" class="welcome-popup"></div>
-
-<!-- Developer Login Modal -->
-<div id="developerModal" class="modal">
-    <div class="modal-content">
-        <h2>Developer Login</h2>
-        <input type="text" id="devUsername" placeholder="Username">
-        <input type="password" id="devPassword" placeholder="Password">
-        <button onclick="devLogin()">Login</button>
-    </div>
-</div>
-
-<!-- Profile Modal -->
-<div id="profileModal" class="profile-modal">
-    <img src="https://via.placeholder.com/100" alt="Profile Picture">
-    <h3>testUser</h3>
-    <p>testBio</p>
-</div>
+<!-- Popup for Welcome and Sign Out -->
+<div id="popup" class="popup"></div>
 
 <script>
-    // Check if developer mode is active
-    let isDevMode = false;
+    // Extract username and password from URL
+    const params = new URLSearchParams(window.location.search);
+    const username = params.get('username') || 'Guest';
+    const password = params.get('password');
 
-    // Load username from sessionStorage (this would typically be pulled from a settings or login API)
-    let username = sessionStorage.getItem('username') || 'Guest';
+    // Display the username in the dashboard
     document.getElementById('username').innerText = username;
 
-    // Update profile picture everywhere
-    let profilePic = sessionStorage.getItem('profilePic') || 'https://via.placeholder.com/100';
-    document.getElementById('profilePic').src = profilePic;
-
-    // Developer mode login keybind
-    document.addEventListener('keydown', function(event) {
-        if (event.ctrlKey && event.key === '1') {
-            document.getElementById('developerModal').style.display = 'flex';
-            document.body.classList.add('blurred');
-        }
-    });
-
-    // Developer login function
-    function devLogin() {
-        const devUsername = document.getElementById('devUsername').value;
-        const devPassword = document.getElementById('devPassword').value;
-
-        if (devUsername === 'zeptional' && devPassword === 'corndogs123') {
-            isDevMode = true;
-            document.getElementById('developerModal').style.display = 'none';
-            document.body.classList.remove('blurred');
-            document.getElementById('devAvatar').style.display = 'flex';
-            showWelcomePopup('Welcome, zeptional!');
-        } else {
-            alert('Invalid login credentials.');
-        }
+    // Check for developer mode (zeptional login)
+    if (username === 'zeptional' && password === 'corndogs123') {
+        document.getElementById('devAvatar').style.display = 'flex'; // Show dev avatar
+        showPopup('Welcome, zeptional!', true);
+    } else {
+        showPopup(`Welcome, ${username}!`, false);
     }
 
-    // Function to show the welcome popup with animation
-    function showWelcomePopup(message) {
-        const popup = document.getElementById('welcomePopup');
+    // Function to show the welcome popup with different styles
+    function showPopup(message, isDeveloper) {
+        const popup = document.getElementById('popup');
         popup.innerText = message;
+
+        if (isDeveloper) {
+            popup.style.backgroundColor = 'red'; // Developer specific color
+        } else {
+            popup.style.backgroundColor = 'green'; // Regular user
+        }
+
         popup.style.display = 'block';
         setTimeout(() => {
             popup.style.top = '20px';
@@ -388,37 +170,24 @@
         }, 3000);
     }
 
-    // Event listener to blur background and show profile modal on clicking developer avatar
-    document.getElementById('devAvatar').addEventListener('click', function() {
-        document.body.classList.add('blurred');
-        document.getElementById('profileModal').style.display = 'block';
-    });
+    // Sign out function
+    function signOut() {
+        const popup = document.getElementById('popup');
+        popup.innerText = 'Signed out successfully';
+        popup.style.backgroundColor = 'red'; // Red background for sign out
+        popup.style.color = 'black'; // Black text for sign out
+        popup.style.display = 'block';
+        setTimeout(() => {
+            popup.style.top = '20px';
+        }, 100);
 
-    // Close profile modal on pressing Esc
-    document.addEventListener('keydown', function(event) {
-        if (event.key === 'Escape') {
-            document.getElementById('profileModal').style.display = 'none';
-            document.body.classList.remove('blurred');
-        }
-    });
-
-    // Function to handle adding a friend (just a placeholder for now)
-    function addFriend() {
-        const friendUsername = document.getElementById('friendUsername').value;
-        alert('Friend request sent to ' + friendUsername);
-    }
-
-    // Function to send a message (just a placeholder for now)
-    function sendMessage() {
-        const messageInput = document.getElementById('messageInput').value;
-        if (messageInput) {
-            const chatContainer = document.getElementById('chatContainer');
-            const messageDiv = document.createElement('div');
-            messageDiv.classList.add('message');
-            messageDiv.innerHTML = `<img src="${profilePic}" alt="Avatar"><span>${messageInput}</span>`;
-            chatContainer.appendChild(messageDiv);
-            document.getElementById('messageInput').value = '';
-        }
+        setTimeout(() => {
+            popup.style.top = '-100px';
+            setTimeout(() => {
+                popup.style.display = 'none';
+                window.location.href = 'login.html'; // Redirect to login page
+            }, 500);
+        }, 3000);
     }
 </script>
 
