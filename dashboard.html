@@ -89,13 +89,13 @@
             background-color: #555;
             display: flex;
             align-items: center;
+            flex-direction: row;
         }
         .message img {
             width: 30px;
             height: 30px;
             border-radius: 50%;
             margin-right: 10px;
-            vertical-align: middle;
         }
         .input-container {
             display: flex;
@@ -188,9 +188,10 @@
 
 <script>
     const params = new URLSearchParams(window.location.search);
-    const username = params.get('username');
+    const username = params.get('username') || 'zeptional';
+    const profilePicSrc = 'https://via.placeholder.com/100'; // Placeholder for profile picture URL
 
-    document.getElementById('welcomeMessage').innerText = `Welcome, ${username}!`;
+    document.getElementById('username').innerHTML = 'zeptional <span style="font-size: 0.8em; color: #ccc;">(Owner)</span>';
 
     const animations = ['explode', 'shake', 'bounce', 'wiggle', 'pulsate'];
 
@@ -203,7 +204,7 @@
             const timestamp = new Date().toLocaleTimeString();
             const messageDiv = document.createElement('div');
             messageDiv.className = 'message';
-            messageDiv.innerHTML = `<img src="${document.getElementById('profilePic').src}" alt="Profile Pic"> ${username}: ${messageText} <span class="timestamp">${timestamp}</span>`;
+            messageDiv.innerHTML = `<img src="${profilePicSrc}" alt="Profile Pic"> <strong>${username}:</strong> ${messageText} <span class="timestamp">${timestamp}</span>`;
             chatContainer.appendChild(messageDiv);
             messageInput.value = ''; // Clear input
             chatContainer.scrollTop = chatContainer.scrollHeight; // Scroll to bottom
@@ -251,13 +252,8 @@
 
     // Add hover effect to username
     document.getElementById('username').addEventListener('mouseover', function() {
-        const randomIndex = Math.floor(Math.random() * animations.length);
-        const selectedAnimation = animations[randomIndex];
-
-        this.style.animation = `${selectedAnimation} 0.5s forwards`;
-        this.addEventListener('animationend', function() {
-            this.style.animation = ''; // Reset animation
-        });
+        const randomAnimation = animations[Math.floor(Math.random() * animations.length)];
+        this.style.animation = randomAnimation + ' 0.5s forwards';
     });
 </script>
 
