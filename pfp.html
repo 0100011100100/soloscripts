@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile Picture Upload</title>
+    <title>Profile Picture</title>
     <style>
         body {
             display: flex;
@@ -15,58 +15,53 @@
             font-family: Arial, sans-serif;
         }
 
-        .upload-box {
+        .pfp-container {
             text-align: center;
         }
 
-        .upload-box input {
-            margin: 10px;
-            padding: 10px;
-            border-radius: 5px;
-            border: none;
-            background-color: #333;
-            color: white;
+        input[type="file"] {
+            margin-top: 10px;
         }
 
-        .upload-box button {
+        button {
             padding: 10px 20px;
-            background-color: #555;
+            background-color: #e63946;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-        }
-
-        .upload-box button:hover {
-            background-color: #777;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
 
-<div class="upload-box">
-    <h2>Upload Your Profile Picture</h2>
-    <input type="file" id="fileInput">
-    <button onclick="uploadPicture()">Upload</button>
+<div class="pfp-container">
+    <h1>Set Your Profile Picture</h1>
+    <input type="file" id="pfpInput" accept="image/*">
+    <br>
+    <button onclick="submitPFP()">Submit</button>
+    <button onclick="skipPFP()">Skip</button>
 </div>
 
 <script>
-    function uploadPicture() {
-        const fileInput = document.getElementById('fileInput');
+    function submitPFP() {
+        const fileInput = document.getElementById('pfpInput');
         const file = fileInput.files[0];
+
         if (file) {
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                localStorage.setItem('profilePic', event.target.result);
-                alert('Profile picture uploaded successfully!');
-                window.location.href = 'dashboard.html';
-            };
-            reader.readAsDataURL(file);
-        } else {
-            alert('Please select a file to upload.');
+            // Save the profile picture (you would typically upload it to a server here)
+            localStorage.setItem('profilePicture', URL.createObjectURL(file));
         }
+
+        // Redirect to dashboard
+        window.location.href = 'dashboard.html';
+    }
+
+    function skipPFP() {
+        // Skip and go to the dashboard
+        window.location.href = 'dashboard.html';
     }
 </script>
-
 </body>
 </html>
