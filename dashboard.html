@@ -6,178 +6,166 @@
     <title>Dashboard</title>
     <style>
         body {
-            margin: 0;
-            padding: 0;
-            background-color: #1e1e1e;
-            color: white;
-            font-family: Arial, sans-serif;
-        }
-
-        /* Minecraft Font */
-        @font-face {
-            font-family: 'Minecraft';
-            src: url('https://0100011100100.github.io/zeptionalsscripts/assets/fonts/MinecraftFont.ttf') format('truetype');
+            background-color: #2d2d2d;
+            color: #ffffff;
+            font-family: 'Minecraft', cursive; /* Use your Minecraft font */
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
         }
 
         .header {
+            background-color: #3a3a3a;
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            background-color: #444;
-            padding: 10px 20px;
+            padding: 15px;
+            border-bottom: 2px solid #e63946;
         }
 
-        .header .username {
-            font-size: 24px;
-            font-family: 'Minecraft', cursive;
-        }
-
-        .header .profile {
-            display: flex;
-            align-items: center;
-        }
-
-        .profile img {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            margin-right: 10px;
-        }
-
-        .profile-owner-badge {
-            font-family: 'Minecraft', cursive;
-            font-size: 12px;
-            padding: 3px 10px;
-            background: linear-gradient(90deg, #ffcc00, #e63946);
-            color: white;
-            border-radius: 5px;
-            margin-left: 10px;
-        }
-
-        /* Navigation Buttons */
-        .nav-buttons {
-            display: flex;
-            justify-content: center;
-            margin-top: 20px;
-        }
-
-        .nav-buttons button {
-            margin: 0 10px;
-            padding: 10px 20px;
-            background-color: #555;
-            color: white;
+        .header button {
+            background: none;
             border: none;
-            border-radius: 5px;
-            font-family: 'Minecraft', cursive;
+            color: white;
             cursor: pointer;
+            padding: 10px 20px;
+            transition: color 0.3s;
         }
 
-        .nav-buttons button:hover {
-            background-color: #777;
+        .header button:hover {
+            color: #e63946;
         }
 
-        .chat-box {
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             padding: 20px;
+            overflow-y: auto;
         }
 
-        .chat-box input {
+        .chat-container {
             width: 100%;
+            max-width: 600px;
+            background-color: #444;
+            border-radius: 10px;
             padding: 10px;
-            border-radius: 5px;
-            border: none;
-            font-size: 14px;
-        }
-
-        .messages {
+            overflow-y: auto;
+            max-height: 300px; /* Adjusted height */
             margin-top: 20px;
         }
 
-        .messages .message {
-            margin: 10px 0;
-            padding: 10px;
-            background-color: #333;
+        .message {
+            margin: 5px 0;
+            padding: 5px;
             border-radius: 5px;
+            background-color: #555;
             display: flex;
             align-items: center;
         }
 
-        .messages .message img {
+        .message img {
             width: 30px;
             height: 30px;
             border-radius: 50%;
             margin-right: 10px;
+        }
+
+        .input-container {
+            display: flex;
+            margin-top: 10px;
+        }
+
+        .input-container input {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+        }
+
+        .input-container button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #e63946;
+            color: white;
+            cursor: pointer;
+        }
+
+        .input-container button:hover {
+            background-color: #d62839;
         }
     </style>
 </head>
 <body>
 
 <div class="header">
+    <button onclick="window.location.href='settings.html'">Settings</button>
+    <button onclick="window.location.href='community.html'">Community</button>
+    <button onclick="window.location.href='discovery.html'">Discovery</button>
+    <button onclick="signOut()">Sign Out</button>
+</div>
+
+<div class="content">
     <div class="profile">
-        <img id="profile-pic" src="" alt="Profile Picture">
-        <div class="username">Welcome, <span id="username-display"></span></div>
-        <div id="owner-badge" class="profile-owner-badge" style="display: none;">Owner</div>
+        <img id="profilePic" src="" alt="Profile Picture" style="width: 100px; height: 100px; border-radius: 50%; display: none;">
+        <h2 id="username">Guest</h2>
+    </div>
+
+    <div class="chat-container" id="chatContainer">
+        <!-- Messages will be appended here -->
+    </div>
+
+    <div class="input-container">
+        <input type="text" id="messageInput" placeholder="Type a message..." onkeydown="if (event.key === 'Enter') sendMessage()">
+        <button onclick="sendMessage()">Send</button>
     </div>
 </div>
 
-<!-- Navigation buttons -->
-<div class="nav-buttons">
-    <button onclick="window.location.href='settings.html'">Settings</button>
-    <button onclick="window.location.href='discovery.html'">Discovery</button>
-    <button onclick="window.location.href='community.html'">Community</button>
-</div>
-
-<div class="chat-box">
-    <input type="text" id="chat-input" placeholder="Type a message...">
-</div>
-
-<div class="messages" id="messages-container">
-    <!-- Messages will go here -->
-</div>
-
 <script>
-    const usernameDisplay = document.getElementById('username-display');
-    const profilePic = document.getElementById('profile-pic');
-    const ownerBadge = document.getElementById('owner-badge');
-    const messagesContainer = document.getElementById('messages-container');
-
-    // Get username and profile picture from localStorage
+    // Retrieve and display the username and profile picture
     const username = localStorage.getItem('username') || 'Guest';
-    const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
+    document.getElementById('username').textContent = username;
 
-    // Display username and profile picture
-    usernameDisplay.textContent = username;
-    profilePic.src = profilePictureUrl;
-
-    // Show the Owner badge if the username is 'zeptional'
-    if (username === 'zeptional') {
-        ownerBadge.style.display = 'inline-block';
+    // Retrieve and display the profile picture if it exists
+    const profilePicSrc = localStorage.getItem('profilePicture');
+    const profilePic = document.getElementById('profilePic');
+    
+    if (profilePicSrc) {
+        profilePic.src = profilePicSrc;
+        profilePic.style.display = 'block'; // Show the profile picture
     }
 
-    // Function to simulate a message in the chat with the profile picture
-    function addMessage(messageText) {
-        const message = document.createElement('div');
-        message.classList.add('message');
+    function sendMessage() {
+        const messageInput = document.getElementById('messageInput');
+        const messageText = messageInput.value.trim();
+        
+        if (messageText) {
+            const chatContainer = document.getElementById('chatContainer');
+            const messageElement = document.createElement('div');
+            const timestamp = new Date().toLocaleTimeString();
 
-        const profileImage = document.createElement('img');
-        profileImage.src = profilePictureUrl;
+            // Create message element
+            messageElement.className = 'message';
+            messageElement.innerHTML = `
+                <img src="${profilePicSrc || 'default-profile-pic-url.png'}" alt="Profile Picture">
+                <strong>${username}</strong>: ${messageText} <span style="font-size: 0.8em; color: #ccc;">(${timestamp})</span>
+            `;
+            chatContainer.appendChild(messageElement);
 
-        const text = document.createElement('span');
-        text.textContent = `${messageText}`;
-
-        message.appendChild(profileImage);
-        message.appendChild(text);
-        messagesContainer.appendChild(message);
-    }
-
-    // Event listener for chat input
-    document.getElementById('chat-input').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter' && this.value.trim() !== '') {
-            const messageText = this.value.trim();
-            addMessage(messageText);
-            this.value = '';
+            // Clear the input
+            messageInput.value = '';
+            chatContainer.scrollTop = chatContainer.scrollHeight; // Scroll to bottom
         }
-    });
-</script>
+    }
 
+    function signOut() {
+        if (confirm("Are you sure you want to sign out?")) {
+            localStorage.removeItem('username'); // Remove username from local storage
+            window.location.href = 'login.html'; // Redirect to login
+        }
+    }
+</script>
 </body>
 </html>
