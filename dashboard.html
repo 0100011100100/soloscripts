@@ -38,6 +38,7 @@
             margin: 0 auto;
             display: flex;
             align-items: center;
+            margin-top: 10px;
         }
         .add-friend input {
             padding: 10px;
@@ -56,11 +57,20 @@
         }
         .profile {
             margin: 20px;
+            text-align: center;
         }
         .profile img {
             width: 100px;
             height: 100px;
             border-radius: 50%;
+        }
+        .username {
+            background: linear-gradient(90deg, #e63946, #f1faee);
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 5px;
+            transition: transform 0.3s;
+            cursor: pointer;
         }
         .chat-container {
             width: 100%;
@@ -113,18 +123,44 @@
             color: #ccc;
             margin-left: 10px;
         }
-        .reply {
-            margin-left: 40px;
-            margin-top: 5px;
-            background-color: #666;
+
+        /* Animations */
+        @keyframes explode {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.5); }
+            100% { transform: scale(1); }
+        }
+        @keyframes shake {
+            0% { transform: translate(0); }
+            25% { transform: translate(-5px); }
+            50% { transform: translate(5px); }
+            75% { transform: translate(-5px); }
+            100% { transform: translate(0); }
+        }
+        @keyframes bounce {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0); }
+        }
+        @keyframes wiggle {
+            0% { transform: rotate(0); }
+            25% { transform: rotate(10deg); }
+            50% { transform: rotate(-10deg); }
+            75% { transform: rotate(10deg); }
+            100% { transform: rotate(0); }
+        }
+        @keyframes pulsate {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
         }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <button onclick="window.location.href='#'">Discover</button>
-    <button onclick="window.location.href='#'">Community</button>
+    <button onclick="window.location.href='discover.html'">Discover</button>
+    <button onclick="window.location.href='community.html'">Community</button>
     <button onclick="openSettings()">Settings</button>
     <button onclick="signOut()">Sign Out</button>
 </div>
@@ -137,7 +173,7 @@
 <div class="content">
     <div class="profile">
         <img id="profilePic" src="https://via.placeholder.com/100" alt="Profile Picture">
-        <h2 id="welcomeMessage"></h2>
+        <h2 class="username" id="username">zeptional <span style="font-size: 0.8em; color: #ccc;">(Owner)</span></h2>
     </div>
     
     <div class="chat-container" id="chatContainer">
@@ -155,6 +191,8 @@
     const username = params.get('username');
 
     document.getElementById('welcomeMessage').innerText = `Welcome, ${username}!`;
+
+    const animations = ['explode', 'shake', 'bounce', 'wiggle', 'pulsate'];
 
     function sendMessage() {
         const messageInput = document.getElementById('messageInput');
@@ -178,9 +216,11 @@
 
     function addFriend() {
         const friendUsername = document.getElementById('friendUsername').value.trim();
-        if (friendUsername) {
+        if (friendUsername && friendUsername !== username) {
             alert(`Friend ${friendUsername} added!`);
             document.getElementById('friendUsername').value = ''; // Clear input
+        } else {
+            alert('Please enter a valid username.');
         }
     }
 
@@ -197,7 +237,6 @@
         notification.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.5)';
         notification.style.fontSize = '18px';
         notification.style.opacity = '0';
-        notification.style.transition = 'all 0.5s ease';
         document.body.appendChild(notification);
         notification.innerText = 'Signed out successfully!';
         setTimeout(() => {
@@ -209,6 +248,17 @@
             window.location.href = 'index.html';
         }, 3000); // Redirect after 3 seconds
     }
+
+    // Add hover effect to username
+    document.getElementById('username').addEventListener('mouseover', function() {
+        const randomIndex = Math.floor(Math.random() * animations.length);
+        const selectedAnimation = animations[randomIndex];
+
+        this.style.animation = `${selectedAnimation} 0.5s forwards`;
+        this.addEventListener('animationend', function() {
+            this.style.animation = ''; // Reset animation
+        });
+    });
 </script>
 
 </body>
