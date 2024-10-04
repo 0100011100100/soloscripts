@@ -5,120 +5,70 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
     <style>
-        @font-face {
-            font-family: 'Minecraft';
-            src: url('MinecraftRegular-Bmg3.ttf') format('truetype'); /* Use your local font file */
-        }
-
         body {
-            margin: 0;
-            padding: 0;
-            background-color: #2d2d2d;
-            color: #ffffff;
-            font-family: Arial, sans-serif;
-            height: 100vh;
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #2d2d2d;
+            color: white;
         }
-
         .login-container {
-            background-color: #3a3a3a;
+            background-color: #444;
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-            width: 300px;
+        }
+        .login-container h2 {
             text-align: center;
         }
-
-        .login-container h1 {
-            font-family: 'Minecraft', cursive;
-            font-size: 24px;
-            margin-bottom: 20px;
-        }
-
         .login-container input {
             width: 100%;
             padding: 10px;
-            margin-bottom: 10px;
-            border: none;
+            margin: 10px 0;
             border-radius: 5px;
-            background-color: #555;
-            color: #fff;
+            border: none;
         }
-
         .login-container button {
-            padding: 10px 15px;
-            border: none;
-            border-radius: 5px;
+            width: 100%;
+            padding: 10px;
             background-color: #e63946;
             color: white;
+            border: none;
+            border-radius: 5px;
             cursor: pointer;
-            width: 100%;
         }
-
         .login-container button:hover {
             background-color: #d62839;
         }
-
-        .error-message {
-            color: #e63946;
-            font-size: 14px;
-            margin-top: 10px;
-        }
-
     </style>
 </head>
 <body>
+    <div class="login-container">
+        <h2>Login</h2>
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="login()">Login</button>
+    </div>
 
-<div class="login-container">
-    <h1>Login</h1>
-    <form id="loginForm" onsubmit="login(event)">
-        <input type="text" id="username" placeholder="Enter username" required>
-        <input type="password" id="password" placeholder="Enter password" required>
-        <button type="submit">Login</button>
-    </form>
-    <div class="error-message" id="errorMessage"></div>
-</div>
+    <script>
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
 
-<script>
-    function login(event) {
-        event.preventDefault();
-
-        const username = document.getElementById('username').value.trim();
-        const password = document.getElementById('password').value;
-        const errorMessage = document.getElementById('errorMessage');
-
-        // Retrieve registered users from localStorage
-        let users = JSON.parse(localStorage.getItem('users')) || [];
-
-        // Check if username already exists
-        const existingUser = users.find(user => user.username === username);
-
-        let tag = '';
-        if (existingUser) {
-            if (existingUser.password === password) {
-                // Existing user, log in
-                tag = existingUser.tag;
+            // Check if credentials match zeptional
+            if (username === 'zeptional' && password === 'corndogs123') {
+                localStorage.setItem('username', username); // Store the username
+                window.location.href = 'dashboard.html';
             } else {
-                errorMessage.textContent = 'Incorrect password!';
-                return;
+                // Handle other users
+                alert('Login successful!');
+                localStorage.setItem('username', username);
+                window.location.href = 'dashboard.html';
             }
-        } else {
-            // If username doesn't exist, create a new account with a unique tag
-            tag = Math.floor(1000 + Math.random() * 9000).toString(); // Generate 4-digit random number
-            users.push({ username, password, tag });
-            localStorage.setItem('users', JSON.stringify(users)); // Save the new user in localStorage
         }
-
-        // Save the current logged-in user info in sessionStorage
-        sessionStorage.setItem('currentUser', JSON.stringify({ username, tag }));
-
-        // Redirect to the dashboard
-        window.location.href = 'dashboard.html';
-    }
-</script>
-
+    </script>
 </body>
 </html>
