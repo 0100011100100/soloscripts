@@ -7,7 +7,7 @@
     <style>
         @font-face {
             font-family: 'Minecraft';
-            src: url('MinecraftRegular-Bmg3.ttf') format('truetype');
+            src: url('minecraftregular-bmg3.ttf') format('truetype');
         }
 
         body {
@@ -102,6 +102,29 @@
             100% { transform: scale(1); }
         }
 
+        /* Developer Avatar on the top-right corner */
+        .dev-avatar {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            z-index: 100;
+        }
+
+        .dev-avatar img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .dev-avatar span {
+            font-size: 18px;
+            color: #fff;
+        }
+
         /* Chat styles */
         .chat-container {
             width: 100%;
@@ -162,11 +185,11 @@
             margin-left: 10px;
         }
 
-        /* Welcome popup for non-zeptional users */
+        /* Welcome popup with animation */
         .welcome-popup {
             display: none;
             position: absolute;
-            top: 10px;
+            top: -100px;
             left: 50%;
             transform: translateX(-50%);
             background-color: green;
@@ -176,6 +199,84 @@
             font-size: 18px;
             font-weight: bold;
             box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+            transition: top 0.5s ease-in-out;
+        }
+
+        /* Modal for developer login */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            width: 300px;
+            text-align: center;
+            color: black;
+        }
+
+        .modal input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .modal button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #e63946;
+            color: white;
+            cursor: pointer;
+        }
+
+        /* Blurring effect for background when modal is open */
+        .blurred {
+            filter: blur(5px);
+        }
+
+        /* Profile Modal (like Discord) */
+        .profile-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            width: 350px;
+            color: black;
+        }
+
+        .profile-modal img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin-bottom: 10px;
+        }
+
+        .profile-modal h3 {
+            margin: 10px 0;
+            font-size: 20px;
+        }
+
+        .profile-modal p {
+            color: #555;
+            font-size: 16px;
         }
 
     </style>
@@ -210,64 +311,114 @@
     </div>
 </div>
 
+<!-- Developer Avatar -->
+<div class="dev-avatar" id="devAvatar" style="display: none;">
+    <img src="https://avatars.githubusercontent.com/u/183566187?v=4" alt="zeptional">
+    <span>zeptional</span>
+</div>
+
+<!-- Welcome Popup -->
 <div id="welcomePopup" class="welcome-popup"></div>
 
+<!-- Developer Login Modal -->
+<div id="developerModal" class="modal">
+    <div class="modal-content">
+        <h2>Developer Login</h2>
+        <input type="text" id="devUsername" placeholder="Username">
+        <input type="password" id="devPassword" placeholder="Password">
+        <button onclick="devLogin()">Login</button>
+    </div>
+</div>
+
+<!-- Profile Modal -->
+<div id="profileModal" class="profile-modal">
+    <img src="https://via.placeholder.com/100" alt="Profile Picture">
+    <h3>testUser</h3>
+    <p>testBio</p>
+</div>
+
 <script>
-    // Get the username from the URL (assuming it's passed from login.html)
-    const params = new URLSearchParams(window.location.search);
-    const username = params.get('username') || 'Guest';
-    const profilePicSrc = 'https://via.placeholder.com/100'; // Placeholder for profile picture URL
-    const usernameElement = document.getElementById('username');
-    const welcomePopup = document.getElementById('welcomePopup');
+    // Check if developer mode is active
+    let isDevMode = false;
 
-    // Check if the username is 'zeptional'
-    if (username.toLowerCase() === 'zeptional') {
-        usernameElement.classList.add('zeptional');
-        usernameElement.innerHTML = 'zeptional <span style="font-size: 0.8em; color: #ccc;">(Owner)</span>';
-    } else {
-        usernameElement.innerHTML = username;
-        
-        // Show the welcome popup for non-zeptional users
-        welcomePopup.innerText = `Welcome, ${username}!`;
-        welcomePopup.style.display = 'block';
-        setTimeout(() => {
-            welcomePopup.style.display = 'none';
-        }, 3000); // Hide after 3 seconds
-    }
+    // Load username from sessionStorage (this would typically be pulled from a settings or login API)
+    let username = sessionStorage.getItem('username') || 'Guest';
+    document.getElementById('username').innerText = username;
 
-    function sendMessage() {
-        const messageInput = document.getElementById('messageInput');
-        const messageText = messageInput.value.trim();
-        
-        if (messageText) {
-            const chatContainer = document.getElementById('chatContainer');
-            const timestamp = new Date().toLocaleTimeString();
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message';
-            messageDiv.innerHTML = `<img src="${profilePicSrc}" alt="Profile Pic"> <strong>${username}:</strong> ${messageText} <span class="timestamp">${timestamp}</span>`;
-            chatContainer.appendChild(messageDiv);
-            messageInput.value = ''; // Clear input
-            chatContainer.scrollTop = chatContainer.scrollHeight; // Scroll to bottom
+    // Update profile picture everywhere
+    let profilePic = sessionStorage.getItem('profilePic') || 'https://via.placeholder.com/100';
+    document.getElementById('profilePic').src = profilePic;
+
+    // Developer mode login keybind
+    document.addEventListener('keydown', function(event) {
+        if (event.ctrlKey && event.key === '1') {
+            document.getElementById('developerModal').style.display = 'flex';
+            document.body.classList.add('blurred');
         }
-    }
+    });
 
-    function openSettings() {
-        window.location.href = 'settings.html?username=' + encodeURIComponent(username);
-    }
+    // Developer login function
+    function devLogin() {
+        const devUsername = document.getElementById('devUsername').value;
+        const devPassword = document.getElementById('devPassword').value;
 
-    function addFriend() {
-        const friendUsername = document.getElementById('friendUsername').value.trim();
-        if (friendUsername && friendUsername !== username) {
-            alert(`Friend ${friendUsername} added!`);
-            document.getElementById('friendUsername').value = ''; // Clear input
+        if (devUsername === 'zeptional' && devPassword === 'corndogs123') {
+            isDevMode = true;
+            document.getElementById('developerModal').style.display = 'none';
+            document.body.classList.remove('blurred');
+            document.getElementById('devAvatar').style.display = 'flex';
+            showWelcomePopup('Welcome, zeptional!');
         } else {
-            alert('Please enter a valid username.');
+            alert('Invalid login credentials.');
         }
     }
 
-    function signOut() {
-        alert('Signed out successfully!');
-        window.location.href = 'login.html'; // Redirect to login
+    // Function to show the welcome popup with animation
+    function showWelcomePopup(message) {
+        const popup = document.getElementById('welcomePopup');
+        popup.innerText = message;
+        popup.style.display = 'block';
+        setTimeout(() => {
+            popup.style.top = '20px';
+        }, 100);
+
+        setTimeout(() => {
+            popup.style.top = '-100px';
+            setTimeout(() => popup.style.display = 'none', 500);
+        }, 3000);
+    }
+
+    // Event listener to blur background and show profile modal on clicking developer avatar
+    document.getElementById('devAvatar').addEventListener('click', function() {
+        document.body.classList.add('blurred');
+        document.getElementById('profileModal').style.display = 'block';
+    });
+
+    // Close profile modal on pressing Esc
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            document.getElementById('profileModal').style.display = 'none';
+            document.body.classList.remove('blurred');
+        }
+    });
+
+    // Function to handle adding a friend (just a placeholder for now)
+    function addFriend() {
+        const friendUsername = document.getElementById('friendUsername').value;
+        alert('Friend request sent to ' + friendUsername);
+    }
+
+    // Function to send a message (just a placeholder for now)
+    function sendMessage() {
+        const messageInput = document.getElementById('messageInput').value;
+        if (messageInput) {
+            const chatContainer = document.getElementById('chatContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message');
+            messageDiv.innerHTML = `<img src="${profilePic}" alt="Avatar"><span>${messageInput}</span>`;
+            chatContainer.appendChild(messageDiv);
+            document.getElementById('messageInput').value = '';
+        }
     }
 </script>
 
