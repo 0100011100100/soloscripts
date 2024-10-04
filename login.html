@@ -4,50 +4,121 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
+    <style>
+        @font-face {
+            font-family: 'Minecraft';
+            src: url('MinecraftRegular-Bmg3.ttf') format('truetype'); /* Use your local font file */
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #2d2d2d;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .login-container {
+            background-color: #3a3a3a;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            width: 300px;
+            text-align: center;
+        }
+
+        .login-container h1 {
+            font-family: 'Minecraft', cursive;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .login-container input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #555;
+            color: #fff;
+        }
+
+        .login-container button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #e63946;
+            color: white;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .login-container button:hover {
+            background-color: #d62839;
+        }
+
+        .error-message {
+            color: #e63946;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+    </style>
 </head>
 <body>
+
+<div class="login-container">
     <h1>Login</h1>
-    <form onsubmit="login(event)">
+    <form id="loginForm" onsubmit="login(event)">
         <input type="text" id="username" placeholder="Enter username" required>
         <input type="password" id="password" placeholder="Enter password" required>
         <button type="submit">Login</button>
     </form>
+    <div class="error-message" id="errorMessage"></div>
+</div>
 
-    <script>
-        function login(event) {
-            event.preventDefault();
-            
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value;
+<script>
+    function login(event) {
+        event.preventDefault();
 
-            // Retrieve registered users from localStorage
-            let users = JSON.parse(localStorage.getItem('users')) || [];
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+        const errorMessage = document.getElementById('errorMessage');
 
-            // Check if username already exists
-            const existingUser = users.find(user => user.username === username);
+        // Retrieve registered users from localStorage
+        let users = JSON.parse(localStorage.getItem('users')) || [];
 
-            let tag = '';
-            if (existingUser) {
-                if (existingUser.password === password) {
-                    // Existing user, log in
-                    tag = existingUser.tag;
-                } else {
-                    alert('Incorrect password!');
-                    return;
-                }
+        // Check if username already exists
+        const existingUser = users.find(user => user.username === username);
+
+        let tag = '';
+        if (existingUser) {
+            if (existingUser.password === password) {
+                // Existing user, log in
+                tag = existingUser.tag;
             } else {
-                // If username doesn't exist, create a new account with a unique tag
-                tag = Math.floor(1000 + Math.random() * 9000).toString(); // Generate 4-digit random number
-                users.push({ username, password, tag });
-                localStorage.setItem('users', JSON.stringify(users)); // Save the new user in localStorage
+                errorMessage.textContent = 'Incorrect password!';
+                return;
             }
-
-            // Save the current logged in user info in sessionStorage
-            sessionStorage.setItem('currentUser', JSON.stringify({ username, tag }));
-
-            // Redirect to the dashboard
-            window.location.href = 'dashboard.html';
+        } else {
+            // If username doesn't exist, create a new account with a unique tag
+            tag = Math.floor(1000 + Math.random() * 9000).toString(); // Generate 4-digit random number
+            users.push({ username, password, tag });
+            localStorage.setItem('users', JSON.stringify(users)); // Save the new user in localStorage
         }
-    </script>
+
+        // Save the current logged-in user info in sessionStorage
+        sessionStorage.setItem('currentUser', JSON.stringify({ username, tag }));
+
+        // Redirect to the dashboard
+        window.location.href = 'dashboard.html';
+    }
+</script>
+
 </body>
 </html>
