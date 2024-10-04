@@ -5,156 +5,98 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
     <style>
-        /* Minecraft font */
-        @font-face {
-            font-family: 'Minecraft';
-            src: url('https://0100011100100.github.io/zeptionalsscripts/assets/fonts/MinecraftRegular-Bmg3.ttf') format('truetype');
-            font-weight: normal;
-            font-style: normal;
-        }
-
         body {
-            margin: 0;
-            padding: 0;
-            background-color: #2d2d2d;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
+            justify-content: center;
             height: 100vh;
+            background-color: #2d2d2d;
             color: #ffffff;
             font-family: Arial, sans-serif;
+            margin: 0;
         }
-
-        .login-container {
-            background-color: #444;
-            padding: 20px;
-            border-radius: 10px;
+        .container {
             text-align: center;
-            width: 300px;
-            position: relative;
         }
-
-        .profile-pic {
-            display: none;
-            position: absolute;
-            top: -40px;
-            left: 50%;
-            transform: translateX(-50%);
-            border-radius: 50%;
-            width: 80px;
-            height: 80px;
-            border: 3px solid #fff;
-            background-size: cover;
-            background-position: center;
-        }
-
-        .login-container input {
-            width: 100%;
+        input {
             padding: 10px;
-            margin: 10px 0;
             border-radius: 5px;
             border: none;
-            font-size: 14px;
+            margin: 10px;
         }
-
-        .login-container button {
-            width: 100%;
-            padding: 10px;
+        button {
+            padding: 10px 20px;
+            border-radius: 5px;
+            border: none;
             background-color: #e63946;
             color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
             cursor: pointer;
+            transition: transform 0.3s;
         }
-
-        /* Popup animation styling */
-        @keyframes slideDown {
-            0% { transform: translateY(-100px); opacity: 0; }
-            100% { transform: translateY(0); opacity: 1; }
+        button:hover {
+            transform: scale(1.05);
         }
-
         .popup {
             position: fixed;
-            top: 10px;
+            top: -60px;
             left: 50%;
             transform: translateX(-50%);
-            background-color: #e63946;
-            color: white;
-            padding: 10px 20px;
+            background-color: green;
+            color: black;
+            padding: 15px;
             border-radius: 10px;
-            animation: slideDown 0.5s ease-out;
-            z-index: 999;
-        }
-
-        .popup-success {
-            background-color: #4CAF50;
+            transition: top 0.5s;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
 
-<div class="login-container">
-    <div id="profile-pic" class="profile-pic"></div>
-    <h1 style="font-family: 'Minecraft', cursive;">Login</h1>
-    <input type="text" id="username" placeholder="Enter username">
-    <input type="password" id="password" placeholder="Enter password">
+<div class="container">
+    <h1>Login</h1>
+    <input type="text" id="username" placeholder="Enter your username">
+    <input type="password" id="password" placeholder="Enter your password">
     <button onclick="login()">Login</button>
 </div>
 
-<!-- Popup container -->
-<div id="popup" class="popup" style="display:none;">Popup Message</div>
+<div id="popup" class="popup" style="display:none;"></div>
 
 <script>
-    const popup = document.getElementById('popup');
-    const profilePic = document.getElementById('profile-pic');
+    function showPopup(message) {
+        const popup = document.getElementById('popup');
+        popup.innerText = message;
+        popup.style.display = 'block';
+        popup.style.top = '20px';
 
-    function login() {
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
-
-        // Check if the username is 'zeptional' and password is 'corndogs123'
-        if (username === 'zeptional' && password === 'corndogs123') {
-            // Display the profile picture for 'zeptional'
-            profilePic.style.backgroundImage = 'url(https://avatars.githubusercontent.com/u/183566187?v=4)';
-            profilePic.style.display = 'block';
-
-            // Store the username
-            localStorage.setItem('username', username);
-            localStorage.setItem('profilePic', 'https://avatars.githubusercontent.com/u/183566187?v=4');
-
-            // Show a success popup with animation
-            showPopup('Welcome, zeptional!', 'popup-success');
-            
-            // Redirect to the dashboard after a short delay
+        popup.onclick = function() {
+            popup.style.top = '-60px';
             setTimeout(() => {
-                window.location.href = 'dashboard.html';
-            }, 1500);
-        } else {
-            // Store username and login as guest if password doesn't match
-            localStorage.setItem('username', username || 'Guest');
-
-            // Show a generic login popup
-            showPopup('Login successful! Redirecting...');
-
-            // Redirect to the dashboard after a short delay
-            setTimeout(() => {
-                window.location.href = 'dashboard.html';
-            }, 1500);
-        }
+                popup.style.display = 'none';
+            }, 500);
+        };
     }
 
-    // Function to display the popup with animation
-    function showPopup(message, additionalClass = '') {
-        popup.textContent = message;
-        if (additionalClass) {
-            popup.classList.add(additionalClass);
+    function login() {
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value.trim();
+
+        if (username === 'zeptional' && password === 'corndogs123') {
+            showPopup(`Welcome, ${username}!`);
+            setTimeout(() => {
+                window.location.href = 'pfp.html'; // Redirect to profile picture page
+            }, 1500);
+        } else {
+            const storedUser = localStorage.getItem('username');
+            if (storedUser === username) {
+                showPopup(`Welcome back, ${username}!`);
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html'; // Redirect to dashboard
+                }, 1500);
+            } else {
+                showPopup('User not found or incorrect password.'); // Popup for incorrect login
+            }
         }
-        popup.style.display = 'block';
-        setTimeout(() => {
-            popup.style.display = 'none';
-            popup.classList.remove(additionalClass);
-        }, 3000);
     }
 </script>
 
