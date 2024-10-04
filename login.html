@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
     <style>
-        /* Load Minecraft font from GitHub */
+        /* Minecraft font */
         @font-face {
             font-family: 'Minecraft';
-            src: url('https://0100011100100.github.io/zeptionalsscripts/assets/fonts/MinecraftFont.ttf') format('truetype');
+            src: url('https://0100011100100.github.io/zeptionalsscripts/assets/fonts/MinecraftRegular-Bmg3.ttf') format('truetype');
             font-weight: normal;
             font-style: normal;
         }
@@ -31,6 +31,21 @@
             border-radius: 10px;
             text-align: center;
             width: 300px;
+            position: relative;
+        }
+
+        .profile-pic {
+            display: none;
+            position: absolute;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            border: 3px solid #fff;
+            background-size: cover;
+            background-position: center;
         }
 
         .login-container input {
@@ -80,6 +95,7 @@
 <body>
 
 <div class="login-container">
+    <div id="profile-pic" class="profile-pic"></div>
     <h1 style="font-family: 'Minecraft', cursive;">Login</h1>
     <input type="text" id="username" placeholder="Enter username">
     <input type="password" id="password" placeholder="Enter password">
@@ -91,6 +107,7 @@
 
 <script>
     const popup = document.getElementById('popup');
+    const profilePic = document.getElementById('profile-pic');
 
     function login() {
         const username = document.getElementById('username').value;
@@ -98,8 +115,13 @@
 
         // Check if the username is 'zeptional' and password is 'corndogs123'
         if (username === 'zeptional' && password === 'corndogs123') {
+            // Display the profile picture for 'zeptional'
+            profilePic.style.backgroundImage = 'url(https://avatars.githubusercontent.com/u/183566187?v=4)';
+            profilePic.style.display = 'block';
+
             // Store the username
             localStorage.setItem('username', username);
+            localStorage.setItem('profilePic', 'https://avatars.githubusercontent.com/u/183566187?v=4');
 
             // Show a success popup with animation
             showPopup('Welcome, zeptional!', 'popup-success');
