@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
         body {
             margin: 0;
@@ -65,8 +66,11 @@
             border-radius: 50%;
         }
         .username {
-            background: linear-gradient(90deg, #e63946, #f1faee);
+            background: linear-gradient(90deg, red, orange, yellow, green, blue, purple);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
             display: inline-block;
+            font-family: 'Press Start 2P', cursive;
             padding: 5px 10px;
             border-radius: 5px;
             transition: transform 0.3s;
@@ -130,39 +134,19 @@
             50% { transform: scale(1.5); }
             100% { transform: scale(1); }
         }
-        @keyframes shake {
-            0% { transform: translate(0); }
-            25% { transform: translate(-5px); }
-            50% { transform: translate(5px); }
-            75% { transform: translate(-5px); }
-            100% { transform: translate(0); }
-        }
-        @keyframes bounce {
-            0% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-            100% { transform: translateY(0); }
-        }
-        @keyframes wiggle {
-            0% { transform: rotate(0); }
-            25% { transform: rotate(10deg); }
-            50% { transform: rotate(-10deg); }
-            75% { transform: rotate(10deg); }
-            100% { transform: rotate(0); }
-        }
-        @keyframes pulsate {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
     </style>
 </head>
 <body>
 
+<audio id="clickSound" src="path/to/click-sound.mp3" preload="auto"></audio>
+<audio id="hoverSound" src="path/to/hover-sound.mp3" preload="auto"></audio>
+<audio id="explosionSound" src="path/to/explosion-sound.mp3" preload="auto"></audio>
+
 <div class="header">
-    <button onclick="window.location.href='discover.html'">Discover</button>
-    <button onclick="window.location.href='community.html'">Community</button>
-    <button onclick="openSettings()">Settings</button>
-    <button onclick="signOut()">Sign Out</button>
+    <button onclick="playSound('click') || window.location.href='discover.html'">Discover</button>
+    <button onclick="playSound('click') || window.location.href='community.html'">Community</button>
+    <button onclick="playSound('click') || openSettings()">Settings</button>
+    <button onclick="playSound('click') || signOut()">Sign Out</button>
 </div>
 
 <div class="add-friend">
@@ -193,8 +177,6 @@
 
     document.getElementById('username').innerHTML = 'zeptional <span style="font-size: 0.8em; color: #ccc;">(Owner)</span>';
 
-    const animations = ['explode', 'shake', 'bounce', 'wiggle', 'pulsate'];
-
     function sendMessage() {
         const messageInput = document.getElementById('messageInput');
         const messageText = messageInput.value.trim();
@@ -204,11 +186,17 @@
             const timestamp = new Date().toLocaleTimeString();
             const messageDiv = document.createElement('div');
             messageDiv.className = 'message';
-            messageDiv.innerHTML = `<img src="${profilePicSrc}" alt="Profile Pic"> <strong>${username}:</strong> ${messageText} <span class="timestamp">${timestamp}</span>`;
+            messageDiv.innerHTML = `<img src="${profilePicSrc}" alt="Profile Pic"> <strong style="background: linear-gradient(90deg, red, orange, yellow, green, blue, purple); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">${username}:</strong> ${messageText} <span class="timestamp">${timestamp}</span>`;
             chatContainer.appendChild(messageDiv);
             messageInput.value = ''; // Clear input
             chatContainer.scrollTop = chatContainer.scrollHeight; // Scroll to bottom
         }
+    }
+
+    function playSound(type) {
+        const sound = document.getElementById(type + 'Sound');
+        sound.currentTime = 0; // Reset sound
+        sound.play();
     }
 
     function openSettings() {
@@ -252,8 +240,8 @@
 
     // Add hover effect to username
     document.getElementById('username').addEventListener('mouseover', function() {
-        const randomAnimation = animations[Math.floor(Math.random() * animations.length)];
-        this.style.animation = randomAnimation + ' 0.5s forwards';
+        playSound('hover');
+        this.style.animation = 'explode 0.5s forwards';
     });
 </script>
 
