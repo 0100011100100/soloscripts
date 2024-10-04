@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title></title>
+    <title>about:blank</title>
     <style>
         body {
             margin: 0;
@@ -13,210 +13,128 @@
             color: #ffffff;
             font-family: Arial, sans-serif;
             height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             position: relative;
         }
-        header {
-            position: fixed;
-            top: 0;
-            left: 0;
+        .container {
+            background-color: #3a3a3a;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+        h2 {
+            margin-bottom: 20px;
+        }
+        input {
             width: 100%;
             padding: 10px;
-            background-color: rgba(31, 31, 31, 0.8);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            z-index: 10;
-        }
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-            color: #e63946;
-        }
-        .nav {
-            display: flex;
-            gap: 15px;
-        }
-        .nav a {
-            color: #ffffff;
-            text-decoration: none;
-            padding: 10px 15px;
+            margin: 10px 0;
+            border: none;
             border-radius: 5px;
-            transition: background-color 0.3s;
-        }
-        .nav a:hover {
-            background-color: #e63946;
         }
         .button {
             background-color: #e63946;
             color: white;
             border: none;
-            padding: 15px 30px;
+            padding: 15px;
             font-size: 16px;
             border-radius: 5px;
             cursor: pointer;
             transition: background-color 0.3s, transform 0.3s;
-            margin: 10px;
-            display: inline-block;
+            width: 100%;
         }
         .button:hover {
             background-color: #d62839;
-            transform: scale(1.1);
-        }
-        .glitch {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            color: rgba(255, 255, 255, 0.6);
-            font-size: 18px;
-            opacity: 0.6;
-            z-index: 1;
-            transition: transform 0.3s;
-        }
-        .glitch:hover {
-            transform: scale(1.1);
-        }
-        .glitch-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: 100;
-            display: none; /* Initially hidden */
-        }
-        .glitch-effect {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            animation: glitch-animation 1s infinite;
-        }
-        @keyframes glitch-animation {
-            0% { transform: translate(0); }
-            10% { transform: translate(-5px, 0); }
-            20% { transform: translate(5px, 0); }
-            30% { transform: translate(-5px, 0); }
-            40% { transform: translate(5px, 0); }
-            50% { transform: translate(-5px, 0); }
-            60% { transform: translate(5px, 0); }
-            70% { transform: translate(-5px, 0); }
-            80% { transform: translate(5px, 0); }
-            100% { transform: translate(0); }
-        }
-        .glitch-effect::before, .glitch-effect::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0.5;
-            background: linear-gradient(90deg, rgba(255, 0, 0, 0.5), rgba(0, 0, 255, 0.5));
-            animation: glitch-colors 0.5s infinite;
-        }
-        @keyframes glitch-colors {
-            0% { background: linear-gradient(90deg, rgba(255, 0, 0, 0.5), rgba(0, 0, 255, 0.5)); }
-            50% { background: linear-gradient(90deg, rgba(0, 255, 0, 0.5), rgba(255, 255, 0, 0.5)); }
-            100% { background: linear-gradient(90deg, rgba(255, 0, 0, 0.5), rgba(0, 0, 255, 0.5)); }
-        }
-        .content {
-            margin-top: 60px; /* Space for header */
-            padding: 20px;
-            text-align: center;
-        }
-        .games {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-        .game-card {
-            background-color: #3a3a3a;
-            border-radius: 8px;
-            padding: 10px;
-            text-align: center;
-            transition: transform 0.3s;
-        }
-        .game-card:hover {
             transform: scale(1.05);
         }
-        footer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
+        .notification {
+            position: absolute;
+            top: -60px; /* Start off-screen */
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 0, 0, 0.9);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            font-size: 18px;
+            opacity: 0;
+            transition: all 0.5s ease;
+            cursor: pointer;
+            z-index: 10;
+        }
+        .notification.show {
+            top: 20px; /* Slide down */
+            opacity: 1; /* Fade in */
+        }
+        .notification:hover {
+            transform: translateX(-50%) scale(0.9); /* Shrink on hover */
+        }
+        .games-section {
+            margin-top: 20px;
             width: 100%;
-            padding: 10px;
-            background-color: rgba(31, 31, 31, 0.8);
+        }
+        .coming-soon {
+            color: rgba(200, 200, 200, 0.5);
             text-align: center;
-            color: #ffffff;
+            margin: 10px 0;
         }
     </style>
 </head>
 <body>
 
-<header>
-    <div class="logo"></div>
-    <nav class="nav">
-        <a href="#">Home</a>
-        <a href="#">Games</a>
-        <a href="#">Create</a>
-        <a href="#">Community</a>
-        <a href="#">Profile</a>
-    </nav>
-</header>
-
-<div class="content">
-    <button class="button" onclick="alert('Chat feature coming soon!')">Chat</button>
-    
-    <h2>Popular Games</h2>
-    <div class="games">
-        <div class="game-card">
-            <h3>Game 1</h3>
-            <button class="button" onclick="window.location.href='https://www.example1.com'">Play</button>
-        </div>
-        <div class="game-card">
-            <h3>Game 2</h3>
-            <button class="button" onclick="window.location.href='https://www.example2.com'">Play</button>
-        </div>
-        <div class="game-card">
-            <h3>Game 3</h3>
-            <button class="button" onclick="window.location.href='https://www.example3.com'">Play</button>
-        </div>
-        <div class="game-card">
-            <h3>Game 4</h3>
-            <button class="button" onclick="window.location.href='https://www.example4.com'">Play</button>
-        </div>
-    </div>
+<div class="container">
+    <h2>Login</h2>
+    <input type="text" id="username" placeholder="Enter Username" required>
+    <input type="password" id="password" placeholder="Enter Password" required>
+    <button class="button" onclick="login()">Login</button>
 </div>
 
-<div class="glitch-overlay" id="glitchOverlay">
-    <div class="glitch-effect"></div>
-</div>
+<div class="notification" id="notification">Incorrect Username or Password</div>
 
-<footer>
-    <p>&copy; zeptional. All rights reserved.</p>
-</footer>
+<div class="games-section">
+    <p class="coming-soon">(Coming Soon)</p>
+    <div class="button" style="background-color: #4CAF50;">Game 1</div>
+    <div class="button" style="background-color: #2196F3;">Game 2</div>
+    <div class="button" style="background-color: #FFC107;">Game 3</div>
+    <div class="button" style="background-color: #FF5722;">Game 4</div>
+</div>
 
 <script>
-    let hoverTimer;
-    const glitchText = document.querySelector('.glitch');
-    const glitchOverlay = document.getElementById('glitchOverlay');
+    function login() {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
 
-    glitchText.addEventListener('mouseover', () => {
-        hoverTimer = setTimeout(() => {
-            glitchOverlay.style.display = 'block';
-            setTimeout(() => {
-                glitchOverlay.style.display = 'none';
-            }, 2000); // Glitch effect lasts for 2 seconds
-        }, 3000); // Trigger after 3 seconds
-    });
+        // Basic validation (you would typically check these against a database)
+        if (username === "" || password === "") {
+            showNotification("Please enter both username and password.");
+        } else if (username !== "testUser" || password !== "testPass") {
+            showNotification("Incorrect Username or Password");
+        } else {
+            // Redirect to a new page after logging in
+            window.location.href = `dashboard.html?username=${encodeURIComponent(username)}`;
+        }
+    }
 
-    glitchText.addEventListener('mouseout', () => {
-        clearTimeout(hoverTimer);
-        glitchOverlay.style.display = 'none'; // Hide overlay immediately on mouse out
+    function showNotification(message) {
+        const notification = document.getElementById('notification');
+        notification.textContent = message;
+        notification.classList.add('show');
+
+        // Remove notification after a brief moment
+        setTimeout(() => {
+            notification.classList.remove('show');
+        }, 3000); // Show for 3 seconds
+    }
+
+    // Click to dismiss the notification
+    document.getElementById('notification').addEventListener('click', () => {
+        const notification = document.getElementById('notification');
+        notification.classList.remove('show');
     });
 </script>
 
