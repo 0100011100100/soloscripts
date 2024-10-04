@@ -5,54 +5,218 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
     <style>
-        .chat {
-            margin-top: 20px;
+        @font-face {
+            font-family: 'Minecraft';
+            src: url('minecraftregular-bmg3.ttf') format('truetype'); /* Use your local font file */
         }
-        .message {
-            margin: 10px 0;
-            padding: 10px;
-            background-color: #444;
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #2d2d2d;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background-color: #3a3a3a;
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            border-bottom: 2px solid #e63946;
+        }
+
+        .header button {
+            background: none;
+            border: none;
             color: white;
+            cursor: pointer;
+            padding: 10px 20px;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+
+        .header button:hover {
+            color: #e63946;
+        }
+
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 20px;
+        }
+
+        .profile {
+            margin: 20px;
+            text-align: center;
+        }
+
+        .profile img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+        }
+
+        .username {
+            display: inline-block;
+            font-family: Arial, sans-serif; /* Default font */
+            font-size: 20px;
+            padding: 5px 10px;
             border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 600px;
+            margin-top: 20px;
+            background-color: #444;
+            border-radius: 10px;
+            padding: 10px;
+            overflow-y: auto;
+            max-height: 200px;
+        }
+
+        .message {
+            margin: 5px 0;
+            padding: 5px;
+            border-radius: 5px;
+            background-color: #555;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-container {
+            display: flex;
+            margin-top: 10px;
+        }
+
+        .input-container input {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+        }
+
+        .input-container button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #e63946;
+            color: white;
+            cursor: pointer;
+        }
+
+        .input-container button:hover {
+            background-color: #d62839;
+        }
+
+        .timestamp {
+            font-size: 12px;
+            color: #ccc;
+            margin-left: 10px;
         }
     </style>
 </head>
 <body>
-    <h1>Dashboard</h1>
 
-    <div id="welcomeMessage"></div>
-    
-    <div class="chat">
-        <input type="text" id="messageInput" placeholder="Type a message">
-        <button onclick="sendMessage()">Send</button>
-        <div id="chatContainer"></div>
+<div class="header">
+    <button onclick="playSound('click') || window.location.href='discover.html'">Discover</button>
+    <button onclick="playSound('click') || window.location.href='community.html'">Community</button>
+    <button onclick="playSound('click') || openSettings()">Settings</button>
+    <button onclick="playSound('click') || signOut()">Sign Out</button>
+</div>
+
+<div class="content">
+    <div class="profile">
+        <img id="profilePic" src="https://via.placeholder.com/100" alt="Profile Picture">
+        <h2 class="username" id="usernameDisplay"></h2>
     </div>
+    
+    <div class="chat-container" id="chatContainer">
+        <!-- Chat messages will be appended here -->
+    </div>
+    
+    <div class="input-container">
+        <input type="text" id="messageInput" placeholder="Type a message..." onkeydown="if (event.key === 'Enter') sendMessage()">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+</div>
 
-    <script>
-        // Retrieve logged-in user info from sessionStorage
-        const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+<script>
+    // Simulate login and user data retrieval
+    const userData = JSON.parse(sessionStorage.getItem('currentUser')) || { username: 'Guest', tag: '0000' };
+    const username = userData.username;
+    const tag = userData.tag;
 
-        if (!currentUser) {
-            // Redirect to login if no user is logged in
-            window.location.href = 'login.html';
+    // Set profile picture if saved in settings (simulate with localStorage for now)
+    const profilePicSrc = localStorage.getItem('profilePic') || 'https://via.placeholder.com/100';
+    document.getElementById('profilePic').src = profilePicSrc;
+
+    // Display the username and tag
+    const usernameDisplay = document.getElementById('usernameDisplay');
+    if (username === 'zeptional') {
+        usernameDisplay.innerHTML = `<span style="background: linear-gradient(90deg, red, orange, yellow, green, blue, purple); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-family: 'Minecraft', cursive;">${username}#${tag} (Owner)</span>`;
+    } else {
+        usernameDisplay.textContent = `${username}#${tag}`;
+    }
+
+    // Chat functionality
+    function sendMessage() {
+        const messageInput = document.getElementById('messageInput');
+        const messageText = messageInput.value.trim();
+        
+        if (messageText) {
+            const chatContainer = document.getElementById('chatContainer');
+            const timestamp = new Date().toLocaleTimeString();
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+            messageDiv.innerHTML = `<strong>${username}#${tag}:</strong> ${messageText} <span class="timestamp">${timestamp}</span>`;
+            chatContainer.appendChild(messageDiv);
+            messageInput.value = ''; // Clear input
+            chatContainer.scrollTop = chatContainer.scrollHeight; // Scroll to bottom
         }
+    }
 
-        const { username, tag } = currentUser;
+    // Sign out functionality with popup
+    function signOut() {
+        const notification = document.createElement('div');
+        notification.style.position = 'absolute';
+        notification.style.top = '-60px';
+        notification.style.left = '50%';
+        notification.style.transform = 'translateX(-50%)';
+        notification.style.backgroundColor = 'red';
+        notification.style.color = 'black';
+        notification.style.padding = '15px 30px';
+        notification.style.borderRadius = '10px';
+        notification.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.5)';
+        notification.style.transition = 'top 0.5s';
+        notification.innerText = 'Signed out successfully!';
+        document.body.appendChild(notification);
 
-        // Display welcome message
-        document.getElementById('welcomeMessage').innerText = `Welcome, ${username}#${tag}!`;
+        setTimeout(() => {
+            notification.style.top = '20px';
+            setTimeout(() => {
+                notification.style.top = '-60px';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                    sessionStorage.removeItem('currentUser'); // Clear the session data
+                    window.location.href = 'login.html'; // Redirect to login
+                }, 500);
+            }, 2000);
+        }, 100);
+    }
 
-        function sendMessage() {
-            const messageInput = document.getElementById('messageInput').value.trim();
-            if (messageInput) {
-                const chatContainer = document.getElementById('chatContainer');
-                const messageDiv = document.createElement('div');
-                messageDiv.className = 'message';
-                messageDiv.innerText = `${username}#${tag}: ${messageInput}`;
-                chatContainer.appendChild(messageDiv);
-                document.getElementById('messageInput').value = ''; // Clear input
-            }
-        }
-    </script>
+    function openSettings() {
+        window.location.href = 'settings.html'; // Redirect to settings
+    }
+</script>
+
 </body>
 </html>
