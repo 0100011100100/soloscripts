@@ -3,4 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title
+    <title>Developer Tools</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #2d2d2d;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #e63946;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #d62839;
+        }
+
+        .notification {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Developer Tools</h1>
+<button id="shutdownButton">Shutdown All Servers</button>
+<div class="notification" id="notification"></div>
+
+<script>
+    document.getElementById('shutdownButton').onclick = function() {
+        // This simulates shutting down the server
+        const confirmation = confirm('Are you sure you want to shut down all servers? This action cannot be undone.');
+        if (confirmation) {
+            // Perform shutdown action (this would typically be an API call in a real application)
+            document.getElementById('notification').innerText = 'All servers have been shut down!';
+            document.getElementById('notification').style.backgroundColor = 'red';
+            document.getElementById('notification').style.display = 'block';
+
+            // For demo purposes, we can redirect to the login page or perform any other action
+            setTimeout(() => {
+                window.location.href = 'login.html'; // Redirect to login after a delay
+            }, 2000);
+        }
+    };
+</script>
+
+</body>
+</html>
