@@ -32,7 +32,7 @@
         }
         .popup {
             position: fixed;
-            top: -60px;
+            top: -60px; /* Start off-screen */
             left: 50%;
             transform: translateX(-50%);
             background-color: green;
@@ -59,13 +59,13 @@
         const popup = document.getElementById('popup');
         popup.innerText = message;
         popup.style.display = 'block';
-        popup.style.top = '20px';
+        popup.style.top = '20px'; // Bring popup into view
 
         popup.onclick = function() {
-            popup.style.top = '-60px';
+            popup.style.top = '-60px'; // Move popup off-screen
             setTimeout(() => {
                 popup.style.display = 'none';
-            }, 500);
+            }, 500); // Delay hiding
         };
     }
 
