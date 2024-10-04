@@ -34,25 +34,6 @@
         .header button:hover {
             color: #e63946;
         }
-        .notification {
-            position: absolute;
-            top: -60px; /* Start off-screen */
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: green;
-            color: black;
-            padding: 15px 30px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-            font-size: 18px;
-            opacity: 0;
-            transition: all 0.5s ease;
-            z-index: 10;
-        }
-        .notification.show {
-            top: 20px; /* Slide down */
-            opacity: 1; /* Fade in */
-        }
         .content {
             flex: 1;
             display: flex;
@@ -61,45 +42,48 @@
             justify-content: flex-start;
             padding: 20px;
         }
-        .friends-list {
-            background-color: #3a3a3a;
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 20px;
+        .profile {
+            margin: 20px;
+        }
+        .profile img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+        }
+        .chat-container {
             width: 100%;
             max-width: 600px;
-            text-align: center;
-        }
-        .friend {
-            margin: 10px 0;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px;
-            border-radius: 5px;
+            margin-top: 20px;
             background-color: #444;
+            border-radius: 10px;
+            padding: 10px;
+            overflow-y: auto;
+            max-height: 200px;
         }
-        .friend img {
-            width: 40px;
-            height: 40px;
+        .message {
+            margin: 5px 0;
+            padding: 5px;
+            border-radius: 5px;
+            background-color: #555;
+        }
+        .message img {
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
             margin-right: 10px;
+            vertical-align: middle;
         }
-        .add-friend {
-            margin-top: 20px;
+        .input-container {
             display: flex;
-            justify-content: center;
-            width: 100%;
-            max-width: 600px;
+            margin-top: 10px;
         }
-        .add-friend input {
+        .input-container input {
+            flex: 1;
             padding: 10px;
             border: none;
             border-radius: 5px;
-            width: 80%;
-            margin-right: 10px;
         }
-        .add-friend button {
+        .input-container button {
             padding: 10px 15px;
             border: none;
             border-radius: 5px;
@@ -107,33 +91,33 @@
             color: white;
             cursor: pointer;
         }
-        .add-friend button:hover {
+        .input-container button:hover {
             background-color: #d62839;
         }
     </style>
 </head>
 <body>
 
-<div class="notification" id="welcomeNotification"></div>
-
 <div class="header">
     <button onclick="window.location.href='#'">Discover</button>
     <button onclick="window.location.href='#'">Community</button>
-    <button onclick="window.location.href='#'">Avatar</button>
-    <button onclick="window.location.href='#'">Messages</button>
-    <button onclick="window.location.href='#'">Settings</button>
+    <button onclick="openSettings()">Settings</button>
+    <button onclick="signOut()">Sign Out</button>
 </div>
 
 <div class="content">
-    <h1>Dashboard</h1>
-    <div class="friends-list" id="friendsList">
-        <h3>Friends List</h3>
-        <!-- Friends will be dynamically added here -->
+    <div class="profile">
+        <img id="profilePic" src="https://via.placeholder.com/100" alt="Profile Picture">
+        <h2 id="welcomeMessage"></h2>
     </div>
-
-    <div class="add-friend">
-        <input type="text" id="friendUsername" placeholder="Add a friend by username">
-        <button onclick="addFriend()">Add Friend</button>
+    
+    <div class="chat-container" id="chatContainer">
+        <!-- Messages will be appended here -->
+    </div>
+    
+    <div class="input-container">
+        <input type="text" id="messageInput" placeholder="Type a message...">
+        <button onclick="sendMessage()">Send</button>
     </div>
 </div>
 
@@ -141,35 +125,51 @@
     const params = new URLSearchParams(window.location.search);
     const username = params.get('username');
 
-    // Set welcome message
-    document.getElementById('welcomeNotification').innerText = `Welcome, ${username}!`;
-    
-    // Show welcome notification
-    const welcomeNotification = document.getElementById('welcomeNotification');
-    welcomeNotification.classList.add('show');
+    document.getElementById('welcomeMessage').innerText = `Welcome, ${username}!`;
 
-    // Remove notification after a brief moment
-    setTimeout(() => {
-        welcomeNotification.classList.remove('show');
-    }, 3000); // Show for 3 seconds
-
-    // Add friend functionality
-    const friendsList = document.getElementById('friendsList');
-
-    function addFriend() {
-        const friendUsername = document.getElementById('friendUsername').value.trim();
-        if (friendUsername) {
-            const friendDiv = document.createElement('div');
-            friendDiv.className = 'friend';
-            friendDiv.innerHTML = `<img src="https://via.placeholder.com/40" alt="Profile Picture"> ${friendUsername} <button onclick="removeFriend(this)">Remove</button>`;
-            friendsList.appendChild(friendDiv);
-            document.getElementById('friendUsername').value = ''; // Clear input
+    function sendMessage() {
+        const messageInput = document.getElementById('messageInput');
+        const messageText = messageInput.value.trim();
+        
+        if (messageText) {
+            const chatContainer = document.getElementById('chatContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+            messageDiv.innerHTML = `<img src="${document.getElementById('profilePic').src}" alt="Profile Pic"> ${messageText}`;
+            chatContainer.appendChild(messageDiv);
+            messageInput.value = ''; // Clear input
+            chatContainer.scrollTop = chatContainer.scrollHeight; // Scroll to bottom
         }
     }
 
-    function removeFriend(button) {
-        const friendDiv = button.parentElement;
-        friendsList.removeChild(friendDiv);
+    function openSettings() {
+        window.location.href = 'settings.html?username=' + encodeURIComponent(username);
+    }
+
+    function signOut() {
+        const notification = document.createElement('div');
+        notification.style.position = 'absolute';
+        notification.style.top = '-60px';
+        notification.style.left = '50%';
+        notification.style.transform = 'translateX(-50%)';
+        notification.style.backgroundColor = 'red';
+        notification.style.color = 'black';
+        notification.style.padding = '15px 30px';
+        notification.style.borderRadius = '10px';
+        notification.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.5)';
+        notification.style.fontSize = '18px';
+        notification.style.opacity = '0';
+        notification.style.transition = 'all 0.5s ease';
+        document.body.appendChild(notification);
+        notification.innerText = 'Signed out successfully!';
+        setTimeout(() => {
+            notification.style.top = '20px';
+            notification.style.opacity = '1';
+        }, 10);
+
+        setTimeout(() => {
+            window.location.href = 'index.html';
+        }, 3000); // Redirect after 3 seconds
     }
 </script>
 
