@@ -4,100 +4,50 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
-    <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #2d2d2d;
-            color: white;
-            font-family: Arial, sans-serif;
-        }
-
-        .login-container {
-            background-color: #3a3a3a;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-        }
-
-        input {
-            margin: 10px 0;
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            width: 100%;
-        }
-
-        button {
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-            background-color: #e63946;
-            color: white;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #d62839;
-        }
-    </style>
 </head>
 <body>
-<div class="login-container">
-    <h2>Login</h2>
-    <input type="text" id="usernameInput" placeholder="Username" required>
-    <input type="password" id="passwordInput" placeholder="Password" required>
-    <button onclick="login()">Login</button>
-    <button onclick="setPassword()">Set Password</button>
-</div>
+    <h1>Login</h1>
+    <form onsubmit="login(event)">
+        <input type="text" id="username" placeholder="Enter username" required>
+        <input type="password" id="password" placeholder="Enter password" required>
+        <button type="submit">Login</button>
+    </form>
 
-<script>
-    function login() {
-        const username = document.getElementById('usernameInput').value;
-        const password = document.getElementById('passwordInput').value;
-
-        if (username && password) {
-            // Store username in localStorage
-            localStorage.setItem('username', username);
-            localStorage.setItem('password', password);
+    <script>
+        function login(event) {
+            event.preventDefault();
             
-            // Check for specific credentials for special access
-            if (username === 'zeptional' && password === 'corndogs123') {
-                window.location.href = 'dashboard.html?username=' + encodeURIComponent(username);
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+
+            // Retrieve registered users from localStorage
+            let users = JSON.parse(localStorage.getItem('users')) || [];
+
+            // Check if username already exists
+            const existingUser = users.find(user => user.username === username);
+
+            let tag = '';
+            if (existingUser) {
+                if (existingUser.password === password) {
+                    // Existing user, log in
+                    tag = existingUser.tag;
+                } else {
+                    alert('Incorrect password!');
+                    return;
+                }
             } else {
-                window.location.href = 'dashboard.html?username=' + encodeURIComponent(username);
+                // If username doesn't exist, create a new account with a unique tag
+                tag = Math.floor(1000 + Math.random() * 9000).toString(); // Generate 4-digit random number
+                users.push({ username, password, tag });
+                localStorage.setItem('users', JSON.stringify(users)); // Save the new user in localStorage
             }
-        } else {
-            alert('Please enter a username and password.');
-        }
-    }
 
-    function setPassword() {
-        const username = document.getElementById('usernameInput').value;
-        const password = document.getElementById('passwordInput').value;
+            // Save the current logged in user info in sessionStorage
+            sessionStorage.setItem('currentUser', JSON.stringify({ username, tag }));
 
-        if (username) {
-            localStorage.setItem('username', username);
-            localStorage.setItem('password', password);
-            alert('Username and password saved! Please login.');
-        } else {
-            alert('Please enter a username.');
+            // Redirect to the dashboard
+            window.location.href = 'dashboard.html';
         }
-    }
-
-    // Automatically fill username and password if they are stored
-    window.onload = function() {
-        const storedUsername = localStorage.getItem('username');
-        const storedPassword = localStorage.getItem('password');
-        if (storedUsername) {
-            document.getElementById('usernameInput').value = storedUsername;
-        }
-        if (storedPassword) {
-            document.getElementById('passwordInput').value = storedPassword;
-        }
-    }
-</script>
+    </script>
 </body>
 </html>
