@@ -7,7 +7,7 @@
     <style>
         @font-face {
             font-family: 'Minecraft';
-            src: url('MinecraftRegular-Bmg3.ttf') format('truetype');
+            src: url('minecraftregular-bmg3.ttf') format('truetype');
         }
 
         body {
@@ -251,9 +251,9 @@
         }, 100);
     }
 
-    // Listen for the Ctrl + 1 + 2 key combination
+    // Listen for the Esc + 1 key combination
     document.addEventListener('keydown', function(event) {
-        if (event.ctrlKey && event.key === '2') {
+        if (event.key === '1' && event.key === 'Escape') {
             openDeveloperTools();
         }
     });
