@@ -5,11 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
     <style>
-        @font-face {
-            font-family: 'Minecraft';
-            src: url('minecraftregular-bmg3.ttf') format('truetype'); /* Use your local font file */
-        }
-
         body {
             margin: 0;
             padding: 0;
@@ -20,7 +15,6 @@
             display: flex;
             flex-direction: column;
         }
-
         .header {
             background-color: #3a3a3a;
             display: flex;
@@ -28,7 +22,6 @@
             padding: 15px;
             border-bottom: 2px solid #e63946;
         }
-
         .header button {
             background: none;
             border: none;
@@ -38,183 +31,86 @@
             font-size: 14px;
             transition: color 0.3s;
         }
-
         .header button:hover {
             color: #e63946;
         }
-
         .content {
             flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
             padding: 20px;
-        }
-
-        .profile {
-            margin: 20px;
             text-align: center;
         }
-
-        .profile img {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-        }
-
         .username {
-            display: inline-block;
-            font-family: Arial, sans-serif; /* Default font */
-            font-size: 20px;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
+            font-size: 30px;
         }
-
-        .chat-container {
+        /* Add your blur effect when pressing esc+1 */
+        #blurred {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
-            max-width: 600px;
-            margin-top: 20px;
-            background-color: #444;
-            border-radius: 10px;
-            padding: 10px;
-            overflow-y: auto;
-            max-height: 200px;
-        }
-
-        .message {
-            margin: 5px 0;
-            padding: 5px;
-            border-radius: 5px;
-            background-color: #555;
-            display: flex;
-            align-items: center;
-        }
-
-        .input-container {
-            display: flex;
-            margin-top: 10px;
-        }
-
-        .input-container input {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            border-radius: 5px;
-        }
-
-        .input-container button {
-            padding: 10px 15px;
-            border: none;
-            border-radius: 5px;
-            background-color: #e63946;
-            color: white;
-            cursor: pointer;
-        }
-
-        .input-container button:hover {
-            background-color: #d62839;
-        }
-
-        .timestamp {
-            font-size: 12px;
-            color: #ccc;
-            margin-left: 10px;
+            height: 100%;
+            backdrop-filter: blur(10px);
+            z-index: 999;
         }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <button onclick="playSound('click') || window.location.href='discover.html'">Discover</button>
-    <button onclick="playSound('click') || window.location.href='community.html'">Community</button>
-    <button onclick="playSound('click') || openSettings()">Settings</button>
-    <button onclick="playSound('click') || signOut()">Sign Out</button>
+    <button onclick="navigateTo('discovery.html')">Discover</button>
+    <button onclick="navigateTo('community.html')">Community</button>
+    <button onclick="navigateTo('settings.html')">Settings</button>
+    <button onclick="signOut()">Sign Out</button>
 </div>
 
 <div class="content">
-    <div class="profile">
-        <img id="profilePic" src="https://via.placeholder.com/100" alt="Profile Picture">
-        <h2 class="username" id="usernameDisplay"></h2>
-    </div>
-    
-    <div class="chat-container" id="chatContainer">
-        <!-- Chat messages will be appended here -->
-    </div>
-    
-    <div class="input-container">
-        <input type="text" id="messageInput" placeholder="Type a message..." onkeydown="if (event.key === 'Enter') sendMessage()">
-        <button onclick="sendMessage()">Send</button>
+    <h1 class="username" id="usernameDisplay"></h1>
+    <p>Welcome to your dashboard!</p>
+</div>
+
+<div id="blurred">
+    <div class="login-modal">
+        <h2>Developer Login</h2>
+        <input type="text" id="devUsername" placeholder="Username">
+        <input type="password" id="devPassword" placeholder="Password">
+        <button onclick="developerLogin()">Login</button>
     </div>
 </div>
 
 <script>
-    // Simulate login and user data retrieval
-    const userData = JSON.parse(sessionStorage.getItem('currentUser')) || { username: 'Guest', tag: '0000' };
-    const username = userData.username;
-    const tag = userData.tag;
-
-    // Set profile picture if saved in settings (simulate with localStorage for now)
-    const profilePicSrc = localStorage.getItem('profilePic') || 'https://via.placeholder.com/100';
-    document.getElementById('profilePic').src = profilePicSrc;
-
-    // Display the username and tag
+    const username = localStorage.getItem('username');
     const usernameDisplay = document.getElementById('usernameDisplay');
-    if (username === 'zeptional') {
-        usernameDisplay.innerHTML = `<span style="background: linear-gradient(90deg, red, orange, yellow, green, blue, purple); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-family: 'Minecraft', cursive;">${username}#${tag} (Owner)</span>`;
-    } else {
-        usernameDisplay.textContent = `${username}#${tag}`;
+    usernameDisplay.textContent = username ? username : 'Guest';
+
+    function navigateTo(page) {
+        window.location.href = page;
     }
 
-    // Chat functionality
-    function sendMessage() {
-        const messageInput = document.getElementById('messageInput');
-        const messageText = messageInput.value.trim();
-        
-        if (messageText) {
-            const chatContainer = document.getElementById('chatContainer');
-            const timestamp = new Date().toLocaleTimeString();
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message';
-            messageDiv.innerHTML = `<strong>${username}#${tag}:</strong> ${messageText} <span class="timestamp">${timestamp}</span>`;
-            chatContainer.appendChild(messageDiv);
-            messageInput.value = ''; // Clear input
-            chatContainer.scrollTop = chatContainer.scrollHeight; // Scroll to bottom
-        }
-    }
-
-    // Sign out functionality with popup
     function signOut() {
-        const notification = document.createElement('div');
-        notification.style.position = 'absolute';
-        notification.style.top = '-60px';
-        notification.style.left = '50%';
-        notification.style.transform = 'translateX(-50%)';
-        notification.style.backgroundColor = 'red';
-        notification.style.color = 'black';
-        notification.style.padding = '15px 30px';
-        notification.style.borderRadius = '10px';
-        notification.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.5)';
-        notification.style.transition = 'top 0.5s';
-        notification.innerText = 'Signed out successfully!';
-        document.body.appendChild(notification);
-
-        setTimeout(() => {
-            notification.style.top = '20px';
-            setTimeout(() => {
-                notification.style.top = '-60px';
-                setTimeout(() => {
-                    document.body.removeChild(notification);
-                    sessionStorage.removeItem('currentUser'); // Clear the session data
-                    window.location.href = 'login.html'; // Redirect to login
-                }, 500);
-            }, 2000);
-        }, 100);
+        localStorage.removeItem('username');
+        alert('Signed out successfully!');
+        window.location.href = 'login.html';
     }
 
-    function openSettings() {
-        window.location.href = 'settings.html'; // Redirect to settings
+    // Keybind functionality for Developer login modal
+    document.addEventListener('keydown', (e) => {
+        if (e.key === '1' && e.ctrlKey) {
+            document.getElementById('blurred').style.display = 'block';
+        } else if (e.key === 'Escape') {
+            document.getElementById('blurred').style.display = 'none';
+        }
+    });
+
+    function developerLogin() {
+        const devUsername = document.getElementById('devUsername').value;
+        const devPassword = document.getElementById('devPassword').value;
+
+        if (devUsername === 'zeptional' && devPassword === 'corndogs123') {
+            window.location.href = 'developer-tools.html';
+        } else {
+            alert('Incorrect credentials');
+        }
     }
 </script>
 
