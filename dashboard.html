@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
     <style>
+        /* Load Minecraft font from GitHub */
+        @font-face {
+            font-family: 'Minecraft';
+            src: url('https://0100011100100.github.io/zeptionalsscripts/assets/fonts/MinecraftRegular-Bmg3.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
         body {
             margin: 0;
             padding: 0;
@@ -15,6 +23,7 @@
             display: flex;
             flex-direction: column;
         }
+
         .header {
             background-color: #3a3a3a;
             display: flex;
@@ -22,6 +31,7 @@
             padding: 15px;
             border-bottom: 2px solid #e63946;
         }
+
         .header button {
             background: none;
             border: none;
@@ -31,26 +41,119 @@
             font-size: 14px;
             transition: color 0.3s;
         }
+
         .header button:hover {
             color: #e63946;
         }
+
         .content {
             flex: 1;
             padding: 20px;
             text-align: center;
         }
+
+        .username-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        /* Apply the custom Minecraft font */
         .username {
             font-size: 30px;
+            background: linear-gradient(90deg, #f3ec78, #af4261); /* Gradient on text */
+            -webkit-background-clip: text;
+            color: transparent;
+            font-family: 'Minecraft', cursive; /* Use custom Minecraft font */
         }
-        /* Add your blur effect when pressing esc+1 */
-        #blurred {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
+
+        .owner-badge {
+            background-color: #ffcc00;
+            color: black;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+
+        /* Chatbox styling */
+        .chatbox {
+            position: relative;
             width: 100%;
-            height: 100%;
-            backdrop-filter: blur(10px);
+            max-width: 500px;
+            margin: 20px auto;
+        }
+
+        .chatbox textarea {
+            width: 100%;
+            height: 60px;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            resize: none;
+        }
+
+        .chatbox button {
+            position: absolute;
+            right: 10px;
+            bottom: 10px;
+            padding: 10px;
+            background-color: #e63946;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .messages {
+            width: 100%;
+            max-width: 500px;
+            margin: 20px auto;
+            background-color: #444;
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .message {
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 10px;
+        }
+
+        .message .username {
+            font-size: 16px;
+            background: linear-gradient(90deg, #f3ec78, #af4261); /* Gradient on text */
+            -webkit-background-clip: text;
+            color: transparent;
+            font-family: 'Minecraft', cursive; /* Use custom Minecraft font */
+        }
+
+        .message .owner-badge {
+            background-color: #ffcc00;
+            color: black;
+            padding: 3px 5px;
+            border-radius: 5px;
+            font-size: 10px;
+        }
+
+        /* Popup animation */
+        @keyframes slideDown {
+            0% { transform: translateY(-100px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        .popup {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #e63946;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            animation: slideDown 0.5s ease-out;
             z-index: 999;
         }
     </style>
@@ -65,51 +168,90 @@
 </div>
 
 <div class="content">
-    <h1 class="username" id="usernameDisplay"></h1>
+    <div class="username-container">
+        <h1 class="username" id="usernameDisplay"></h1>
+        <span class="owner-badge" id="ownerBadge" style="display: none;">Owner</span>
+    </div>
+
     <p>Welcome to your dashboard!</p>
+
+    <!-- Chatbox -->
+    <div class="chatbox">
+        <textarea id="chatInput" placeholder="Type a message..."></textarea>
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <!-- Messages display -->
+    <div class="messages" id="messages"></div>
 </div>
 
-<div id="blurred">
-    <div class="login-modal">
-        <h2>Developer Login</h2>
-        <input type="text" id="devUsername" placeholder="Username">
-        <input type="password" id="devPassword" placeholder="Password">
-        <button onclick="developerLogin()">Login</button>
-    </div>
-</div>
+<!-- Popup container -->
+<div id="popup" class="popup" style="display:none;">Popup Message</div>
 
 <script>
     const username = localStorage.getItem('username');
     const usernameDisplay = document.getElementById('usernameDisplay');
+    const ownerBadge = document.getElementById('ownerBadge');
+    const popup = document.getElementById('popup');
+
+    // Show username on dashboard
     usernameDisplay.textContent = username ? username : 'Guest';
 
+    // Display owner badge if the username is zeptional
+    if (username === 'zeptional') {
+        ownerBadge.style.display = 'inline';
+    }
+
     function navigateTo(page) {
-        window.location.href = page;
+        showPopup(`Navigating to ${page}`);
+        setTimeout(() => window.location.href = page, 1500);
     }
 
     function signOut() {
+        showPopup('Signed out successfully', 'red');
         localStorage.removeItem('username');
-        alert('Signed out successfully!');
-        window.location.href = 'login.html';
+        setTimeout(() => window.location.href = 'login.html', 1500);
     }
 
-    // Keybind functionality for Developer login modal
-    document.addEventListener('keydown', (e) => {
-        if (e.key === '1' && e.ctrlKey) {
-            document.getElementById('blurred').style.display = 'block';
-        } else if (e.key === 'Escape') {
-            document.getElementById('blurred').style.display = 'none';
-        }
-    });
+    // Show a popup message with animation
+    function showPopup(message, backgroundColor = '#e63946') {
+        popup.textContent = message;
+        popup.style.backgroundColor = backgroundColor;
+        popup.style.display = 'block';
+        setTimeout(() => {
+            popup.style.display = 'none';
+        }, 3000);
+    }
 
-    function developerLogin() {
-        const devUsername = document.getElementById('devUsername').value;
-        const devPassword = document.getElementById('devPassword').value;
+    // Chat functionality
+    function sendMessage() {
+        const chatInput = document.getElementById('chatInput');
+        const messageText = chatInput.value.trim();
+        const messagesContainer = document.getElementById('messages');
 
-        if (devUsername === 'zeptional' && devPassword === 'corndogs123') {
-            window.location.href = 'developer-tools.html';
-        } else {
-            alert('Incorrect credentials');
+        if (messageText !== '') {
+            const messageElement = document.createElement('div');
+            messageElement.className = 'message';
+
+            const messageUsername = document.createElement('span');
+            messageUsername.className = 'username';
+            messageUsername.textContent = username;
+
+            const messageOwnerBadge = document.createElement('span');
+            if (username === 'zeptional') {
+                messageOwnerBadge.className = 'owner-badge';
+                messageOwnerBadge.textContent = 'Owner';
+            }
+
+            messageElement.appendChild(messageUsername);
+            if (username === 'zeptional') {
+                messageElement.appendChild(messageOwnerBadge);
+            }
+            messageElement.appendChild(document.createTextNode(": " + messageText));
+            messagesContainer.appendChild(messageElement);
+
+            // Clear chat input
+            chatInput.value = '';
         }
     }
 </script>
