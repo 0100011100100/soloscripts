@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #2d2d2d;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background-color: #3a3a3a;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+        input[type="file"] {
+            margin: 20px 0;
+        }
+        button {
+            background-color: #e63946;
+            color: white;
+            border: none;
+            padding: 15px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #d62839;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Settings</h2>
+    <input type="file" id="profilePicInput" accept="image/*">
+    <button onclick="changeProfilePic()">Change Profile Picture</button>
+    <button onclick="goBack()">Back to Dashboard</button>
+</div>
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const username = params.get('username');
+
+    function changeProfilePic() {
+        const input = document.getElementById('profilePicInput');
+        const file = input.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                localStorage.setItem('profilePic', e.target.result);
+                alert('Profile picture updated!');
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function goBack() {
+        window.location.href = 'dashboard.html?username=' + encodeURIComponent(username);
+    }
+</script>
+
+</body>
+</html>
