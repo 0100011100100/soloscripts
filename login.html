@@ -16,7 +16,6 @@
             align-items: center;
             height: 100vh;
         }
-
         .login-container {
             background-color: #333;
             padding: 20px;
@@ -24,7 +23,6 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
             text-align: center;
         }
-
         input[type="text"], input[type="password"] {
             width: 100%;
             padding: 10px;
@@ -33,7 +31,6 @@
             border-radius: 5px;
             font-size: 16px;
         }
-
         button {
             padding: 10px 20px;
             background-color: #555;
@@ -43,19 +40,11 @@
             cursor: pointer;
             font-size: 16px;
         }
-
         button:hover {
             background-color: #777;
         }
-
-        .sign-up {
-            margin-top: 10px;
-            font-size: 14px;
-        }
-
-        .sign-up a {
-            color: #ffcc00;
-            text-decoration: none;
+        .error {
+            color: #e63946;
         }
     </style>
 </head>
@@ -66,6 +55,7 @@
     <input type="text" id="username" placeholder="Username" required>
     <input type="password" id="password" placeholder="Password" required>
     <button id="login-button">Login</button>
+    <div class="error" id="error-message"></div>
     <div class="sign-up">Don't have an account? <a href="signup.html">Sign up</a></div>
 </div>
 
@@ -73,43 +63,16 @@
     document.getElementById('login-button').addEventListener('click', function() {
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
+        const errorMessage = document.getElementById('error-message');
 
         if (username === 'zeptional' && password === 'corndogs123') {
+            localStorage.setItem('profilePic', 'https://avatars.githubusercontent.com/u/183566187?v=4');
             window.location.href = 'pfp.html';
         } else {
-            const existingUser = localStorage.getItem(username);
-            if (existingUser) {
-                window.location.href = 'pfp.html';
-            } else {
-                showPopup('Invalid username or password.', '#e63946', '#ffffff'); // Red color for error
-            }
+            errorMessage.innerText = 'Invalid username or password.';
+            setTimeout(() => { errorMessage.innerText = ''; }, 2000);
         }
     });
-
-    function showPopup(message, backgroundColor, textColor) {
-        const popup = document.createElement('div');
-        popup.innerText = message;
-        popup.style.position = 'fixed';
-        popup.style.top = '20px';
-        popup.style.left = '50%';
-        popup.style.transform = 'translateX(-50%)';
-        popup.style.backgroundColor = backgroundColor;
-        popup.style.color = textColor;
-        popup.style.padding = '10px 20px';
-        popup.style.borderRadius = '5px';
-        popup.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.5)';
-        popup.style.zIndex = '1000';
-        popup.style.opacity = '0.9';
-        document.body.appendChild(popup);
-
-        setTimeout(() => {
-            popup.style.transition = 'opacity 0.5s ease-out';
-            popup.style.opacity = '0';
-            setTimeout(() => {
-                document.body.removeChild(popup);
-            }, 500);
-        }, 2000);
-    }
 </script>
 
 </body>
