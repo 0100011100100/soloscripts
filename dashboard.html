@@ -6,48 +6,95 @@
     <title>Dashboard</title>
     <link rel="stylesheet" href="styles.css">
     <style>
-        /* Additional styles for the dashboard layout */
-        .dashboard-container {
+        /* Dashboard styles */
+        body {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100vh;
+            background-color: #f5f5f5;
+            overflow: hidden; /* Prevent scroll for popups */
         }
-
+        .dashboard-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 400px;
+            position: relative;
+            margin: auto;
+        }
         .top-section {
-            height: 60px; /* Smaller top section */
+            height: 60px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             width: 100%;
             padding: 0 20px;
-            background-color: #ffffff;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
-
         .content {
-            flex: 1; /* Center the dashboard content */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            margin-top: 20px;
+            text-align: center;
         }
-
         .buttons {
             display: flex;
             justify-content: space-between;
-            width: 100%;
             margin: 20px 0;
         }
-
         .button {
             flex: 1;
-            margin: 0 10px;
+            margin: 0 5px;
+            padding: 10px;
+            border: none;
+            background-color: #007BFF;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.2s;
         }
-
+        .button:hover {
+            transform: scale(1.05);
+        }
         .sign-out {
             margin-top: 20px;
+            background-color: red;
+        }
+        .chat-box {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .chat-message {
+            margin: 5px 0;
+            padding: 5px;
+            border-radius: 5px;
+        }
+        .popup {
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: none;
+            background-color: green;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            animation: slideDown 0.5s forwards;
+        }
+        @keyframes slideDown {
+            from {
+                top: -50px;
+                opacity: 0;
+            }
+            to {
+                top: 10px;
+                opacity: 1;
+            }
         }
     </style>
 </head>
@@ -55,22 +102,22 @@
 
 <div class="dashboard-container">
     <div class="top-section">
-        <img class="profile-pic" id="profilePic" src="" alt="Profile Picture">
+        <img class="profile-pic" id="profilePic" src="" alt="Profile Picture" style="width: 40px; height: 40px; border-radius: 50%;">
         <h2 id="usernameDisplay">Welcome, User!</h2>
     </div>
-
     <div class="content">
         <h3>Dashboard</h3>
         <div id="chat" class="chat-box"></div>
+        <input type="text" id="chatInput" placeholder="Type a message...">
+        <button onclick="sendMessage()">Send</button>
     </div>
-
     <div class="buttons">
-        <button class="button round" onclick="redirectToSettings()">Settings</button>
-        <button class="button round" onclick="redirectToDiscovery()">Discovery</button>
-        <button class="button round" onclick="redirectToCommunity()">Community</button>
+        <button class="button" onclick="redirectToSettings()">Settings</button>
+        <button class="button" onclick="redirectToDiscovery()">Discovery</button>
+        <button class="button" onclick="redirectToCommunity()">Community</button>
     </div>
-
-    <button class="sign-out round" onclick="signOut()">Sign Out</button>
+    <button class="sign-out button" onclick="signOut()">Sign Out</button>
+    <div id="popup" class="popup"></div>
 </div>
 
 <script>
@@ -78,7 +125,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         const username = localStorage.getItem('username') || 'Guest';
         const profilePic = localStorage.getItem('profilePic') || '';
-        
+
         document.getElementById('usernameDisplay').innerText = `Welcome, ${username}!`;
         if (profilePic) {
             document.getElementById('profilePic').src = profilePic;
@@ -87,24 +134,59 @@
         }
     });
 
+    function sendMessage() {
+        const messageInput = document.getElementById('chatInput');
+        const message = messageInput.value.trim();
+        const username = localStorage.getItem('username') || 'Guest';
+
+        if (message) {
+            const chatBox = document.getElementById('chat');
+            const timestamp = new Date().toLocaleTimeString();
+            const chatMessage = document.createElement('div');
+            chatMessage.className = 'chat-message';
+            chatMessage.innerText = `${timestamp} - ${username}: ${message}`;
+            chatBox.appendChild(chatMessage);
+            messageInput.value = ''; // Clear input
+        }
+    }
+
     function redirectToSettings() {
-        window.location.href = 'settings.html';
+        showPopup('Redirecting to Settings...');
+        setTimeout(() => {
+            window.location.href = 'settings.html';
+        }, 1500);
     }
 
     function redirectToDiscovery() {
-        window.location.href = 'discovery.html';
+        showPopup('Redirecting to Discovery...');
+        setTimeout(() => {
+            window.location.href = 'discovery.html';
+        }, 1500);
     }
 
     function redirectToCommunity() {
-        window.location.href = 'community.html';
+        showPopup('Redirecting to Community...');
+        setTimeout(() => {
+            window.location.href = 'community.html';
+        }, 1500);
     }
 
     function signOut() {
         localStorage.removeItem('username');
-        localStorage.removeItem('password');
         localStorage.removeItem('profilePic');
-        alert('Signed out successfully!');
-        window.location.href = 'login.html';
+        showPopup('Signed out successfully!');
+        setTimeout(() => {
+            window.location.href = 'login.html';
+        }, 1500);
+    }
+
+    function showPopup(message) {
+        const popup = document.getElementById('popup');
+        popup.innerText = message;
+        popup.style.display = 'block';
+        setTimeout(() => {
+            popup.style.display = 'none';
+        }, 3000);
     }
 </script>
 
