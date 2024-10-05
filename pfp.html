@@ -5,44 +5,104 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile Picture</title>
     <style>
-        /* Add popup styles from above */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #1e1e1e;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .pfp-container {
+            background-color: #333;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        input[type="file"] {
+            margin: 10px 0;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #555;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #777;
+        }
+
     </style>
 </head>
 <body>
 
-<div>
-    <h1>Set Your Profile Picture</h1>
-    <input type="file" id="profilePic" accept="image/*">
-    <button onclick="saveProfilePic()">Save Profile Picture</button>
-    <button onclick="skipProfilePic()">Skip</button>
+<div class="pfp-container">
+    <h1>Profile Picture</h1>
+    <input type="file" id="profile-pic-input" accept="image/*">
+    <button id="save-pfp">Save Profile Picture</button>
+    <button id="skip-pfp">Skip</button>
 </div>
 
-<div id="popup" class="popup" style="display:none;"></div>
-
 <script>
-    function showPopup(message) {
-        /* Popup code from above */
-    }
-
-    function saveProfilePic() {
-        const profilePic = document.getElementById('profilePic').files[0];
-        if (!profilePic) {
-            showPopup('Please select a profile picture.');
-            return;
+    document.getElementById('save-pfp').addEventListener('click', function() {
+        const fileInput = document.getElementById('profile-pic-input');
+        if (fileInput.files.length > 0) {
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                localStorage.setItem('profilePic', e.target.result);
+                showPopup('Profile picture saved!', '#28a745', '#ffffff'); // Green color for success
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 2000); // Redirect after 2 seconds
+            }
+            reader.readAsDataURL(file);
+        } else {
+            showPopup('Please select an image to upload.', '#e63946', '#ffffff'); // Red color for error
         }
-        const reader = new FileReader();
-        reader.onload = function(event) {
-            localStorage.setItem('profilePic', event.target.result); // Store profile picture
-            showPopup('Profile picture saved!');
-            setTimeout(() => window.location.href = 'dashboard.html', 1500);
-        };
-        reader.readAsDataURL(profilePic);
-    }
+    });
 
-    function skipProfilePic() {
-        localStorage.setItem('profilePic', ''); // No profile pic set
-        showPopup('Profile picture skipped.');
-        setTimeout(() => window.location.href = 'dashboard.html', 1500);
+    document.getElementById('skip-pfp').addEventListener('click', function() {
+        showPopup('Profile picture skipped.', '#ffc107', '#ffffff'); // Yellow color for warning
+        setTimeout(() => {
+            window.location.href = 'dashboard.html';
+        }, 2000); // Redirect after 2 seconds
+    });
+
+    function showPopup(message, backgroundColor, textColor) {
+        const popup = document.createElement('div');
+        popup.innerText = message;
+        popup.style.position = 'fixed';
+        popup.style.top = '20px';
+        popup.style.left = '50%';
+        popup.style.transform = 'translateX(-50%)';
+        popup.style.backgroundColor = backgroundColor;
+        popup.style.color = textColor;
+        popup.style.padding = '10px 20px';
+        popup.style.borderRadius = '5px';
+        popup.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.5)';
+        popup.style.zIndex = '1000';
+        popup.style.opacity = '0.9';
+        document.body.appendChild(popup);
+
+        setTimeout(() => {
+            popup.style.transition = 'opacity 0.5s ease-out';
+            popup.style.opacity = '0';
+            setTimeout(() => {
+                document.body.removeChild(popup);
+            }, 500);
+        }, 2000);
     }
 </script>
 
