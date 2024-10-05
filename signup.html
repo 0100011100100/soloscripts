@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+    <style>
+        /* Add popup styles from above */
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Sign Up</h1>
+    <input type="text" id="newUsername" placeholder="Enter a new username">
+    <input type="password" id="newPassword" placeholder="Create a password">
+    <button onclick="signup()">Sign Up</button>
+</div>
+
+<div id="popup" class="popup" style="display:none;"></div>
+
+<script>
+    function showPopup(message) {
+        /* Popup code from above */
+    }
+
+    function signup() {
+        const newUsername = document.getElementById('newUsername').value.trim();
+        const newPassword = document.getElementById('newPassword').value.trim();
+
+        // Check if the username is already taken (including 'zeptional' which is reserved)
+        if (localStorage.getItem(newUsername) || newUsername.toLowerCase() === 'zeptional') {
+            showPopup('Username already taken. Please choose another.');
+        } else {
+            localStorage.setItem('username', newUsername);
+            localStorage.setItem('password', newPassword);
+            showPopup('Account created successfully!');
+            setTimeout(() => window.location.href = 'pfp.html', 1500);
+        }
+    }
+</script>
+
+</body>
+</html>
