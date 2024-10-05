@@ -83,8 +83,6 @@
 
         .messages {
             margin-top: 20px;
-            max-height: 400px;
-            overflow-y: scroll;
         }
 
         .messages .message {
@@ -201,12 +199,12 @@
     }
 
     // Function to display chat messages with the username
-    function addMessage(messageText, userProfilePic, username) {
+    function addMessage(messageText) {
         const message = document.createElement('div');
         message.classList.add('message');
 
         const profileImage = document.createElement('img');
-        profileImage.src = userProfilePic;
+        profileImage.src = profilePictureUrl;
         // Apply same border style as profile picture
         if (borderStyle === 'rainbow') {
             profileImage.classList.add('rainbow-border');
@@ -229,6 +227,15 @@
         message.appendChild(text);
         messagesContainer.appendChild(message);
     }
+
+    // Event listener for chat input
+    document.getElementById('chat-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && this.value.trim() !== '') {
+            const messageText = this.value.trim();
+            addMessage(messageText);
+            this.value = '';
+        }
+    });
 
     // Show a welcome popup with animation
     function showWelcomePopup() {
@@ -261,38 +268,26 @@
     const app = firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // Load past messages on page load
-    database.ref('messages').once('value', (snapshot) => {
-        snapshot.forEach((childSnapshot) => {
-            const messageData = childSnapshot.val();
-            addMessage(messageData.messageText, messageData.userProfilePic, messageData.username);
-        });
-    });
-
-    // Listen for new messages in real-time
+    // Listen for new messages
     database.ref('messages').on('child_added', (snapshot) => {
         const messageData = snapshot.val();
-        addMessage(messageData.messageText, messageData.userProfilePic, messageData.username);
+        addMessage(messageData);
     });
 
-    // Send message on Enter keypress
+    // Event listener for chat input (Enter key)
     document.getElementById('chat-input').addEventListener('keypress', function(e) {
         if (e.key === 'Enter' && this.value.trim() !== '') {
             const messageText = this.value.trim();
-            const messageData = {
+            // Send message to Firebase
+            database.ref('messages').push({
                 messageText: messageText,
-                userProfilePic: profilePictureUrl,
-                username: username
-            };
-            // Store message in Firebase
-            database.ref('messages').push(messageData);
-            this.value = '';
+                username: username,
+                profilePictureUrl: profilePictureUrl
+            });
+            this.value = ''; // Clear the input field
         }
     });
 </script>
-
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
 
 </body>
 </html>
