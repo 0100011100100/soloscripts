@@ -174,9 +174,9 @@
         
         // Check if the sender is 'zeptional' and add the badge accordingly
         if (sender === 'zeptional') {
-            text.innerHTML = `<strong style="background: linear-gradient(90deg, #ffcc00, #e63946); padding: 2px 6px; border-radius: 5px;">Owner:</strong> ${sender}: ${messageText}`;
+            text.innerHTML = <strong style="background: linear-gradient(90deg, #ffcc00, #e63946); padding: 2px 6px; border-radius: 5px;">Owner:</strong> ${sender}: ${messageText};
         } else {
-            text.textContent = `${sender}: ${messageText}`;
+            text.textContent = ${sender}: ${messageText};
         }
 
         message.appendChild(profileImage);
@@ -220,10 +220,5 @@
     });
 </script>
 
-<!-- Include Firebase -->
-<script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-database.js"></script>
-
 </body>
 </html>
-\
