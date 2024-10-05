@@ -1,6 +1,119 @@
-<!-- Relevant portion of signup.html where account is created -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #1e1e1e;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #333;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: none;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .recent-accounts {
+            margin-top: 20px;
+            text-align: left;
+            background-color: #222;
+            padding: 15px;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .recent-accounts h2 {
+            text-align: center;
+        }
+
+        .recent-accounts ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .recent-accounts li {
+            margin: 5px 0;
+        }
+
+        /* Popup Styles */
+        .popup {
+            position: fixed;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 0, 0, 0.9);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 5px;
+            transition: top 0.5s ease;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+
+<div id="popup" class="popup" style="display: none;"></div>
+
+<div class="container">
+    <h1>Sign Up</h1>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <button id="signup-button">Sign Up</button>
+
+    <div class="recent-accounts">
+        <h2>Recent Accounts</h2>
+        <ul id="recent-accounts-list">
+            <!-- Recently created accounts will appear here -->
+        </ul>
+    </div>
+</div>
+
 <script>
-    function createAccount() {
+    const signupButton = document.getElementById('signup-button');
+    const recentAccountsList = document.getElementById('recent-accounts-list');
+    const popup = document.getElementById('popup');
+
+    signupButton.addEventListener('click', function() {
         const username = document.getElementById('username').value.trim();
         const password = document.getElementById('password').value.trim();
 
@@ -29,5 +142,27 @@
         setTimeout(() => {
             window.location.href = 'pfp.html';
         }, 1000);
+    });
+
+    function showPopup(message) {
+        popup.textContent = message;
+        popup.style.display = 'block';
+        popup.style.top = '20px';
+
+        setTimeout(() => {
+            popup.style.top = '-50px';
+            setTimeout(() => {
+                popup.style.display = 'none';
+            }, 500);
+        }, 3000);
+    }
+
+    // Display recent accounts on page load
+    window.onload = function() {
+        const accounts = JSON.parse(localStorage.getItem('accounts')) || [];
+        recentAccountsList.innerHTML = accounts.map(account => `<li>${account.username} (Created on: ${account.timestamp})</li>`).join('');
     }
 </script>
+
+</body>
+</html>
