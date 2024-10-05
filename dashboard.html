@@ -48,27 +48,6 @@
             margin-left: 10px;
         }
 
-        /* Navigation Buttons */
-        .nav-buttons {
-            display: flex;
-            justify-content: center;
-            margin-top: 20px;
-        }
-
-        .nav-buttons button {
-            margin: 0 10px;
-            padding: 10px 20px;
-            background-color: #555;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .nav-buttons button:hover {
-            background-color: #777;
-        }
-
         .chat-box {
             padding: 20px;
         }
@@ -102,7 +81,6 @@
             border: 3px solid white; /* Thinner border for chat */
         }
 
-        /* Popup Styles */
         .popup {
             position: fixed;
             top: -50px;
@@ -114,27 +92,6 @@
             border-radius: 5px;
             transition: top 0.5s ease;
             z-index: 1000;
-        }
-
-        /* Rainbow and Gradient Borders */
-        .rainbow-border {
-            animation: rainbow 3s linear infinite;
-        }
-
-        @keyframes rainbow {
-            0% { border-color: red; }
-            16.6% { border-color: orange; }
-            33.2% { border-color: yellow; }
-            49.8% { border-color: green; }
-            66.4% { border-color: blue; }
-            83% { border-color: indigo; }
-            100% { border-color: violet; }
-        }
-
-        .gradient-border {
-            border-image-slice: 1;
-            border-radius: 50%;
-            border-width: 3px; /* Thinner border for gradient */
         }
     </style>
 </head>
@@ -150,13 +107,6 @@
     </div>
 </div>
 
-<!-- Navigation buttons -->
-<div class="nav-buttons">
-    <button onclick="window.location.href='settings.html'">Settings</button>
-    <button onclick="window.location.href='profile.html'">Profile</button>
-</div>
-
-<!-- Chat section -->
 <div class="chat-box">
     <input type="text" id="chat-input" placeholder="Type your message here...">
     <div class="messages" id="messages-container">
@@ -164,8 +114,6 @@
     </div>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"></script>
 <script>
     const usernameDisplay = document.getElementById('username-display');
     const profilePic = document.getElementById('profile-pic');
@@ -176,55 +124,26 @@
     // Fetch profile details from localStorage
     const username = localStorage.getItem('username') || 'Guest';
     const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
-    const borderColor = localStorage.getItem('borderColor') || 'white';
-    const borderStyle = localStorage.getItem('borderStyle') || 'solid';
 
     // Display the username and profile picture
     usernameDisplay.textContent = username;
     profilePic.src = profilePictureUrl;
-
-    // Apply border color or gradient/rainbow
-    if (borderStyle === 'rainbow') {
-        profilePic.classList.add('rainbow-border');
-    } else if (borderStyle === 'gradient') {
-        const gradientColor = localStorage.getItem('gradientColor') || 'linear-gradient(45deg, #6a11cb, #2575fc)';
-        profilePic.style.borderImage = gradientColor;
-        profilePic.style.borderWidth = '3px'; // Thinner border for gradient
-        profilePic.classList.add('gradient-border');
-    } else {
-        profilePic.style.border = `3px solid ${borderColor}`; // Thinner border
-    }
 
     // Show the Owner badge if the username is 'zeptional'
     if (username === 'zeptional') {
         ownerBadge.style.display = 'inline-block';
     }
 
-    // Function to display chat messages
-    function addMessage(messageData) {
+    // Function to display chat messages with the username
+    function addMessage(messageText) {
         const message = document.createElement('div');
         message.classList.add('message');
 
         const profileImage = document.createElement('img');
-        profileImage.src = messageData.profilePictureUrl;
-
-        // Apply border style for chat messages
-        if (borderStyle === 'rainbow') {
-            profileImage.classList.add('rainbow-border');
-        } else if (borderStyle === 'gradient') {
-            profileImage.style.borderImage = profilePic.style.borderImage;
-            profileImage.style.borderWidth = '3px'; // Thinner border for gradient
-            profileImage.classList.add('gradient-border');
-        } else {
-            profileImage.style.border = `3px solid ${borderColor}`; // Thinner border for chat
-        }
+        profileImage.src = profilePictureUrl;
 
         const text = document.createElement('span');
-        if (messageData.username === 'zeptional') {
-            text.innerHTML = `<strong style="background: linear-gradient(90deg, #ffcc00, #e63946); padding: 2px 6px; border-radius: 5px;">Owner:</strong> ${messageData.username}: ${messageData.messageText}`;
-        } else {
-            text.textContent = `${messageData.username}: ${messageData.messageText}`;
-        }
+        text.textContent = `${username}: ${messageText}`;
 
         message.appendChild(profileImage);
         message.appendChild(text);
@@ -263,13 +182,13 @@
 
     // Firebase Configuration
     const firebaseConfig = {
-        apiKey: "AIzaSyDI6l1w7JydjHI4CT3upKOkiVxLftg5in8",
-        authDomain: "zeptionalchat.firebaseapp.com",
-        databaseURL: "https://zeptionalchat.firebaseio.com",
-        projectId: "zeptionalchat",
-        storageBucket: "zeptionalchat.appspot.com",
-        messagingSenderId: "455606646143",
-        appId: "1:455606646143:web:92fe178ba9b910c607564a"
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+        databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_PROJECT_ID.appspot.com",
+        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+        appId: "YOUR_APP_ID"
     };
 
     // Initialize Firebase
@@ -279,7 +198,7 @@
     // Listen for new messages
     database.ref('messages').on('child_added', (snapshot) => {
         const messageData = snapshot.val();
-        addMessage(messageData); // Pass the whole messageData object
+        addMessage(messageData.messageText); // Adjusted to pass only messageText
     });
 </script>
 
