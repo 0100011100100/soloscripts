@@ -21,7 +21,7 @@
             padding: 10px 20px;
         }
 
-        .header .profile {
+        .profile {
             display: flex;
             align-items: center;
         }
@@ -31,6 +31,8 @@
             height: 40px;
             border-radius: 50%;
             margin-right: 10px;
+            border: 3px solid white; /* Thinner border */
+            transition: border 0.3s ease; /* Smooth transition for border */
         }
 
         .profile .username {
@@ -97,6 +99,7 @@
             height: 30px;
             border-radius: 50%;
             margin-right: 10px;
+            border: 3px solid white; /* Thinner border for chat */
         }
 
         /* Popup Styles */
@@ -112,6 +115,27 @@
             transition: top 0.5s ease;
             z-index: 1000;
         }
+
+        /* Rainbow and Gradient Borders */
+        .rainbow-border {
+            animation: rainbow 3s linear infinite;
+        }
+
+        @keyframes rainbow {
+            0% { border-color: red; }
+            16.6% { border-color: orange; }
+            33.2% { border-color: yellow; }
+            49.8% { border-color: green; }
+            66.4% { border-color: blue; }
+            83% { border-color: indigo; }
+            100% { border-color: violet; }
+        }
+
+        .gradient-border {
+            border-image-slice: 1;
+            border-radius: 50%;
+            border-width: 3px; /* Thinner border for gradient */
+        }
     </style>
 </head>
 <body>
@@ -120,7 +144,7 @@
 
 <div class="header">
     <div class="profile">
-        <img id="profile-pic" src="" alt="Profile Picture">
+        <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture" class="profile-picture">
         <div class="username" id="username-display"></div>
         <div id="owner-badge" class="profile-owner-badge" style="display: none;">Owner</div>
     </div>
@@ -147,13 +171,13 @@
 <script>
     // Your Firebase configuration
     const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-        databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
-        projectId: "YOUR_PROJECT_ID",
-        storageBucket: "YOUR_PROJECT_ID.appspot.com",
-        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-        appId: "YOUR_APP_ID",
+        apiKey: "AIzaSyDI6l1w7JydjHI4CT3upKOkiVxLftg5in8",
+        authDomain: "zeptionalchat.firebaseapp.com",
+        databaseURL: "https://zeptionalchat.firebaseio.com",
+        projectId: "zeptionalchat",
+        storageBucket: "zeptionalchat.appspot.com",
+        messagingSenderId: "455606646143",
+        appId: "1:455606646143:web:92fe178ba9b910c607564a",
     };
 
     // Initialize Firebase
@@ -166,27 +190,31 @@
     const messagesContainer = document.getElementById('messages-container');
     const popup = document.getElementById('popup');
 
+    // Fetch profile details from localStorage
     const username = localStorage.getItem('username') || 'Guest';
     const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
+    const borderColor = localStorage.getItem('borderColor') || 'white';
+    const borderStyle = localStorage.getItem('borderStyle') || 'solid';
 
+    // Display the username and profile picture
     usernameDisplay.textContent = username;
     profilePic.src = profilePictureUrl;
 
-    if (username === 'zeptional') {
-        ownerBadge.style.display = 'inline-block';
+    // Apply border color or gradient/rainbow
+    if (borderStyle === 'rainbow') {
+        profilePic.classList.add('rainbow-border');
+    } else if (borderStyle === 'gradient') {
+        const gradientColor = localStorage.getItem('gradientColor') || 'linear-gradient(45deg, #6a11cb, #2575fc)';
+        profilePic.style.borderImage = gradientColor;
+        profilePic.style.borderWidth = '3px'; // Thinner border for gradient
+        profilePic.classList.add('gradient-border');
+    } else {
+        profilePic.style.border = `3px solid ${borderColor}`; // Thinner border
     }
 
-    function showWelcomePopup() {
-        popup.textContent = `Welcome, ${username}!`;
-        popup.style.display = 'block';
-        popup.style.top = '20px';
-
-        setTimeout(() => {
-            popup.style.top = '-50px';
-            setTimeout(() => {
-                popup.style.display = 'none';
-            }, 500);
-        }, 3000);
+    // Show the Owner badge if the username is 'zeptional'
+    if (username === 'zeptional') {
+        ownerBadge.style.display = 'inline-block';
     }
 
     // Function to add messages to the database
@@ -206,6 +234,17 @@
 
         const profileImage = document.createElement('img');
         profileImage.src = profilePictureUrl;
+        
+        // Apply same border style as profile picture
+        if (borderStyle === 'rainbow') {
+            profileImage.classList.add('rainbow-border');
+        } else if (borderStyle === 'gradient') {
+            profileImage.style.borderImage = profilePic.style.borderImage;
+            profileImage.style.borderWidth = '3px'; // Thinner border for gradient
+            profileImage.classList.add('gradient-border');
+        } else {
+            profileImage.style.border = `3px solid ${borderColor}`; // Thinner border for chat
+        }
 
         const text = document.createElement('span');
         if (messageData.username === 'zeptional') {
@@ -223,16 +262,30 @@
     document.getElementById('chat-input').addEventListener('keypress', function(e) {
         if (e.key === 'Enter' && this.value.trim() !== '') {
             const messageText = this.value.trim();
-            addMessageToDatabase(messageText); // Add to Firebase
+            addMessageToDatabase(messageText); // Add message to Firebase
             this.value = '';
         }
     });
 
-    // Listen for new messages in the database
-    database.ref('messages').on('child_added', (snapshot) => {
+    // Listen for new messages from Firebase
+    database.ref('messages').on('child_added', function(snapshot) {
         const messageData = snapshot.val();
-        addMessage(messageData); // Display new message
+        addMessage(messageData); // Display message
     });
+
+    // Show a welcome popup with animation
+    function showWelcomePopup() {
+        popup.textContent = `Welcome, ${username}!`;
+        popup.style.display = 'block';
+        popup.style.top = '20px';
+
+        setTimeout(() => {
+            popup.style.top = '-50px';
+            setTimeout(() => {
+                popup.style.display = 'none';
+            }, 500);
+        }, 3000);
+    }
 
     showWelcomePopup();
 </script>
