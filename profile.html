@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #1e1e1e;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #333;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        .profile-picture {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 5px solid white;
+            margin-bottom: 20px;
+            transition: border 0.3s ease;
+        }
+
+        .controls {
+            margin-top: 20px;
+        }
+
+        input[type="file"],
+        input[type="color"],
+        select {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+        }
+
+        .rainbow-border {
+            animation: rainbow 3s linear infinite;
+        }
+
+        @keyframes rainbow {
+            0% { border-color: red; }
+            16.6% { border-color: orange; }
+            33.2% { border-color: yellow; }
+            49.8% { border-color: green; }
+            66.4% { border-color: blue; }
+            83% { border-color: indigo; }
+            100% { border-color: violet; }
+        }
+
+        .gradient-border {
+            border-image: linear-gradient(45deg, #ffcc00, #e63946) 1;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Profile Settings</h1>
+    <!-- Profile picture display -->
+    <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture" class="profile-picture">
+
+    <!-- Controls for changing profile picture and border -->
+    <div class="controls">
+        <input type="file" id="profile-pic-input" accept="image/*"><br>
+
+        <label for="border-color-picker">Choose Border Color:</label><br>
+        <input type="color" id="border-color-picker"><br>
+
+        <label for="border-style">Border Style:</label><br>
+        <select id="border-style">
+            <option value="solid">Solid Color</option>
+            <option value="rainbow">Rainbow</option>
+            <option value="gradient">Gradient</option>
+        </select><br>
+
+        <button id="save-button">Save Changes</button>
+    </div>
+</div>
+
+<script>
+    const profilePic = document.getElementById('profile-pic');
+    const profilePicInput = document.getElementById('profile-pic-input');
+    const borderColorPicker = document.getElementById('border-color-picker');
+    const borderStyleSelector = document.getElementById('border-style');
+    const saveButton = document.getElementById('save-button');
+
+    // Load saved profile settings
+    window.onload = function() {
+        const savedProfilePic = localStorage.getItem('profilePic');
+        const savedBorderColor = localStorage.getItem('borderColor');
+        const savedBorderStyle = localStorage.getItem('borderStyle');
+
+        if (savedProfilePic) profilePic.src = savedProfilePic;
+        if (savedBorderColor) profilePic.style.borderColor = savedBorderColor;
+        if (savedBorderStyle) applyBorderStyle(savedBorderStyle);
+    };
+
+    // Handle profile picture upload
+    profilePicInput.addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                profilePic.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Handle border color change
+    borderColorPicker.addEventListener('input', function() {
+        profilePic.style.borderColor = this.value;
+        removeBorderClasses();  // Remove other border styles (rainbow/gradient)
+    });
+
+    // Handle border style change
+    borderStyleSelector.addEventListener('change', function() {
+        applyBorderStyle(this.value);
+    });
+
+    // Function to apply the selected border style
+    function applyBorderStyle(style) {
+        removeBorderClasses();  // Clear any previous styles
+
+        if (style === 'rainbow') {
+            profilePic.classList.add('rainbow-border');
+        } else if (style === 'gradient') {
+            profilePic.classList.add('gradient-border');
+        } else {
+            profilePic.style.borderColor = borderColorPicker.value;  // Apply solid color
+        }
+    }
+
+    // Remove all border style classes
+    function removeBorderClasses() {
+        profilePic.classList.remove('rainbow-border', 'gradient-border');
+    }
+
+    // Save changes to localStorage
+    saveButton.addEventListener('click', function() {
+        const profilePicSrc = profilePic.src;
+        const borderColor = profilePic.style.borderColor;
+        const borderStyle = borderStyleSelector.value;
+
+        localStorage.setItem('profilePic', profilePicSrc);
+        localStorage.setItem('borderColor', borderColor);
+        localStorage.setItem('borderStyle', borderStyle);
+
+        alert('Profile updated successfully!');
+    });
+</script>
+
+</body>
+</html>
