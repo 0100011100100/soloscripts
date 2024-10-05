@@ -16,7 +16,6 @@
             align-items: center;
             height: 100vh;
         }
-
         .signup-container {
             background-color: #333;
             padding: 20px;
@@ -24,7 +23,6 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
             text-align: center;
         }
-
         input[type="text"], input[type="password"] {
             width: 100%;
             padding: 10px;
@@ -33,7 +31,6 @@
             border-radius: 5px;
             font-size: 16px;
         }
-
         button {
             padding: 10px 20px;
             background-color: #555;
@@ -43,9 +40,11 @@
             cursor: pointer;
             font-size: 16px;
         }
-
         button:hover {
             background-color: #777;
+        }
+        .error {
+            color: #e63946;
         }
     </style>
 </head>
@@ -56,49 +55,25 @@
     <input type="text" id="new-username" placeholder="Username" required>
     <input type="password" id="new-password" placeholder="Password" required>
     <button id="signup-button">Sign Up</button>
+    <div class="error" id="signup-error"></div>
 </div>
 
 <script>
     document.getElementById('signup-button').addEventListener('click', function() {
-        const username = document.getElementById('new-username').value;
-        const password = document.getElementById('new-password').value;
+        const newUsername = document.getElementById('new-username').value;
+        const newPassword = document.getElementById('new-password').value;
+        const signupError = document.getElementById('signup-error');
 
-        if (localStorage.getItem(username)) {
-            showPopup('Username is already taken. Please choose another.', '#e63946', '#ffffff'); // Red color for error
+        if (newUsername === 'zeptional') {
+            signupError.innerText = 'Username "zeptional" is not available.';
+            setTimeout(() => { signupError.innerText = ''; }, 2000);
             return;
         }
 
-        localStorage.setItem(username, password);
-        showPopup('Account created successfully!', '#28a745', '#ffffff'); // Green color for success
-        setTimeout(() => {
-            window.location.href = 'pfp.html';
-        }, 2000); // Redirect after 2 seconds
+        localStorage.setItem(newUsername, newPassword);
+        alert('Account created successfully! Redirecting to login...');
+        window.location.href = 'login.html';
     });
-
-    function showPopup(message, backgroundColor, textColor) {
-        const popup = document.createElement('div');
-        popup.innerText = message;
-        popup.style.position = 'fixed';
-        popup.style.top = '20px';
-        popup.style.left = '50%';
-        popup.style.transform = 'translateX(-50%)';
-        popup.style.backgroundColor = backgroundColor;
-        popup.style.color = textColor;
-        popup.style.padding = '10px 20px';
-        popup.style.borderRadius = '5px';
-        popup.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.5)';
-        popup.style.zIndex = '1000';
-        popup.style.opacity = '0.9';
-        document.body.appendChild(popup);
-
-        setTimeout(() => {
-            popup.style.transition = 'opacity 0.5s ease-out';
-            popup.style.opacity = '0';
-            setTimeout(() => {
-                document.body.removeChild(popup);
-            }, 500);
-        }, 2000);
-    }
 </script>
 
 </body>
