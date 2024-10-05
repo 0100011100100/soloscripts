@@ -6,10 +6,88 @@
     <title>Profile Picture</title>
     <style>
         body {
-            /* Same styles */
+            margin: 0;
+            padding: 0;
+            background-color: #1e1e1e;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            justify-content: center;
         }
+
+        .header {
+            background-color: #444;
+            padding: 10px 20px;
+            width: 100%;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            margin: 0;
+        }
+
+        .upload-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .profile-pic-preview {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 2px solid white;
+            margin-bottom: 20px;
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .upload-button {
+            padding: 10px 20px;
+            background-color: #555;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        .upload-button:hover {
+            background-color: #777;
+        }
+
+        .next-button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .next-button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Popup Styles */
         .popup {
-            /* Same popup styles as login.html */
+            position: fixed;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 255, 0, 0.9);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 5px;
+            transition: top 0.5s ease;
+            z-index: 1000;
         }
     </style>
 </head>
@@ -17,29 +95,60 @@
 
 <div id="popup" class="popup" style="display: none;"></div>
 
-<form id="pfp-form">
-    <input type="url" id="profile-pic-url" placeholder="Profile Picture URL (optional)">
-    <button type="submit">Set Profile Picture</button>
-    <button type="button" onclick="skipProfile()">Skip</button>
-</form>
+<div class="header">
+    <h1>Set Your Profile Picture</h1>
+</div>
+
+<div class="upload-container">
+    <div id="profile-pic-preview" class="profile-pic-preview">
+        <span>No Image</span>
+    </div>
+    <input type="file" id="profile-pic-input" accept="image/*" class="upload-button">
+    <button id="next-button" class="next-button">Next</button>
+</div>
 
 <script>
-    document.getElementById('pfp-form').addEventListener('submit', function (e) {
-        e.preventDefault();
+    const profilePicInput = document.getElementById('profile-pic-input');
+    const profilePicPreview = document.getElementById('profile-pic-preview');
+    const nextButton = document.getElementById('next-button');
+    const popup = document.getElementById('popup');
 
-        const profilePicUrl = document.getElementById('profile-pic-url').value || 'default-profile-pic.png';
-        localStorage.setItem('profilePic', profilePicUrl);
-
-        // Redirect to dashboard
-        window.location.href = 'dashboard.html';
+    // Update profile picture preview
+    profilePicInput.addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                profilePicPreview.style.backgroundImage = `url(${e.target.result})`;
+                profilePicPreview.innerHTML = ''; // Clear the "No Image" text
+            }
+            reader.readAsDataURL(file);
+        }
     });
 
-    function skipProfile() {
-        window.location.href = 'dashboard.html';
-    }
+    // Handle next button click
+    nextButton.addEventListener('click', function() {
+        const file = profilePicInput.files[0];
+        if (file) {
+            // Save profile picture to local storage
+            const reader = new FileReader();
+            reader.onloadend = function() {
+                localStorage.setItem('profilePic', reader.result);
+                showPopup('Profile picture set successfully! Redirecting to Dashboard...');
+                
+                // Redirect to dashboard after a brief delay
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 2000);
+            }
+            reader.readAsDataURL(file);
+        } else {
+            showPopup('Please upload a profile picture.');
+        }
+    });
 
+    // Show popup function
     function showPopup(message) {
-        const popup = document.getElementById('popup');
         popup.textContent = message;
         popup.style.display = 'block';
         popup.style.top = '20px';
