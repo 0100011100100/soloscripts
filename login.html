@@ -5,50 +5,110 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
     <style>
-        /* Add popup styles from above */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #1e1e1e;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .login-container {
+            background-color: #333;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #555;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #777;
+        }
+
+        .sign-up {
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .sign-up a {
+            color: #ffcc00;
+            text-decoration: none;
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
+<div class="login-container">
     <h1>Login</h1>
-    <input type="text" id="username" placeholder="Enter your username">
-    <input type="password" id="password" placeholder="Enter your password">
-    <button onclick="login()">Login</button>
-    <br>
-    <button onclick="redirectToSignup()">Sign Up</button>
+    <input type="text" id="username" placeholder="Username" required>
+    <input type="password" id="password" placeholder="Password" required>
+    <button id="login-button">Login</button>
+    <div class="sign-up">Don't have an account? <a href="signup.html">Sign up</a></div>
 </div>
 
-<div id="popup" class="popup" style="display:none;"></div>
-
 <script>
-    function showPopup(message) {
-        /* Popup code from above */
-    }
+    document.getElementById('login-button').addEventListener('click', function() {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
 
-    function login() {
-        const username = document.getElementById('username').value.trim();
-        const password = document.getElementById('password').value.trim();
-
-        if (username.toLowerCase() === 'zeptional' && password === 'corndogs123') {
-            localStorage.setItem('username', 'zeptional');
-            localStorage.setItem('profilePic', 'https://avatars.githubusercontent.com/u/183566187?v=4'); // Set profile pic for zeptional
-            showPopup('Welcome, Zeptional!');
-            setTimeout(() => window.location.href = 'dashboard.html', 1500);
+        if (username === 'zeptional' && password === 'corndogs123') {
+            window.location.href = 'pfp.html';
         } else {
-            const storedUser = localStorage.getItem('username');
-            const storedPass = localStorage.getItem('password');
-            if (storedUser === username && storedPass === password) {
-                showPopup(`Welcome back, ${username}!`);
-                setTimeout(() => window.location.href = 'dashboard.html', 1500);
+            const existingUser = localStorage.getItem(username);
+            if (existingUser) {
+                window.location.href = 'pfp.html';
             } else {
-                showPopup('Incorrect username or password!');
+                showPopup('Invalid username or password.', '#e63946', '#ffffff'); // Red color for error
             }
         }
-    }
+    });
 
-    function redirectToSignup() {
-        window.location.href = 'signup.html';
+    function showPopup(message, backgroundColor, textColor) {
+        const popup = document.createElement('div');
+        popup.innerText = message;
+        popup.style.position = 'fixed';
+        popup.style.top = '20px';
+        popup.style.left = '50%';
+        popup.style.transform = 'translateX(-50%)';
+        popup.style.backgroundColor = backgroundColor;
+        popup.style.color = textColor;
+        popup.style.padding = '10px 20px';
+        popup.style.borderRadius = '5px';
+        popup.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.5)';
+        popup.style.zIndex = '1000';
+        popup.style.opacity = '0.9';
+        document.body.appendChild(popup);
+
+        setTimeout(() => {
+            popup.style.transition = 'opacity 0.5s ease-out';
+            popup.style.opacity = '0';
+            setTimeout(() => {
+                document.body.removeChild(popup);
+            }, 500);
+        }, 2000);
     }
 </script>
 
