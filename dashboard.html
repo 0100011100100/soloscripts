@@ -15,22 +15,26 @@
             flex-direction: column;
             align-items: center;
             height: 100vh;
+            justify-content: center;
         }
 
         .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
             background-color: #444;
             padding: 10px 20px;
             width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
         }
 
         .header .username {
             font-size: 24px;
+            margin-right: auto;
+            padding-left: 10px;
         }
 
-        .header .profile {
+        .profile {
             display: flex;
             align-items: center;
         }
@@ -49,13 +53,13 @@
             color: white;
             border-radius: 5px;
             margin-left: 10px;
-            display: none; /* Default hidden */
+            display: none; /* Hidden by default */
         }
 
         .nav-buttons {
             display: flex;
             justify-content: center;
-            margin: 20px 0;
+            margin-top: 20px;
         }
 
         .nav-buttons button {
@@ -72,21 +76,12 @@
             background-color: #777;
         }
 
-        .chat-container {
-            display: flex;
-            flex-direction: column;
-            width: 80%; /* Set width for chat */
-            max-width: 600px;
-            margin-top: 20px;
-        }
-
         .chat-box {
-            display: flex;
-            margin-top: 10px;
+            padding: 20px;
         }
 
         .chat-box input {
-            flex: 1;
+            width: 100%;
             padding: 10px;
             border-radius: 5px;
             border: none;
@@ -95,17 +90,14 @@
 
         .messages {
             margin-top: 20px;
-            padding: 10px;
-            background-color: #333;
-            border-radius: 5px;
-            max-height: 300px; /* Set max height for messages */
-            overflow-y: auto; /* Enable scrolling */
+            max-height: 300px;
+            overflow-y: auto;
         }
 
         .messages .message {
             margin: 10px 0;
             padding: 10px;
-            background-color: #444;
+            background-color: #333;
             border-radius: 5px;
             display: flex;
             align-items: center;
@@ -118,10 +110,19 @@
             margin-right: 10px;
         }
 
+        /* Developer Tools */
+        .developer-tools {
+            display: none;
+            background-color: #444;
+            padding: 20px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+
         /* Popup Styles */
         .popup {
             position: fixed;
-            top: -50px; 
+            top: -50px;
             left: 50%;
             transform: translateX(-50%);
             background-color: rgba(0, 255, 0, 0.9);
@@ -129,7 +130,7 @@
             padding: 15px 20px;
             border-radius: 5px;
             transition: top 0.5s ease;
-            z-index: 1000; 
+            z-index: 1000;
         }
     </style>
 </head>
@@ -140,25 +141,31 @@
 <div class="header">
     <div class="profile">
         <img id="profile-pic" src="" alt="Profile Picture">
-        <div class="username">Welcome, <span id="username-display"></span>!</div>
+        <div class="username" id="username-display"></div>
         <div id="owner-badge" class="profile-owner-badge">Owner</div>
     </div>
 </div>
 
+<!-- Navigation buttons -->
 <div class="nav-buttons">
     <button onclick="window.location.href='settings.html'">Settings</button>
     <button onclick="window.location.href='discovery.html'">Discovery</button>
     <button onclick="window.location.href='community.html'">Community</button>
+    <button id="developer-tools-btn" style="display: none;">Developer Tools</button>
 </div>
 
-<div class="chat-container">
-    <div class="messages" id="messages-container">
-        <!-- Messages will go here -->
-    </div>
-    <div class="chat-box">
-        <input type="text" id="chat-input" placeholder="Type a message...">
-        <button id="send-button">Send</button>
-    </div>
+<div class="chat-box">
+    <input type="text" id="chat-input" placeholder="Type a message...">
+    <button id="toggle-dev-tools" style="display: none;">Show Developer Tools</button>
+</div>
+
+<div class="messages" id="messages-container"></div>
+
+<div class="developer-tools" id="developer-tools">
+    <h3>Developer Tools</h3>
+    <button onclick="enableCooldowns()">Enable Cooldowns</button>
+    <button onclick="toggleChat()">Toggle Chat</button>
+    <button onclick="toggleFilters()">Toggle Chat Filters</button>
 </div>
 
 <script>
@@ -166,6 +173,10 @@
     const profilePic = document.getElementById('profile-pic');
     const ownerBadge = document.getElementById('owner-badge');
     const messagesContainer = document.getElementById('messages-container');
+    const developerTools = document.getElementById('developer-tools');
+    const developerToolsBtn = document.getElementById('developer-tools-btn');
+    const toggleDevToolsBtn = document.getElementById('toggle-dev-tools');
+    const popup = document.getElementById('popup');
 
     // Get username and profile picture from localStorage
     const username = localStorage.getItem('username') || 'Guest';
@@ -175,9 +186,12 @@
     usernameDisplay.textContent = username;
     profilePic.src = profilePictureUrl;
 
-    // Show the Owner badge if the username is 'zeptional'
-    if (username === 'zeptional') {
+    // Show the Owner badge and Developer Tools if the username is 'zeptional' and password is correct
+    const isOwner = username === 'zeptional' && localStorage.getItem('password') === 'corndogs123';
+    if (isOwner) {
         ownerBadge.style.display = 'inline-block';
+        developerToolsBtn.style.display = 'inline-block';
+        toggleDevToolsBtn.style.display = 'inline-block';
     }
 
     // Function to simulate a message in the chat with the profile picture
@@ -194,7 +208,6 @@
         message.appendChild(profileImage);
         message.appendChild(text);
         messagesContainer.appendChild(message);
-        messagesContainer.scrollTop = messagesContainer.scrollHeight; // Auto-scroll to bottom
     }
 
     // Event listener for chat input
@@ -206,18 +219,17 @@
         }
     });
 
-    // Send button functionality
-    document.getElementById('send-button').addEventListener('click', function() {
-        const chatInput = document.getElementById('chat-input');
-        if (chatInput.value.trim() !== '') {
-            addMessage(chatInput.value.trim());
-            chatInput.value = '';
-        }
+    // Show developer tools when the button is clicked
+    developerToolsBtn.addEventListener('click', function() {
+        developerTools.style.display = developerTools.style.display === 'none' ? 'block' : 'none';
     });
 
-    // Show welcome popup
+    toggleDevToolsBtn.addEventListener('click', function() {
+        developerTools.style.display = developerTools.style.display === 'none' ? 'block' : 'none';
+    });
+
+    // Show popup function
     function showPopup(message) {
-        const popup = document.getElementById('popup');
         popup.textContent = message;
         popup.style.display = 'block';
         popup.style.top = '20px';
@@ -230,8 +242,21 @@
         }, 3000);
     }
 
-    // Show the welcome message on load
-    showPopup(`Welcome, ${username}!`);
+    // Developer Functions
+    function enableCooldowns() {
+        // Implement cooldown functionality
+        showPopup('Cooldowns have been enabled!');
+    }
+
+    function toggleChat() {
+        // Implement chat toggle functionality
+        showPopup('Chat has been toggled!');
+    }
+
+    function toggleFilters() {
+        // Implement chat filters toggle functionality
+        showPopup('Chat filters have been toggled!');
+    }
 </script>
 
 </body>
