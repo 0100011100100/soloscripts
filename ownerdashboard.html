@@ -98,57 +98,50 @@
             margin-right: 10px;
         }
 
-        /* Developer Tools Styles */
+        /* Popup Styles */
+        .popup {
+            position: fixed;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 255, 0, 0.9);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 5px;
+            transition: top 0.5s ease;
+            z-index: 1000;
+        }
+
         .developer-tools {
             margin-top: 30px;
             padding: 20px;
-            background-color: #444;
-            border-radius: 5px;
+            background-color: #333;
+            border-radius: 10px;
         }
 
-        .developer-tools h3 {
-            margin-bottom: 10px;
-        }
-
-        .developer-tools button {
-            padding: 10px;
-            background-color: #007BFF;
+        .toggle-dev-button {
+            padding: 10px 20px;
+            background-color: #e63946;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
         }
 
-        .developer-tools button:hover {
-            background-color: #0056b3;
+        .toggle-dev-button:hover {
+            background-color: #ff3f5e;
         }
 
-        .usernames-list {
-            margin-top: 20px;
-            background-color: #333;
-            padding: 10px;
-            border-radius: 5px;
-        }
-
-        .usernames-list ul {
-            list-style: none;
-            padding: 0;
-        }
-
-        .usernames-list li {
-            margin: 5px 0;
-            padding: 5px;
-            background-color: #555;
-            border-radius: 5px;
-        }
     </style>
 </head>
 <body>
 
+<div id="popup" class="popup" style="display: none;"></div>
+
 <div class="header">
     <div class="profile">
-        <img src="https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcS14YV-vEmI-R9Z8DWfyiEkaBHxuEdRbTSZjjoE_txftmb3uYr2" alt="Profile Picture">
-        <div class="username">Welcome, zeptional</div>
+        <img id="profile-pic" src="https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcS14YV-vEmI-R9Z8DWfyiEkaBHxuEdRbTSZjjoE_txftmb3uYr2" alt="Profile Picture">
+        <div class="username">Welcome, <span id="username-display">zeptional</span></div>
         <div class="profile-owner-badge">Owner</div>
     </div>
 </div>
@@ -160,80 +153,58 @@
     <button onclick="window.location.href='community.html'">Community</button>
 </div>
 
-<!-- Chat box -->
+<!-- Developer Tools Button -->
 <div class="chat-box">
-    <input type="text" id="chat-input" placeholder="Type a message...">
+    <button class="toggle-dev-button" onclick="toggleDeveloperTools()">Show Developer Tools</button>
 </div>
 
-<div class="messages" id="messages-container">
-    <!-- Messages will go here -->
-</div>
-
-<!-- Developer Tools Section -->
-<div class="developer-tools">
-    <h3>Developer Tools</h3>
-    <button id="shutdown-chat">Shut Down Chat</button>
-    <button id="enable-cooldowns">Enable Cooldowns</button>
-
-    <!-- View Usernames -->
-    <div class="usernames-list">
-        <h3>Usernames Created</h3>
-        <ul id="usernames-list">
-            <!-- List of usernames -->
-        </ul>
-    </div>
+<div id="dev-tools" class="developer-tools" style="display: none;">
+    <h2>Developer Tools</h2>
+    <button class="nav-buttons" onclick="enableCooldown()">Enable Cooldowns</button>
+    <button class="nav-buttons" onclick="shutdownChat()">Shutdown Chat</button>
+    <button class="nav-buttons" onclick="toggleChatFilter()">Toggle Chat Filter</button>
+    <!-- Add more developer features as needed -->
 </div>
 
 <script>
-    const messagesContainer = document.getElementById('messages-container');
-    const usernamesList = document.getElementById('usernames-list');
-
-    // Function to simulate a message in the chat
-    function addMessage(messageText) {
-        const message = document.createElement('div');
-        message.classList.add('message');
-
-        const profileImage = document.createElement('img');
-        profileImage.src = 'https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcS14YV-vEmI-R9Z8DWfyiEkaBHxuEdRbTSZjjoE_txftmb3uYr2';  // Profile Picture for zeptional
-
-        const text = document.createElement('span');
-        text.textContent = `${messageText}`;
-
-        message.appendChild(profileImage);
-        message.appendChild(text);
-        messagesContainer.appendChild(message);
+    // Popup Functionality
+    function showPopup(message, bgColor) {
+        const popup = document.getElementById('popup');
+        popup.textContent = message;
+        popup.style.backgroundColor = bgColor || 'rgba(0, 255, 0, 0.9)'; // Default green
+        popup.style.display = 'block';
+        popup.style.top = '20px';
+        setTimeout(() => {
+            popup.style.top = '-50px';
+            setTimeout(() => {
+                popup.style.display = 'none';
+            }, 500);
+        }, 3000); // Wait for 3 seconds before hiding
     }
 
-    // Function to load created usernames (dummy data for now)
-    function loadUsernames() {
-        const usernames = ['user1', 'user2', 'user3']; // Example usernames
-        usernames.forEach(username => {
-            const li = document.createElement('li');
-            li.textContent = username;
-            usernamesList.appendChild(li);
-        });
-    }
-
-    // Load usernames on page load
-    loadUsernames();
-
-    // Event listener for chat input
-    document.getElementById('chat-input').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter' && this.value.trim() !== '') {
-            const messageText = this.value.trim();
-            addMessage(messageText);
-            this.value = '';
+    // Developer Tools Toggle
+    function toggleDeveloperTools() {
+        const devTools = document.getElementById('dev-tools');
+        if (devTools.style.display === 'none') {
+            devTools.style.display = 'block';
+            showPopup('Developer tools activated', 'rgba(255, 0, 0, 0.9)');
+        } else {
+            devTools.style.display = 'none';
         }
-    });
+    }
 
-    // Developer Tools functionality
-    document.getElementById('shutdown-chat').addEventListener('click', function() {
-        alert('Chat has been shut down.'); // Example action
-    });
+    // Developer actions
+    function enableCooldown() {
+        showPopup('Cooldowns enabled!', 'rgba(255, 255, 0, 0.9)');
+    }
 
-    document.getElementById('enable-cooldowns').addEventListener('click', function() {
-        alert('Cooldowns enabled.'); // Example action
-    });
+    function shutdownChat() {
+        showPopup('Chat has been shut down!', 'rgba(255, 0, 0, 0.9)');
+    }
+
+    function toggleChatFilter() {
+        showPopup('Chat filter toggled!', 'rgba(0, 123, 255, 0.9)');
+    }
 </script>
 
 </body>
