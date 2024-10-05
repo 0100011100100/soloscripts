@@ -6,69 +6,51 @@
     <title>Profile Picture</title>
     <style>
         body {
-            margin: 0;
-            padding: 0;
-            background-color: #1e1e1e;
-            color: white;
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+            /* Same styles */
         }
-        .pfp-container {
-            background-color: #333;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-            text-align: center;
-        }
-        input[type="file"] {
-            margin: 10px 0;
-        }
-        button {
-            padding: 10px 20px;
-            background-color: #555;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        button:hover {
-            background-color: #777;
+        .popup {
+            /* Same popup styles as login.html */
         }
     </style>
 </head>
 <body>
 
-<div class="pfp-container">
-    <h1>Profile Picture</h1>
-    <input type="file" id="profile-pic-input" accept="image/*">
-    <button id="set-pfp-button">Set Profile Picture</button>
-    <button id="skip-button">Skip</button>
-</div>
+<div id="popup" class="popup" style="display: none;"></div>
+
+<form id="pfp-form">
+    <input type="url" id="profile-pic-url" placeholder="Profile Picture URL (optional)">
+    <button type="submit">Set Profile Picture</button>
+    <button type="button" onclick="skipProfile()">Skip</button>
+</form>
 
 <script>
-    document.getElementById('set-pfp-button').addEventListener('click', function() {
-        const fileInput = document.getElementById('profile-pic-input');
-        if (fileInput.files.length === 0) {
-            alert('Please select a file to upload.');
-            return;
-        }
+    document.getElementById('pfp-form').addEventListener('submit', function (e) {
+        e.preventDefault();
 
-        const file = fileInput.files[0];
-        const reader = new FileReader();
-        reader.onloadend = function() {
-            localStorage.setItem('profilePic', reader.result);
-            window.location.href = 'dashboard.html';
-        };
-        reader.readAsDataURL(file);
-    });
+        const profilePicUrl = document.getElementById('profile-pic-url').value || 'default-profile-pic.png';
+        localStorage.setItem('profilePic', profilePicUrl);
 
-    document.getElementById('skip-button').addEventListener('click', function() {
+        // Redirect to dashboard
         window.location.href = 'dashboard.html';
     });
+
+    function skipProfile() {
+        window.location.href = 'dashboard.html';
+    }
+
+    function showPopup(message) {
+        const popup = document.getElementById('popup');
+        popup.textContent = message;
+        popup.style.display = 'block';
+        popup.style.top = '20px';
+
+        setTimeout(() => {
+            popup.style.top = '-50px';
+            setTimeout(() => {
+                popup.style.display = 'none';
+            }, 500);
+        }, 3000);
+    }
 </script>
 
 </body>
