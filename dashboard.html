@@ -199,7 +199,7 @@
     }
 
     // Function to display chat messages with the username
-    function addMessage(messageText) {
+    function addMessage(username, messageText) {
         const message = document.createElement('div');
         message.classList.add('message');
 
@@ -232,7 +232,8 @@
     document.getElementById('chat-input').addEventListener('keypress', function(e) {
         if (e.key === 'Enter' && this.value.trim() !== '') {
             const messageText = this.value.trim();
-            addMessage(messageText);
+            // Send the message to Firebase
+            sendMessageToFirebase(username, messageText);
             this.value = '';
         }
     });
@@ -254,40 +255,42 @@
     showWelcomePopup();
 
     // Firebase Configuration
+    // Import the necessary Firebase functions
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+    import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js";
+
+    // Your web app's Firebase configuration
     const firebaseConfig = {
         apiKey: "AIzaSyDI6l1w7JydjHI4CT3upKOkiVxLftg5in8",
         authDomain: "zeptionalchat.firebaseapp.com",
-        databaseURL: "https://zeptionalchat.firebaseio.com",
+        databaseURL: "https://zeptionalchat-default-rtdb.firebaseio.com",
         projectId: "zeptionalchat",
         storageBucket: "zeptionalchat.appspot.com",
         messagingSenderId: "455606646143",
-        appId: "1:455606646143:web:92fe178ba9b910c607564a"
+        appId: "1:455606646143:web:92fe178ba9b910c607564a",
+        measurementId: "G-KCBJ158CYE"
     };
 
     // Initialize Firebase
-    const app = firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
 
-    // Listen for new messages
-    database.ref('messages').on('child_added', (snapshot) => {
+    // Function to send a message to Firebase
+    function sendMessageToFirebase(username, message) {
+        const messageRef = ref(database, 'messages');
+        push(messageRef, {
+            username: username,
+            message: message,
+            timestamp: Date.now()
+        });
+    }
+
+    // Listen for new messages from Firebase
+    const messageRef = ref(database, 'messages');
+    onChildAdded(messageRef, (snapshot) => {
         const messageData = snapshot.val();
-        addMessage(messageData);
-    });
-
-    // Event listener for chat input (Enter key)
-    document.getElementById('chat-input').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter' && this.value.trim() !== '') {
-            const messageText = this.value.trim();
-            // Send message to Firebase
-            database.ref('messages').push({
-                messageText: messageText,
-                username: username,
-                profilePictureUrl: profilePictureUrl
-            });
-            this.value = ''; // Clear the input field
-        }
+        addMessage(messageData.username, messageData.message);
     });
 </script>
-
 </body>
 </html>
