@@ -1,12 +1,12 @@
 // Initialize Firebase
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_AUTH_DOMAIN",
-    databaseURL: "YOUR_DATABASE_URL",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_STORAGE_BUCKET",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID"
+    apiKey: "AIzaSyDI6l1w7JydjHI4CT3upKOkiVxLftg5in8",
+    authDomain: "zeptionalchat.firebaseapp.com",
+    databaseURL: "",
+    projectId: "zeptionalchat",
+    storageBucket: "zeptionalchat.appspot.com",
+    messagingSenderId: "455606646143",
+    appId: "1:455606646143:web:92fe178ba9b910c607564a"
 };
 
 // Initialize Firebase
