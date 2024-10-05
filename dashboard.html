@@ -6,119 +6,91 @@
     <title>Dashboard</title>
     <style>
         body {
-            margin: 0;
-            padding: 0;
-            background-color: #1e1e1e;
-            color: white;
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            /* Same styles */
         }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: #444;
-            width: 100%;
-            padding: 10px 20px;
-        }
-
-        .header .username {
-            font-size: 24px;
-        }
-
-        .header .profile {
-            display: flex;
-            align-items: center;
-        }
-
-        .profile img {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            margin-right: 10px;
-        }
-
-        .profile-owner-badge {
-            font-size: 12px;
-            padding: 3px 10px;
-            background: linear-gradient(90deg, #ffcc00, #e63946);
-            color: white;
-            border-radius: 5px;
-            margin-left: 10px;
-        }
-
-        .nav-buttons {
-            display: flex;
-            justify-content: center;
-            margin-top: 20px;
-        }
-
-        .nav-buttons button {
-            margin: 0 10px;
-            padding: 10px 20px;
-            background-color: #555;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        .nav-buttons button:hover {
-            background-color: #777;
+        .popup {
+            /* Same popup styles as login.html */
         }
     </style>
 </head>
 <body>
 
+<div id="popup" class="popup" style="display: none;"></div>
+
 <div class="header">
-    <div class="username">Hello, Zeptional</div>
     <div class="profile">
-        <img src="" id="profile-pic" alt="Profile Picture">
-        <div class="profile-owner-badge">Owner</div>
+        <img id="profile-pic" src="" alt="Profile Picture">
+        <div id="username-display">Welcome, <span></span>!</div>
     </div>
 </div>
 
 <div class="nav-buttons">
-    <button onclick="showPopup('This feature is coming soon!', '#ffc107', '#000000')">Feature 1</button>
-    <button onclick="showPopup('This feature is coming soon!', '#ffc107', '#000000')">Feature 2</button>
-    <button onclick="showPopup('This feature is coming soon!', '#ffc107', '#000000')">Feature 3</button>
+    <button onclick="window.location.href='settings.html'">Settings</button>
+    <button onclick="window.location.href='discovery.html'">Discovery</button>
+    <button onclick="window.location.href='community.html'">Community</button>
+</div>
+
+<div class="chat-box">
+    <input type="text" id="chat-input" placeholder="Type a message...">
+</div>
+
+<div class="messages" id="messages-container">
+    <!-- Messages will go here -->
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const profilePic = localStorage.getItem('profilePic');
-        if (profilePic) {
-            document.getElementById('profile-pic').src = profilePic;
+    const usernameDisplay = document.querySelector('#username-display span');
+    const profilePic = document.getElementById('profile-pic');
+    const messagesContainer = document.getElementById('messages-container');
+
+    // Get username and profile picture from localStorage
+    const username = localStorage.getItem('username') || 'Guest';
+    const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
+
+    // Display username and profile picture
+    usernameDisplay.textContent = username;
+    profilePic.src = profilePictureUrl;
+
+    // Show popup for welcome message
+    showPopup(`Welcome, ${username}!`);
+
+    // Function to simulate a message in the chat with the profile picture
+    function addMessage(messageText) {
+        const message = document.createElement('div');
+        message.classList.add('message');
+
+        const profileImage = document.createElement('img');
+        profileImage.src = profilePictureUrl;
+
+        const text = document.createElement('span');
+        text.textContent = `${username}: ${messageText}`;
+
+        message.appendChild(profileImage);
+        message.appendChild(text);
+        messagesContainer.appendChild(message);
+    }
+
+    // Event listener for chat input
+    document.getElementById('chat-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && this.value.trim() !== '') {
+            const messageText = this.value.trim();
+            addMessage(messageText);
+            this.value = '';
         }
     });
 
-    function showPopup(message, backgroundColor, textColor) {
-        const popup = document.createElement('div');
-        popup.innerText = message;
-        popup.style.position = 'fixed';
+    function showPopup(message) {
+        const popup = document.getElementById('popup');
+        popup.textContent = message;
+        popup.style.display = 'block';
         popup.style.top = '20px';
-        popup.style.left = '50%';
-        popup.style.transform = 'translateX(-50%)';
-        popup.style.backgroundColor = backgroundColor;
-        popup.style.color = textColor;
-        popup.style.padding = '10px 20px';
-        popup.style.borderRadius = '5px';
-        popup.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.5)';
-        popup.style.zIndex = '1000';
-        popup.style.opacity = '0.9';
-        document.body.appendChild(popup);
 
         setTimeout(() => {
-            popup.style.transition = 'opacity 0.5s ease-out';
-            popup.style.opacity = '0';
+            popup.style.top = '-50px';
             setTimeout(() => {
-                document.body.removeChild(popup);
+                popup.style.display = 'none';
             }, 500);
-        }, 2000);
+        }, 3000);
     }
 </script>
 
