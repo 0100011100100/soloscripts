@@ -12,12 +12,54 @@
             color: white;
             font-family: Arial, sans-serif;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
+            justify-content: center;
             height: 100vh;
         }
+
+        .container {
+            background-color: #333;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: none;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Popup Styles */
         .popup {
-            /* Same popup styles as login.html */
+            position: fixed;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 255, 0, 0.9);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 5px;
+            transition: top 0.5s ease;
+            z-index: 1000;
         }
     </style>
 </head>
@@ -25,35 +67,33 @@
 
 <div id="popup" class="popup" style="display: none;"></div>
 
-<form id="signup-form">
-    <input type="text" id="new-username" placeholder="Username" required>
-    <input type="password" id="new-password" placeholder="Password" required>
-    <button type="submit">Sign Up</button>
-</form>
+<div class="container">
+    <h1>Sign Up</h1>
+    <input type="text" id="new-username" placeholder="Username">
+    <input type="password" id="new-password" placeholder="Password">
+    <button id="signup-button">Sign Up</button>
+</div>
 
 <script>
-    document.getElementById('signup-form').addEventListener('submit', function (e) {
-        e.preventDefault();
+    const signupButton = document.getElementById('signup-button');
+    const popup = document.getElementById('popup');
 
+    // Sign Up button click event
+    signupButton.addEventListener('click', function() {
         const newUsername = document.getElementById('new-username').value;
         const newPassword = document.getElementById('new-password').value;
 
-        // Check if the username is taken
-        if (localStorage.getItem(newUsername)) {
-            showPopup('This username is already taken!');
-        } else if (newUsername === 'zeptional') {
-            showPopup('Cannot use the username "zeptional"!');
+        if (newUsername && newPassword) {
+            // Store username in local storage and redirect
+            localStorage.setItem('username', newUsername);
+            window.location.href = 'pfp.html';
         } else {
-            localStorage.setItem(newUsername, newPassword);
-            showPopup('Account created successfully! Redirecting to login...');
-            setTimeout(() => {
-                window.location.href = 'login.html';
-            }, 3000);
+            showPopup('Please enter a username and password.');
         }
     });
 
+    // Function to show the popup message
     function showPopup(message) {
-        const popup = document.getElementById('popup');
         popup.textContent = message;
         popup.style.display = 'block';
         popup.style.top = '20px';
