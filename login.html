@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
     <style>
+        /* Add your existing styles */
         body {
             margin: 0;
             padding: 0;
@@ -16,63 +17,63 @@
             align-items: center;
             height: 100vh;
         }
-        .login-container {
-            background-color: #333;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-            text-align: center;
-        }
-        input[type="text"], input[type="password"] {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-        }
-        button {
-            padding: 10px 20px;
-            background-color: #555;
+        /* Popup CSS */
+        .popup {
+            position: fixed;
+            top: -50px; 
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 0, 0, 0.9);
             color: white;
-            border: none;
+            padding: 15px 20px;
             border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        button:hover {
-            background-color: #777;
-        }
-        .error {
-            color: #e63946;
+            transition: top 0.5s ease;
+            z-index: 1000; 
         }
     </style>
 </head>
 <body>
 
-<div class="login-container">
-    <h1>Login</h1>
+<div id="popup" class="popup" style="display: none;"></div>
+
+<form id="login-form">
     <input type="text" id="username" placeholder="Username" required>
     <input type="password" id="password" placeholder="Password" required>
-    <button id="login-button">Login</button>
-    <div class="error" id="error-message"></div>
-    <div class="sign-up">Don't have an account? <a href="signup.html">Sign up</a></div>
-</div>
+    <button type="submit">Login</button>
+    <button id="signup-button" type="button" onclick="window.location.href='signup.html'">Sign Up</button>
+</form>
 
 <script>
-    document.getElementById('login-button').addEventListener('click', function() {
+    document.getElementById('login-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
-        const errorMessage = document.getElementById('error-message');
 
+        // Handle the login logic
         if (username === 'zeptional' && password === 'corndogs123') {
+            localStorage.setItem('username', username);
             localStorage.setItem('profilePic', 'https://avatars.githubusercontent.com/u/183566187?v=4');
-            window.location.href = 'pfp.html';
+            showPopup(`Welcome, ${username}!`);
+            window.location.href = 'dashboard.html'; // Redirect to dashboard
         } else {
-            errorMessage.innerText = 'Invalid username or password.';
-            setTimeout(() => { errorMessage.innerText = ''; }, 2000);
+            showPopup('Invalid username or password!');
         }
     });
+
+    function showPopup(message) {
+        const popup = document.getElementById('popup');
+        popup.textContent = message;
+        popup.style.display = 'block';
+        popup.style.top = '20px';
+
+        setTimeout(() => {
+            popup.style.top = '-50px';
+            setTimeout(() => {
+                popup.style.display = 'none';
+            }, 500);
+        }, 3000);
+    }
 </script>
 
 </body>
