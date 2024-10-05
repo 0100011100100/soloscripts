@@ -16,64 +16,55 @@
             align-items: center;
             height: 100vh;
         }
-        .signup-container {
-            background-color: #333;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-            text-align: center;
-        }
-        input[type="text"], input[type="password"] {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-        }
-        button {
-            padding: 10px 20px;
-            background-color: #555;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        button:hover {
-            background-color: #777;
-        }
-        .error {
-            color: #e63946;
+        .popup {
+            /* Same popup styles as login.html */
         }
     </style>
 </head>
 <body>
 
-<div class="signup-container">
-    <h1>Sign Up</h1>
+<div id="popup" class="popup" style="display: none;"></div>
+
+<form id="signup-form">
     <input type="text" id="new-username" placeholder="Username" required>
     <input type="password" id="new-password" placeholder="Password" required>
-    <button id="signup-button">Sign Up</button>
-    <div class="error" id="signup-error"></div>
-</div>
+    <button type="submit">Sign Up</button>
+</form>
 
 <script>
-    document.getElementById('signup-button').addEventListener('click', function() {
+    document.getElementById('signup-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+
         const newUsername = document.getElementById('new-username').value;
         const newPassword = document.getElementById('new-password').value;
-        const signupError = document.getElementById('signup-error');
 
-        if (newUsername === 'zeptional') {
-            signupError.innerText = 'Username "zeptional" is not available.';
-            setTimeout(() => { signupError.innerText = ''; }, 2000);
-            return;
+        // Check if the username is taken
+        if (localStorage.getItem(newUsername)) {
+            showPopup('This username is already taken!');
+        } else if (newUsername === 'zeptional') {
+            showPopup('Cannot use the username "zeptional"!');
+        } else {
+            localStorage.setItem(newUsername, newPassword);
+            showPopup('Account created successfully! Redirecting to login...');
+            setTimeout(() => {
+                window.location.href = 'login.html';
+            }, 3000);
         }
-
-        localStorage.setItem(newUsername, newPassword);
-        alert('Account created successfully! Redirecting to login...');
-        window.location.href = 'login.html';
     });
+
+    function showPopup(message) {
+        const popup = document.getElementById('popup');
+        popup.textContent = message;
+        popup.style.display = 'block';
+        popup.style.top = '20px';
+
+        setTimeout(() => {
+            popup.style.top = '-50px';
+            setTimeout(() => {
+                popup.style.display = 'none';
+            }, 500);
+        }, 3000);
+    }
 </script>
 
 </body>
