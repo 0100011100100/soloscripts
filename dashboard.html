@@ -164,6 +164,8 @@
     </div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"></script>
 <script>
     const usernameDisplay = document.getElementById('username-display');
     const profilePic = document.getElementById('profile-pic');
@@ -198,17 +200,18 @@
         ownerBadge.style.display = 'inline-block';
     }
 
-    // Function to display chat messages with the username
+    // Function to display chat messages
     function addMessage(messageData) {
         const message = document.createElement('div');
         message.classList.add('message');
 
         const profileImage = document.createElement('img');
         profileImage.src = messageData.profilePictureUrl;
-        // Apply same border style as profile picture
-        if (messageData.borderStyle === 'rainbow') {
+
+        // Apply border style for chat messages
+        if (borderStyle === 'rainbow') {
             profileImage.classList.add('rainbow-border');
-        } else if (messageData.borderStyle === 'gradient') {
+        } else if (borderStyle === 'gradient') {
             profileImage.style.borderImage = profilePic.style.borderImage;
             profileImage.style.borderWidth = '3px'; // Thinner border for gradient
             profileImage.classList.add('gradient-border');
@@ -232,16 +235,12 @@
     document.getElementById('chat-input').addEventListener('keypress', function(e) {
         if (e.key === 'Enter' && this.value.trim() !== '') {
             const messageText = this.value.trim();
-            // Prepare message data
-            const messageData = {
+            // Send message to Firebase
+            database.ref('messages').push({
                 messageText: messageText,
                 username: username,
-                profilePictureUrl: profilePictureUrl,
-                borderStyle: borderStyle
-            };
-            addMessage(messageData); // Show message in chat
-            // Send message to Firebase
-            database.ref('messages').push(messageData);
+                profilePictureUrl: profilePictureUrl
+            });
             this.value = ''; // Clear the input field
         }
     });
@@ -268,7 +267,7 @@
         authDomain: "zeptionalchat.firebaseapp.com",
         databaseURL: "https://zeptionalchat.firebaseio.com",
         projectId: "zeptionalchat",
-        storageBucket: "zeptionalchat.appspot.com
+        storageBucket: "zeptionalchat.appspot.com",
         messagingSenderId: "455606646143",
         appId: "1:455606646143:web:92fe178ba9b910c607564a"
     };
@@ -280,7 +279,7 @@
     // Listen for new messages
     database.ref('messages').on('child_added', (snapshot) => {
         const messageData = snapshot.val();
-        addMessage(messageData);
+        addMessage(messageData); // Pass the whole messageData object
     });
 </script>
 
