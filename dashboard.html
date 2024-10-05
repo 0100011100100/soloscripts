@@ -31,7 +31,8 @@
             height: 40px;
             border-radius: 50%;
             margin-right: 10px;
-            border: 5px solid white;
+            border: 3px solid white; /* Thinner border */
+            transition: border 0.3s ease; /* Smooth transition for border */
         }
 
         .profile .username {
@@ -98,6 +99,7 @@
             height: 30px;
             border-radius: 50%;
             margin-right: 10px;
+            border: 3px solid white; /* Thinner border for chat */
         }
 
         /* Popup Styles */
@@ -132,6 +134,7 @@
         .gradient-border {
             border-image-slice: 1;
             border-radius: 50%;
+            border-width: 3px; /* Thinner border for gradient */
         }
     </style>
 </head>
@@ -184,10 +187,10 @@
     } else if (borderStyle === 'gradient') {
         const gradientColor = localStorage.getItem('gradientColor') || 'linear-gradient(45deg, #6a11cb, #2575fc)';
         profilePic.style.borderImage = gradientColor;
-        profilePic.style.borderWidth = '5px';
+        profilePic.style.borderWidth = '3px'; // Thinner border for gradient
         profilePic.classList.add('gradient-border');
     } else {
-        profilePic.style.border = `5px solid ${borderColor}`;
+        profilePic.style.border = `3px solid ${borderColor}`; // Thinner border
     }
 
     // Show the Owner badge if the username is 'zeptional'
@@ -202,6 +205,16 @@
 
         const profileImage = document.createElement('img');
         profileImage.src = profilePictureUrl;
+        // Apply same border style as profile picture
+        if (borderStyle === 'rainbow') {
+            profileImage.classList.add('rainbow-border');
+        } else if (borderStyle === 'gradient') {
+            profileImage.style.borderImage = profilePic.style.borderImage;
+            profileImage.style.borderWidth = '3px'; // Thinner border for gradient
+            profileImage.classList.add('gradient-border');
+        } else {
+            profileImage.style.border = `3px solid ${borderColor}`; // Thinner border for chat
+        }
 
         const text = document.createElement('span');
         if (username === 'zeptional') {
