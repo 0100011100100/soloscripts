@@ -6,10 +6,130 @@
     <title>Dashboard</title>
     <style>
         body {
-            /* Same styles */
+            margin: 0;
+            padding: 0;
+            background-color: #1e1e1e;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
         }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #444;
+            padding: 10px 20px;
+            width: 100%;
+        }
+
+        .header .username {
+            font-size: 24px;
+        }
+
+        .header .profile {
+            display: flex;
+            align-items: center;
+        }
+
+        .profile img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .profile-owner-badge {
+            font-size: 12px;
+            padding: 3px 10px;
+            background: linear-gradient(90deg, #ffcc00, #e63946);
+            color: white;
+            border-radius: 5px;
+            margin-left: 10px;
+            display: none; /* Default hidden */
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .nav-buttons button {
+            margin: 0 10px;
+            padding: 10px 20px;
+            background-color: #555;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .nav-buttons button:hover {
+            background-color: #777;
+        }
+
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            width: 80%; /* Set width for chat */
+            max-width: 600px;
+            margin-top: 20px;
+        }
+
+        .chat-box {
+            display: flex;
+            margin-top: 10px;
+        }
+
+        .chat-box input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            font-size: 14px;
+        }
+
+        .messages {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #333;
+            border-radius: 5px;
+            max-height: 300px; /* Set max height for messages */
+            overflow-y: auto; /* Enable scrolling */
+        }
+
+        .messages .message {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #444;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+        }
+
+        .messages .message img {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        /* Popup Styles */
         .popup {
-            /* Same popup styles as login.html */
+            position: fixed;
+            top: -50px; 
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 255, 0, 0.9);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 5px;
+            transition: top 0.5s ease;
+            z-index: 1000; 
         }
     </style>
 </head>
@@ -20,7 +140,8 @@
 <div class="header">
     <div class="profile">
         <img id="profile-pic" src="" alt="Profile Picture">
-        <div id="username-display">Welcome, <span></span>!</div>
+        <div class="username">Welcome, <span id="username-display"></span>!</div>
+        <div id="owner-badge" class="profile-owner-badge">Owner</div>
     </div>
 </div>
 
@@ -30,17 +151,20 @@
     <button onclick="window.location.href='community.html'">Community</button>
 </div>
 
-<div class="chat-box">
-    <input type="text" id="chat-input" placeholder="Type a message...">
-</div>
-
-<div class="messages" id="messages-container">
-    <!-- Messages will go here -->
+<div class="chat-container">
+    <div class="messages" id="messages-container">
+        <!-- Messages will go here -->
+    </div>
+    <div class="chat-box">
+        <input type="text" id="chat-input" placeholder="Type a message...">
+        <button id="send-button">Send</button>
+    </div>
 </div>
 
 <script>
-    const usernameDisplay = document.querySelector('#username-display span');
+    const usernameDisplay = document.getElementById('username-display');
     const profilePic = document.getElementById('profile-pic');
+    const ownerBadge = document.getElementById('owner-badge');
     const messagesContainer = document.getElementById('messages-container');
 
     // Get username and profile picture from localStorage
@@ -51,8 +175,10 @@
     usernameDisplay.textContent = username;
     profilePic.src = profilePictureUrl;
 
-    // Show popup for welcome message
-    showPopup(`Welcome, ${username}!`);
+    // Show the Owner badge if the username is 'zeptional'
+    if (username === 'zeptional') {
+        ownerBadge.style.display = 'inline-block';
+    }
 
     // Function to simulate a message in the chat with the profile picture
     function addMessage(messageText) {
@@ -68,6 +194,7 @@
         message.appendChild(profileImage);
         message.appendChild(text);
         messagesContainer.appendChild(message);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight; // Auto-scroll to bottom
     }
 
     // Event listener for chat input
@@ -79,6 +206,16 @@
         }
     });
 
+    // Send button functionality
+    document.getElementById('send-button').addEventListener('click', function() {
+        const chatInput = document.getElementById('chat-input');
+        if (chatInput.value.trim() !== '') {
+            addMessage(chatInput.value.trim());
+            chatInput.value = '';
+        }
+    });
+
+    // Show welcome popup
     function showPopup(message) {
         const popup = document.getElementById('popup');
         popup.textContent = message;
@@ -92,6 +229,9 @@
             }, 500);
         }, 3000);
     }
+
+    // Show the welcome message on load
+    showPopup(`Welcome, ${username}!`);
 </script>
 
 </body>
