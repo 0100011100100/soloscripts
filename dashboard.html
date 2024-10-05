@@ -164,26 +164,7 @@
     </div>
 </div>
 
-<!-- Firebase App -->
-<script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js"></script>
-
 <script>
-    // Your Firebase configuration
-    const firebaseConfig = {
-        apiKey: "AIzaSyDI6l1w7JydjHI4CT3upKOkiVxLftg5in8",
-        authDomain: "zeptionalchat.firebaseapp.com",
-        databaseURL: "https://zeptionalchat.firebaseio.com",
-        projectId: "zeptionalchat",
-        storageBucket: "zeptionalchat.appspot.com",
-        messagingSenderId: "455606646143",
-        appId: "1:455606646143:web:92fe178ba9b910c607564a",
-    };
-
-    // Initialize Firebase
-    const app = firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
-
     const usernameDisplay = document.getElementById('username-display');
     const profilePic = document.getElementById('profile-pic');
     const ownerBadge = document.getElementById('owner-badge');
@@ -217,24 +198,13 @@
         ownerBadge.style.display = 'inline-block';
     }
 
-    // Function to add messages to the database
-    function addMessageToDatabase(messageText) {
-        const message = {
-            username: username,
-            text: messageText,
-            timestamp: Date.now()
-        };
-        database.ref('messages').push(message); // Store message in Firebase
-    }
-
-    // Function to display messages
-    function addMessage(messageData) {
+    // Function to display chat messages with the username
+    function addMessage(messageText) {
         const message = document.createElement('div');
         message.classList.add('message');
 
         const profileImage = document.createElement('img');
         profileImage.src = profilePictureUrl;
-        
         // Apply same border style as profile picture
         if (borderStyle === 'rainbow') {
             profileImage.classList.add('rainbow-border');
@@ -247,10 +217,10 @@
         }
 
         const text = document.createElement('span');
-        if (messageData.username === 'zeptional') {
-            text.innerHTML = `<strong style="background: linear-gradient(90deg, #ffcc00, #e63946); padding: 2px 6px; border-radius: 5px;">Owner:</strong> ${messageData.username}: ${messageData.text}`;
+        if (username === 'zeptional') {
+            text.innerHTML = `<strong style="background: linear-gradient(90deg, #ffcc00, #e63946); padding: 2px 6px; border-radius: 5px;">Owner:</strong> ${username}: ${messageText}`;
         } else {
-            text.textContent = `${messageData.username}: ${messageData.text}`;
+            text.textContent = `${username}: ${messageText}`;
         }
 
         message.appendChild(profileImage);
@@ -262,15 +232,9 @@
     document.getElementById('chat-input').addEventListener('keypress', function(e) {
         if (e.key === 'Enter' && this.value.trim() !== '') {
             const messageText = this.value.trim();
-            addMessageToDatabase(messageText); // Add message to Firebase
+            addMessage(messageText);
             this.value = '';
         }
-    });
-
-    // Listen for new messages from Firebase
-    database.ref('messages').on('child_added', function(snapshot) {
-        const messageData = snapshot.val();
-        addMessage(messageData); // Display message
     });
 
     // Show a welcome popup with animation
