@@ -52,18 +52,12 @@
             background-color: #0056b3;
         }
 
-        /* Popup Styles */
-        .popup {
-            position: fixed;
-            top: -50px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(255, 0, 0, 0.9);
-            color: white;
-            padding: 15px 20px;
-            border-radius: 5px;
-            transition: top 0.5s ease;
-            z-index: 1000;
+        .signup-link {
+            margin-top: 15px;
+            display: block;
+            color: #007BFF;
+            cursor: pointer;
+            text-decoration: underline;
         }
     </style>
 </head>
@@ -76,19 +70,18 @@
     <input type="text" id="username" placeholder="Username">
     <input type="password" id="password" placeholder="Password">
     <button id="login-button">Login</button>
+    <a class="signup-link" href="signup.html">Don't have an account? Sign Up</a> <!-- Sign Up button -->
 </div>
 
 <script>
     const loginButton = document.getElementById('login-button');
     const popup = document.getElementById('popup');
 
-    // Login button click event
     loginButton.addEventListener('click', function() {
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
 
         if (username === 'zeptional' && password === 'corndogs123') {
-            // Store in local storage and redirect
             localStorage.setItem('username', 'zeptional');
             window.location.href = 'dashboard.html';
         } else {
@@ -96,7 +89,6 @@
         }
     });
 
-    // Function to show the popup message
     function showPopup(message) {
         popup.textContent = message;
         popup.style.display = 'block';
