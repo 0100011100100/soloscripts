@@ -199,16 +199,16 @@
     }
 
     // Function to display chat messages with the username
-    function addMessage(messageText) {
+    function addMessage(messageData) {
         const message = document.createElement('div');
         message.classList.add('message');
 
         const profileImage = document.createElement('img');
-        profileImage.src = profilePictureUrl;
+        profileImage.src = messageData.profilePictureUrl;
         // Apply same border style as profile picture
-        if (borderStyle === 'rainbow') {
+        if (messageData.borderStyle === 'rainbow') {
             profileImage.classList.add('rainbow-border');
-        } else if (borderStyle === 'gradient') {
+        } else if (messageData.borderStyle === 'gradient') {
             profileImage.style.borderImage = profilePic.style.borderImage;
             profileImage.style.borderWidth = '3px'; // Thinner border for gradient
             profileImage.classList.add('gradient-border');
@@ -217,10 +217,10 @@
         }
 
         const text = document.createElement('span');
-        if (username === 'zeptional') {
-            text.innerHTML = `<strong style="background: linear-gradient(90deg, #ffcc00, #e63946); padding: 2px 6px; border-radius: 5px;">Owner:</strong> ${username}: ${messageText}`;
+        if (messageData.username === 'zeptional') {
+            text.innerHTML = `<strong style="background: linear-gradient(90deg, #ffcc00, #e63946); padding: 2px 6px; border-radius: 5px;">Owner:</strong> ${messageData.username}: ${messageData.messageText}`;
         } else {
-            text.textContent = `${username}: ${messageText}`;
+            text.textContent = `${messageData.username}: ${messageData.messageText}`;
         }
 
         message.appendChild(profileImage);
@@ -228,16 +228,20 @@
         messagesContainer.appendChild(message);
     }
 
-    // Event listener for chat input
+    // Event listener for chat input (Enter key)
     document.getElementById('chat-input').addEventListener('keypress', function(e) {
         if (e.key === 'Enter' && this.value.trim() !== '') {
             const messageText = this.value.trim();
-            // Send message to Firebase
-            database.ref('messages').push({
+            // Prepare message data
+            const messageData = {
                 messageText: messageText,
                 username: username,
-                profilePictureUrl: profilePictureUrl
-            });
+                profilePictureUrl: profilePictureUrl,
+                borderStyle: borderStyle
+            };
+            addMessage(messageData); // Show message in chat
+            // Send message to Firebase
+            database.ref('messages').push(messageData);
             this.value = ''; // Clear the input field
         }
     });
@@ -264,7 +268,7 @@
         authDomain: "zeptionalchat.firebaseapp.com",
         databaseURL: "https://zeptionalchat.firebaseio.com",
         projectId: "zeptionalchat",
-        storageBucket: "zeptionalchat.appspot.com",
+        storageBucket: "zeptionalchat.appspot.com
         messagingSenderId: "455606646143",
         appId: "1:455606646143:web:92fe178ba9b910c607564a"
     };
@@ -276,21 +280,7 @@
     // Listen for new messages
     database.ref('messages').on('child_added', (snapshot) => {
         const messageData = snapshot.val();
-        addMessage(messageData.messageText); // Added 'messageText' to display the correct text
-    });
-
-    // Event listener for chat input (Enter key)
-    document.getElementById('chat-input').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter' && this.value.trim() !== '') {
-            const messageText = this.value.trim();
-            // Send message to Firebase
-            database.ref('messages').push({
-                messageText: messageText,
-                username: username,
-                profilePictureUrl: profilePictureUrl
-            });
-            this.value = ''; // Clear the input field
-        }
+        addMessage(messageData);
     });
 </script>
 
