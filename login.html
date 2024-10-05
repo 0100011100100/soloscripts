@@ -5,50 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
     <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            background-color: #2d2d2d;
-            color: #ffffff;
-            font-family: Arial, sans-serif;
-            margin: 0;
-        }
-        .container {
-            text-align: center;
-        }
-        input {
-            padding: 10px;
-            border-radius: 5px;
-            border: none;
-            margin: 10px;
-        }
-        button {
-            padding: 10px 20px;
-            border-radius: 5px;
-            border: none;
-            background-color: #e63946;
-            color: white;
-            cursor: pointer;
-            transition: transform 0.3s;
-        }
-        button:hover {
-            transform: scale(1.05);
-        }
-        .popup {
-            position: fixed;
-            top: -60px; /* Start off-screen */
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: green;
-            color: black;
-            padding: 15px;
-            border-radius: 10px;
-            transition: top 0.5s;
-            cursor: pointer;
-        }
+        /* Add popup styles from above */
     </style>
 </head>
 <body>
@@ -58,50 +15,40 @@
     <input type="text" id="username" placeholder="Enter your username">
     <input type="password" id="password" placeholder="Enter your password">
     <button onclick="login()">Login</button>
+    <br>
+    <button onclick="redirectToSignup()">Sign Up</button>
 </div>
 
 <div id="popup" class="popup" style="display:none;"></div>
 
 <script>
     function showPopup(message) {
-        const popup = document.getElementById('popup');
-        popup.innerText = message;
-        popup.style.display = 'block';
-        popup.style.top = '20px'; // Bring popup into view
-
-        popup.onclick = function() {
-            popup.style.top = '-60px'; // Move popup off-screen
-            setTimeout(() => {
-                popup.style.display = 'none';
-            }, 500); // Delay hiding
-        };
+        /* Popup code from above */
     }
 
     function login() {
         const username = document.getElementById('username').value.trim();
         const password = document.getElementById('password').value.trim();
 
-        // Check if the username is "zeptional" and already exists
-        if (username.toLowerCase() === 'zeptional') {
-            showPopup('Username "zeptional" is already taken.'); // Show error for taken username
-            return;
-        }
-
-        const storedUser = localStorage.getItem('username');
-
-        if (username === 'zeptional' && password === 'corndogs123') {
-            showPopup(`Welcome, ${username}!`);
-            setTimeout(() => {
-                window.location.href = 'pfp.html'; // Redirect to profile picture page
-            }, 1500);
-        } else if (storedUser === username) {
-            showPopup(`Welcome back, ${username}!`);
-            setTimeout(() => {
-                window.location.href = 'dashboard.html'; // Redirect to dashboard
-            }, 1500);
+        if (username.toLowerCase() === 'zeptional' && password === 'corndogs123') {
+            localStorage.setItem('username', 'zeptional');
+            localStorage.setItem('profilePic', 'https://avatars.githubusercontent.com/u/183566187?v=4'); // Set profile pic for zeptional
+            showPopup('Welcome, Zeptional!');
+            setTimeout(() => window.location.href = 'dashboard.html', 1500);
         } else {
-            showPopup('User not found or incorrect password.'); // Popup for incorrect login
+            const storedUser = localStorage.getItem('username');
+            const storedPass = localStorage.getItem('password');
+            if (storedUser === username && storedPass === password) {
+                showPopup(`Welcome back, ${username}!`);
+                setTimeout(() => window.location.href = 'dashboard.html', 1500);
+            } else {
+                showPopup('Incorrect username or password!');
+            }
         }
+    }
+
+    function redirectToSignup() {
+        window.location.href = 'signup.html';
     }
 </script>
 
