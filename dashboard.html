@@ -48,7 +48,6 @@
             margin-left: 10px;
         }
 
-        /* Navigation Buttons */
         .nav-buttons {
             display: flex;
             justify-content: center;
@@ -115,27 +114,6 @@
             transition: top 0.5s ease;
             z-index: 1000;
         }
-
-        /* Rainbow and Gradient Borders */
-        .rainbow-border {
-            animation: rainbow 3s linear infinite;
-        }
-
-        @keyframes rainbow {
-            0% { border-color: red; }
-            16.6% { border-color: orange; }
-            33.2% { border-color: yellow; }
-            49.8% { border-color: green; }
-            66.4% { border-color: blue; }
-            83% { border-color: indigo; }
-            100% { border-color: violet; }
-        }
-
-        .gradient-border {
-            border-image-slice: 1;
-            border-radius: 50%;
-            border-width: 3px; /* Thinner border for gradient */
-        }
     </style>
 </head>
 <body>
@@ -174,24 +152,10 @@
     // Fetch profile details from localStorage
     const username = localStorage.getItem('username') || 'Guest';
     const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
-    const borderColor = localStorage.getItem('borderColor') || 'white';
-    const borderStyle = localStorage.getItem('borderStyle') || 'solid';
 
     // Display the username and profile picture
     usernameDisplay.textContent = username;
     profilePic.src = profilePictureUrl;
-
-    // Apply border color or gradient/rainbow
-    if (borderStyle === 'rainbow') {
-        profilePic.classList.add('rainbow-border');
-    } else if (borderStyle === 'gradient') {
-        const gradientColor = localStorage.getItem('gradientColor') || 'linear-gradient(45deg, #6a11cb, #2575fc)';
-        profilePic.style.borderImage = gradientColor;
-        profilePic.style.borderWidth = '3px'; // Thinner border for gradient
-        profilePic.classList.add('gradient-border');
-    } else {
-        profilePic.style.border = `3px solid ${borderColor}`; // Thinner border
-    }
 
     // Show the Owner badge if the username is 'zeptional'
     if (username === 'zeptional') {
@@ -205,19 +169,10 @@
 
         const profileImage = document.createElement('img');
         profileImage.src = profilePictureUrl;
-        // Apply same border style as profile picture
-        if (borderStyle === 'rainbow') {
-            profileImage.classList.add('rainbow-border');
-        } else if (borderStyle === 'gradient') {
-            profileImage.style.borderImage = profilePic.style.borderImage;
-            profileImage.style.borderWidth = '3px'; // Thinner border for gradient
-            profileImage.classList.add('gradient-border');
-        } else {
-            profileImage.style.border = `3px solid ${borderColor}`; // Thinner border for chat
-        }
 
         const text = document.createElement('span');
-        // Check if the sender is 'zeptional' and show the owner badge
+        
+        // Check if the sender is 'zeptional' and add the badge accordingly
         if (sender === 'zeptional') {
             text.innerHTML = `<strong style="background: linear-gradient(90deg, #ffcc00, #e63946); padding: 2px 6px; border-radius: 5px;">Owner:</strong> ${sender}: ${messageText}`;
         } else {
@@ -229,7 +184,28 @@
         messagesContainer.appendChild(message);
     }
 
-    // Event listener for chat input
+    // Firebase Configuration
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+        databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_PROJECT_ID.appspot.com",
+        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+        appId: "YOUR_APP_ID"
+    };
+
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // Listen for new messages
+    database.ref('messages').on('child_added', (snapshot) => {
+        const messageData = snapshot.val();
+        addMessage(messageData.messageText, messageData.username);
+    });
+
+    // Event listener for chat input (Enter key)
     document.getElementById('chat-input').addEventListener('keypress', function(e) {
         if (e.key === 'Enter' && this.value.trim() !== '') {
             const messageText = this.value.trim();
@@ -242,44 +218,6 @@
             this.value = ''; // Clear the input field
         }
     });
-
-    // Show a welcome popup with animation
-    function showWelcomePopup() {
-        popup.textContent = `Welcome, ${username}!`;
-        popup.style.display = 'block';
-        popup.style.top = '20px';
-
-        setTimeout(() => {
-            popup.style.top = '-50px';
-            setTimeout(() => {
-                popup.style.display = 'none';
-            }, 500);
-        }, 3000);
-    }
-
-    showWelcomePopup();
-
-    // Firebase Configuration
-    const firebaseConfig = {
-        apiKey: "AIzaSyDI6l1w7JydjHI4CT3upKOkiVxLftg5in8",
-        authDomain: "zeptionalchat.firebaseapp.com",
-        databaseURL: "https://zeptionalchat.firebaseio.com",
-        projectId: "zeptionalchat",
-        storageBucket: "zeptionalchat.appspot.com",
-        messagingSenderId: "455606646143",
-        appId: "1:455606646143:web:92fe178ba9b910c607564a",
-"
-    };
-
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
-
-    // Retrieve messages from Firebase
-    database.ref('messages').on('child_added', function(snapshot) {
-        const messageData = snapshot.val();
-        addMessage(messageData.messageText, messageData.username);
-    });
 </script>
 
 <!-- Include Firebase -->
@@ -288,3 +226,4 @@
 
 </body>
 </html>
+\
