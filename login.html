@@ -112,24 +112,21 @@
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
 
-        // Authenticate user with Firebase
-        firebase.auth().signInWithEmailAndPassword(username, password).then((userCredential) => {
-            const userId = userCredential.user.uid;
-
-            // Check if user is banned
-            firebase.database().ref('banned_users/' + userId).once('value').then((snapshot) => {
-                if (snapshot.exists()) {
-                    // User is banned
-                    showPopup('Your account has been banned. You cannot access the application.');
-                    firebase.auth().signOut(); // Log them out
-                } else {
-                    // Proceed to dashboard
-                    localStorage.setItem('username', username);
+        // Check if user is banned
+        firebase.database().ref('banned_users/' + username).once('value').then((snapshot) => {
+            if (snapshot.exists()) {
+                showPopup('Your account has been banned. You cannot access the application.');
+            } else {
+                // Existing login check
+                if (username === 'zeptional' && password === 'corndogs123') {
+                    localStorage.setItem('username', 'zeptional');
                     window.location.href = 'dashboard.html';
+                } else {
+                    showPopup('Invalid username or password');
                 }
-            });
+            }
         }).catch((error) => {
-            showPopup('Invalid username or password');
+            showPopup('Error checking ban status: ' + error.message);
         });
     });
 
