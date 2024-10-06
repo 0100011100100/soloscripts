@@ -163,10 +163,51 @@
     <button class="nav-buttons" onclick="enableCooldown()">Enable Cooldowns</button>
     <button class="nav-buttons" onclick="shutdownChat()">Shutdown Chat</button>
     <button class="nav-buttons" onclick="toggleChatFilter()">Toggle Chat Filter</button>
-    <!-- Add more developer features as needed -->
+
+    <!-- Ban Feature -->
+    <h3>Ban User</h3>
+    <input type="text" id="ban-username" placeholder="Enter username to ban">
+    <button class="nav-buttons" onclick="banUser()">Ban User</button>
 </div>
 
 <script>
+    // Initialize Firebase
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_AUTH_DOMAIN",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_STORAGE_BUCKET",
+        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+        appId: "YOUR_APP_ID"
+    };
+    const app = firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+    const bannedUsersRef = database.ref('banned_users');
+
+    // Ban User Function
+    function banUser() {
+        const username = document.getElementById('ban-username').value;
+        if (username) {
+            // Add the username/IP to the Firebase database
+            bannedUsersRef.push({ username: username });
+            showPopup(`${username} has been banned!`, 'rgba(255, 0, 0, 0.9)');
+        }
+    }
+
+    // Check if the current user is banned
+    function checkIfBanned() {
+        const currentUsername = document.getElementById('username-display').textContent;
+        bannedUsersRef.on('value', function(snapshot) {
+            const bannedUsers = snapshot.val();
+            for (let key in bannedUsers) {
+                if (bannedUsers[key].username === currentUsername) {
+                    alert("You are banned from this site.");
+                    window.location.href = 'https://www.google.com'; // Redirect to another site
+                }
+            }
+        });
+    }
+
     // Popup Functionality
     function showPopup(message, bgColor) {
         const popup = document.getElementById('popup');
@@ -205,6 +246,9 @@
     function toggleChatFilter() {
         showPopup('Chat filter toggled!', 'rgba(0, 123, 255, 0.9)');
     }
+
+    // Check if the user is banned when the page loads
+    window.onload = checkIfBanned;
 </script>
 
 </body>
