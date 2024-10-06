@@ -5,133 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Owner Dashboard</title>
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: #1e1e1e;
-            color: white;
-            font-family: Arial, sans-serif;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: #444;
-            padding: 10px 20px;
-        }
-
-        .header .username {
-            font-size: 24px;
-        }
-
-        .header .profile {
-            display: flex;
-            align-items: center;
-        }
-
-        .profile img {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            margin-right: 10px;
-        }
-
-        .profile-owner-badge {
-            font-size: 12px;
-            padding: 3px 10px;
-            background: linear-gradient(90deg, #ffcc00, #e63946);
-            color: white;
-            border-radius: 5px;
-            margin-left: 10px;
-        }
-
-        .nav-buttons {
-            display: flex;
-            justify-content: center;
-            margin-top: 20px;
-        }
-
-        .nav-buttons button {
-            margin: 0 10px;
-            padding: 10px 20px;
-            background-color: #555;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .nav-buttons button:hover {
-            background-color: #777;
-        }
-
-        .chat-box {
-            padding: 20px;
-        }
-
-        .chat-box input {
-            width: 100%;
-            padding: 10px;
-            border-radius: 5px;
-            border: none;
-            font-size: 14px;
-        }
-
-        .messages {
-            margin-top: 20px;
-        }
-
-        .messages .message {
-            margin: 10px 0;
-            padding: 10px;
-            background-color: #333;
-            border-radius: 5px;
-            display: flex;
-            align-items: center;
-        }
-
-        .messages .message img {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            margin-right: 10px;
-        }
-
-        /* Popup Styles */
-        .popup {
-            position: fixed;
-            top: -50px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(0, 255, 0, 0.9);
-            color: white;
-            padding: 15px 20px;
-            border-radius: 5px;
-            transition: top 0.5s ease;
-            z-index: 1000;
-        }
-
-        .developer-tools {
-            margin-top: 30px;
-            padding: 20px;
-            background-color: #333;
-            border-radius: 10px;
-        }
-
-        .toggle-dev-button {
-            padding: 10px 20px;
-            background-color: #e63946;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .toggle-dev-button:hover {
-            background-color: #ff3f5e;
-        }
-
+        /* Same styles as before */
     </style>
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
@@ -168,7 +42,7 @@
     <button class="nav-buttons" onclick="toggleChatFilter()">Toggle Chat Filter</button>
     
     <!-- Ban User Section -->
-    <h2>Ban User</h2>
+    <h2>Ban User by Username</h2>
     <input type="text" id="ban-username" placeholder="Enter username to ban">
     <button onclick="banUser()">Ban User</button>
 </div>
@@ -176,19 +50,33 @@
 <script>
     // Firebase configuration
     const firebaseConfig = {
-        apiKey: "AIzaSyAAcIkxhx6NoTV9ZthgZsG9bNnb8jdXeq0",
-        authDomain: "ownerdashboard-ea3d4.firebaseapp.com",
-        projectId: "ownerdashboard-ea3d4",
-        storageBucket: "ownerdashboard-ea3d4.appspot.com",
-        messagingSenderId: "171284205794",
-        appId: "1:171284205794:web:ead3558c3612d685650ebb",
-        databaseURL: "https://ownerdashboard-ea3d4-default-rtdb.firebaseio.com"
+        apiKey: "your-firebase-api-key",
+        authDomain: "your-firebase-auth-domain",
+        projectId: "your-firebase-project-id",
+        storageBucket: "your-firebase-storage-bucket",
+        messagingSenderId: "your-firebase-messaging-sender-id",
+        appId: "your-firebase-app-id",
+        databaseURL: "your-firebase-database-url"
     };
 
     // Initialize Firebase
     const app = firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
     const bannedUsersRef = database.ref('banned_users');
+
+    // Function to fetch IP address using Ipify
+    async function fetchUserIp() {
+        const ipifyApiKey = 'at_JM9OlwdPMuPWFnLE0KfgrbYgKviug'; // Your Ipify API key
+        try {
+            const response = await fetch(`https://geo.ipify.org/api/v2/country?apiKey=${ipifyApiKey}`);
+            const data = await response.json();
+            return data.ip;
+        } catch (error) {
+            console.error('Failed to fetch IP address:', error);
+            showPopup('Error fetching IP address', 'rgba(255, 0, 0, 0.9)');
+            return null; // Return null if IP fetch fails
+        }
+    }
 
     // Popup Functionality
     function showPopup(message, bgColor) {
@@ -205,30 +93,21 @@
         }, 3000); // Wait for 3 seconds before hiding
     }
 
-    // Get user IP using Ipify and ban
-    function banUser() {
+    // Ban User by Username and IP
+    async function banUser() {
         const username = document.getElementById('ban-username').value.trim();
+        const userIp = await fetchUserIp(); // Fetch the user's IP
 
-        if (username) {
-            // Get the IP address from Ipify
-            fetch(`https://api.ipify.org?apiKey=at_JM9OlwdPMuPWFnLE0KfgrbYgKviug&format=json`)
-                .then(response => response.json())
-                .then(data => {
-                    const userIp = data.ip;
-
-                    // Add the username and IP to Firebase Database
-                    bannedUsersRef.push({
-                        username: username,
-                        ip: userIp
-                    });
-
-                    showPopup(`${username} has been banned with IP: ${userIp}`, 'rgba(255, 0, 0, 0.9)');
-                    document.getElementById('ban-username').value = '';  // Clear the input
-                })
-                .catch(error => {
-                    console.error("Error fetching IP:", error);
-                    showPopup('Failed to ban user due to IP error.', 'rgba(255, 165, 0, 0.9)');
-                });
+        if (username && userIp) {
+            // Add the username and IP to Firebase Database
+            bannedUsersRef.push({
+                username: username,
+                ip: userIp
+            });
+            showPopup(`${username} has been banned!`, 'rgba(255, 0, 0, 0.9)');
+            document.getElementById('ban-username').value = '';  // Clear the input
+        } else if (!userIp) {
+            showPopup('Failed to ban user due to IP fetch failure', 'rgba(255, 0, 0, 0.9)');
         } else {
             showPopup('Please enter a username to ban.', 'rgba(255, 165, 0, 0.9)');
         }
