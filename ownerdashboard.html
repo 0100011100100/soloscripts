@@ -133,6 +133,9 @@
         }
 
     </style>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"></script>
 </head>
 <body>
 
@@ -163,50 +166,29 @@
     <button class="nav-buttons" onclick="enableCooldown()">Enable Cooldowns</button>
     <button class="nav-buttons" onclick="shutdownChat()">Shutdown Chat</button>
     <button class="nav-buttons" onclick="toggleChatFilter()">Toggle Chat Filter</button>
-
-    <!-- Ban Feature -->
-    <h3>Ban User</h3>
+    
+    <!-- Ban User Section -->
+    <h2>Ban User</h2>
     <input type="text" id="ban-username" placeholder="Enter username to ban">
-    <button class="nav-buttons" onclick="banUser()">Ban User</button>
+    <button onclick="banUser()">Ban User</button>
 </div>
 
 <script>
-    // Initialize Firebase
+    // Firebase configuration
     const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_AUTH_DOMAIN",
-        projectId: "YOUR_PROJECT_ID",
-        storageBucket: "YOUR_STORAGE_BUCKET",
-        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-        appId: "YOUR_APP_ID"
+        apiKey: "AIzaSyAAcIkxhx6NoTV9ZthgZsG9bNnb8jdXeq0",
+        authDomain: "ownerdashboard-ea3d4.firebaseapp.com",
+        projectId: "ownerdashboard-ea3d4",
+        storageBucket: "ownerdashboard-ea3d4.appspot.com",
+        messagingSenderId: "171284205794",
+        appId: "1:171284205794:web:ead3558c3612d685650ebb",
+        databaseURL: "https://ownerdashboard-ea3d4-default-rtdb.firebaseio.com"
     };
+
+    // Initialize Firebase
     const app = firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
     const bannedUsersRef = database.ref('banned_users');
-
-    // Ban User Function
-    function banUser() {
-        const username = document.getElementById('ban-username').value;
-        if (username) {
-            // Add the username/IP to the Firebase database
-            bannedUsersRef.push({ username: username });
-            showPopup(`${username} has been banned!`, 'rgba(255, 0, 0, 0.9)');
-        }
-    }
-
-    // Check if the current user is banned
-    function checkIfBanned() {
-        const currentUsername = document.getElementById('username-display').textContent;
-        bannedUsersRef.on('value', function(snapshot) {
-            const bannedUsers = snapshot.val();
-            for (let key in bannedUsers) {
-                if (bannedUsers[key].username === currentUsername) {
-                    alert("You are banned from this site.");
-                    window.location.href = 'https://www.google.com'; // Redirect to another site
-                }
-            }
-        });
-    }
 
     // Popup Functionality
     function showPopup(message, bgColor) {
@@ -222,6 +204,23 @@
             }, 500);
         }, 3000); // Wait for 3 seconds before hiding
     }
+
+    // Check if the user is banned
+    function checkIfBanned() {
+        const currentUsername = document.getElementById('username-display').textContent.trim();
+        bannedUsersRef.once('value', function(snapshot) {
+            const bannedUsers = snapshot.val();
+            for (let key in bannedUsers) {
+                if (bannedUsers[key].username === currentUsername) {
+                    alert("You are banned from this site.");
+                    window.location.href = 'https://www.google.com';  // Redirect or block access
+                }
+            }
+        });
+    }
+
+    // Call this function when the page loads
+    window.onload = checkIfBanned;
 
     // Developer Tools Toggle
     function toggleDeveloperTools() {
@@ -247,8 +246,21 @@
         showPopup('Chat filter toggled!', 'rgba(0, 123, 255, 0.9)');
     }
 
-    // Check if the user is banned when the page loads
-    window.onload = checkIfBanned;
+    // Ban User Functionality
+    function banUser() {
+        const username = document.getElementById('ban-username').value.trim();
+        if (username) {
+            // Add the username to Firebase Database
+            bannedUsersRef.push({
+                username: username,
+                ip: "user_ip"  // Replace with actual user IP if needed
+            });
+            showPopup(`${username} has been banned!`, 'rgba(255, 0, 0, 0.9)');
+            document.getElementById('ban-username').value = '';  // Clear the input
+        } else {
+            showPopup('Please enter a username to ban.', 'rgba(255, 165, 0, 0.9)');
+        }
+    }
 </script>
 
 </body>
