@@ -4,10 +4,138 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
     <style>
-        /* (Your existing CSS styles here) */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #1e1e1e;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #444;
+            padding: 10px 20px;
+        }
+
+        .profile {
+            display: flex;
+            align-items: center;
+        }
+
+        .profile img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+            border: 3px solid white; /* Thinner border */
+            transition: border 0.3s ease; /* Smooth transition for border */
+        }
+
+        .profile .username {
+            font-size: 18px;
+        }
+
+        .profile-owner-badge {
+            font-size: 12px;
+            padding: 3px 10px;
+            background: linear-gradient(90deg, #ffcc00, #e63946);
+            color: white;
+            border-radius: 5px;
+            margin-left: 10px;
+        }
+
+        /* Navigation Buttons */
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .nav-buttons button {
+            margin: 0 10px;
+            padding: 10px 20px;
+            background-color: #555;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .nav-buttons button:hover {
+            background-color: #777;
+        }
+
+        .chat-box {
+            padding: 20px;
+        }
+
+        .chat-box input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            font-size: 14px;
+        }
+
+        .messages {
+            margin-top: 20px;
+        }
+
+        .messages .message {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #333;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+        }
+
+        .messages .message img {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin-right: 10px;
+            border: 3px solid white; /* Thinner border for chat */
+        }
+
+        /* Popup Styles */
+        .popup {
+            position: fixed;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 5px;
+            transition: top 0.5s ease;
+            z-index: 1000;
+        }
+
+        /* Rainbow and Gradient Borders */
+        .rainbow-border {
+            animation: rainbow 3s linear infinite;
+        }
+
+        @keyframes rainbow {
+            0% { border-color: red; }
+            16.6% { border-color: orange; }
+            33.2% { border-color: yellow; }
+            49.8% { border-color: green; }
+            66.4% { border-color: blue; }
+            83% { border-color: indigo; }
+            100% { border-color: violet; }
+        }
+
+        .gradient-border {
+            border-image-slice: 1;
+            border-radius: 50%;
+            border-width: 3px; /* Thinner border for gradient */
+        }
     </style>
 </head>
 <body>
@@ -31,9 +159,13 @@
 <!-- Chat section -->
 <div class="chat-box">
     <input type="text" id="chat-input" placeholder="Type your message here...">
-    <div class="messages" id="messages-container"></div>
+    <div class="messages" id="messages-container">
+        <!-- Chat messages will appear here -->
+    </div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
 <script>
     // Firebase configuration (replace with your own config)
     const firebaseConfig = {
@@ -55,17 +187,61 @@
     const messagesContainer = document.getElementById('messages-container');
     const popup = document.getElementById('popup');
 
-    // Fetch profile details from localStorage for username and picture
+    // Fetch profile details from localStorage
     const username = localStorage.getItem('username') || 'Guest';
     const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
+    const borderColor = localStorage.getItem('borderColor') || 'white';
+    const borderStyle = localStorage.getItem('borderStyle') || 'solid';
 
     // Display the username and profile picture
     usernameDisplay.textContent = username;
     profilePic.src = profilePictureUrl;
 
+    // Apply border color or gradient/rainbow
+    if (borderStyle === 'rainbow') {
+        profilePic.classList.add('rainbow-border');
+    } else if (borderStyle === 'gradient') {
+        const gradientColor = localStorage.getItem('gradientColor') || 'linear-gradient(45deg, #6a11cb, #2575fc)';
+        profilePic.style.borderImage = gradientColor;
+        profilePic.style.borderWidth = '3px'; // Thinner border for gradient
+        profilePic.classList.add('gradient-border');
+    } else {
+        profilePic.style.border = `3px solid ${borderColor}`; // Thinner border
+    }
+
     // Show the Owner badge if the username is 'zeptional'
     if (username === 'zeptional') {
         ownerBadge.style.display = 'inline-block';
+    }
+
+    // Function to display chat messages with the username
+    function displayMessage(data) {
+        const message = document.createElement('div');
+        message.classList.add('message');
+
+        const profileImage = document.createElement('img');
+        profileImage.src = profilePictureUrl;
+        // Apply same border style as profile picture
+        if (borderStyle === 'rainbow') {
+            profileImage.classList.add('rainbow-border');
+        } else if (borderStyle === 'gradient') {
+            profileImage.style.borderImage = profilePic.style.borderImage;
+            profileImage.style.borderWidth = '3px'; // Thinner border for gradient
+            profileImage.classList.add('gradient-border');
+        } else {
+            profileImage.style.border = `3px solid ${borderColor}`; // Thinner border for chat
+        }
+
+        const text = document.createElement('span');
+        if (data.username === 'zeptional') {
+            text.innerHTML = `<strong style="background: linear-gradient(90deg, #ffcc00, #e63946); padding: 2px 6px; border-radius: 5px;">Owner:</strong> ${data.username}: ${data.message}`;
+        } else {
+            text.textContent = `${data.username}: ${data.message}`;
+        }
+
+        message.appendChild(profileImage);
+        message.appendChild(text);
+        messagesContainer.appendChild(message);
     }
 
     // Function to add message to Firestore
@@ -75,24 +251,6 @@
             message: messageText,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
-    }
-
-    // Function to display chat messages
-    function displayMessage(data) {
-        const message = document.createElement('div');
-        message.classList.add('message');
-
-        const profileImage = document.createElement('img');
-        profileImage.src = profilePictureUrl;
-
-        const text = document.createElement('span');
-        text.innerHTML = (data.username === 'zeptional') 
-            ? `<strong style="background: linear-gradient(90deg, #ffcc00, #e63946); padding: 2px 6px; border-radius: 5px;">Owner:</strong> ${data.username}: ${data.message}` 
-            : `${data.username}: ${data.message}`;
-
-        message.appendChild(profileImage);
-        message.appendChild(text);
-        messagesContainer.appendChild(message);
     }
 
     // Listen for new messages
