@@ -164,14 +164,12 @@
     </div>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database.js"></script>
-<script src="chat.js"></script> <!-- Include chat.js here -->
-
 <script>
     const usernameDisplay = document.getElementById('username-display');
     const profilePic = document.getElementById('profile-pic');
     const ownerBadge = document.getElementById('owner-badge');
+    const messagesContainer = document.getElementById('messages-container');
+    const popup = document.getElementById('popup');
 
     // Fetch profile details from localStorage
     const username = localStorage.getItem('username') || 'Guest';
@@ -192,7 +190,7 @@
         profilePic.style.borderWidth = '3px'; // Thinner border for gradient
         profilePic.classList.add('gradient-border');
     } else {
-        profilePic.style.border = 3px solid ${borderColor}; // Thinner border
+        profilePic.style.border = `3px solid ${borderColor}`; // Thinner border
     }
 
     // Show the Owner badge if the username is 'zeptional'
@@ -201,7 +199,7 @@
     }
 
     // Function to display chat messages with the username
-    function addMessage(messageText, isOwner) {
+    function addMessage(messageText) {
         const message = document.createElement('div');
         message.classList.add('message');
 
@@ -215,14 +213,14 @@
             profileImage.style.borderWidth = '3px'; // Thinner border for gradient
             profileImage.classList.add('gradient-border');
         } else {
-            profileImage.style.border = 3px solid ${borderColor}; // Thinner border for chat
+            profileImage.style.border = `3px solid ${borderColor}`; // Thinner border for chat
         }
 
         const text = document.createElement('span');
-        if (isOwner) {
-            text.innerHTML = <strong style="background: linear-gradient(90deg, #ffcc00, #e63946); padding: 2px 6px; border-radius: 5px;">Owner:</strong> ${username}: ${messageText};
+        if (username === 'zeptional') {
+            text.innerHTML = `<strong style="background: linear-gradient(90deg, #ffcc00, #e63946); padding: 2px 6px; border-radius: 5px;">Owner:</strong> ${username}: ${messageText}`;
         } else {
-            text.textContent = ${username}: ${messageText};
+            text.textContent = `${username}: ${messageText}`;
         }
 
         message.appendChild(profileImage);
@@ -234,32 +232,14 @@
     document.getElementById('chat-input').addEventListener('keypress', function(e) {
         if (e.key === 'Enter' && this.value.trim() !== '') {
             const messageText = this.value.trim();
-            const isOwner = username === 'zeptional';
-            addMessage(messageText, isOwner);
-            // Send message to Firebase
-            const messagesRef = firebase.database().ref('messages/');
-            messagesRef.push({
-                username: username,
-                messageText: messageText,
-                isOwner: isOwner
-            });
-            this.value = ''; // Clear input
+            addMessage(messageText);
+            this.value = '';
         }
     });
 
-    // Fetch existing messages on load
-    function fetchMessages() {
-        const messagesRef = firebase.database().ref('messages/');
-        messagesRef.on('child_added', (snapshot) => {
-            const messageData = snapshot.val();
-            addMessage(messageData.messageText, messageData.isOwner);
-        });
-    }
-
     // Show a welcome popup with animation
     function showWelcomePopup() {
-        const popup = document.getElementById('popup');
-        popup.textContent = Welcome, ${username}!;
+        popup.textContent = `Welcome, ${username}!`;
         popup.style.display = 'block';
         popup.style.top = '20px';
 
@@ -271,8 +251,6 @@
         }, 3000);
     }
 
-    // Initialize chat
-    fetchMessages();
     showWelcomePopup();
 </script>
 
