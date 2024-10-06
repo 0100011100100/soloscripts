@@ -4,6 +4,47 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
+
+    <!-- Firebase Configuration -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script>
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID",
+            databaseURL: "YOUR_DATABASE_URL"
+        };
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        const db = firebase.database();
+
+        // Function to send message to Firebase
+        function sendMessage(username, messageText) {
+            const messageRef = db.ref('messages').push();
+            messageRef.set({
+                username: username,
+                message: messageText,
+                timestamp: new Date().toISOString()
+            });
+        }
+
+        // Listen for new messages in Firebase
+        function listenForMessages() {
+            db.ref('messages').on('child_added', (snapshot) => {
+                const messageData = snapshot.val();
+                addMessageToChat(messageData.username, messageData.message);
+            });
+        }
+
+        listenForMessages();
+    </script>
+
     <style>
         body {
             margin: 0;
@@ -199,7 +240,7 @@
     }
 
     // Function to display chat messages with the username
-    function addMessage(messageText) {
+    function addMessageToChat(username, messageText) {
         const message = document.createElement('div');
         message.classList.add('message');
 
@@ -232,7 +273,7 @@
     document.getElementById('chat-input').addEventListener('keypress', function(e) {
         if (e.key === 'Enter' && this.value.trim() !== '') {
             const messageText = this.value.trim();
-            addMessage(messageText);
+            sendMessage(username, messageText);  // Send message to Firebase
             this.value = '';
         }
     });
