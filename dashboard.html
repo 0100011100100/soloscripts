@@ -164,23 +164,7 @@
     </div>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
 <script>
-    // Firebase configuration (replace with your own config)
-    const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-        projectId: "YOUR_PROJECT_ID",
-        storageBucket: "YOUR_PROJECT_ID.appspot.com",
-        messagingSenderId: "YOUR_SENDER_ID",
-        appId: "YOUR_APP_ID"
-    };
-
-    // Initialize Firebase
-    const app = firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
     const usernameDisplay = document.getElementById('username-display');
     const profilePic = document.getElementById('profile-pic');
     const ownerBadge = document.getElementById('owner-badge');
@@ -215,7 +199,7 @@
     }
 
     // Function to display chat messages with the username
-    function displayMessage(data) {
+    function addMessage(messageText) {
         const message = document.createElement('div');
         message.classList.add('message');
 
@@ -233,10 +217,10 @@
         }
 
         const text = document.createElement('span');
-        if (data.username === 'zeptional') {
-            text.innerHTML = `<strong style="background: linear-gradient(90deg, #ffcc00, #e63946); padding: 2px 6px; border-radius: 5px;">Owner:</strong> ${data.username}: ${data.message}`;
+        if (username === 'zeptional') {
+            text.innerHTML = `<strong style="background: linear-gradient(90deg, #ffcc00, #e63946); padding: 2px 6px; border-radius: 5px;">Owner:</strong> ${username}: ${messageText}`;
         } else {
-            text.textContent = `${data.username}: ${data.message}`;
+            text.textContent = `${username}: ${messageText}`;
         }
 
         message.appendChild(profileImage);
@@ -244,28 +228,11 @@
         messagesContainer.appendChild(message);
     }
 
-    // Function to add message to Firestore
-    function addMessageToFirestore(messageText) {
-        db.collection('messages').add({
-            username: username,
-            message: messageText,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-    }
-
-    // Listen for new messages
-    db.collection('messages').orderBy('timestamp').onSnapshot(snapshot => {
-        messagesContainer.innerHTML = ''; // Clear existing messages
-        snapshot.forEach(doc => {
-            displayMessage(doc.data());
-        });
-    });
-
     // Event listener for chat input
     document.getElementById('chat-input').addEventListener('keypress', function(e) {
         if (e.key === 'Enter' && this.value.trim() !== '') {
             const messageText = this.value.trim();
-            addMessageToFirestore(messageText);
+            addMessage(messageText);
             this.value = '';
         }
     });
