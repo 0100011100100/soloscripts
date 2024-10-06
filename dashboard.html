@@ -158,32 +158,13 @@
     </div>
 </div>
 
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database.js"></script>
 <script>
-    // Firebase configuration
-    const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-        databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
-        projectId: "YOUR_PROJECT_ID",
-        storageBucket: "YOUR_PROJECT_ID.appspot.com",
-        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-        appId: "YOUR_APP_ID"
-    };
-
-    // Initialize Firebase
-    const app = firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
-
     const usernameDisplay = document.getElementById('username-display');
     const profilePic = document.getElementById('profile-pic');
     const ownerBadge = document.getElementById('owner-badge');
     const messagesContainer = document.getElementById('messages-container');
     const popup = document.getElementById('popup');
 
-    // Fetch profile details from localStorage
     const username = localStorage.getItem('username') || 'Guest';
     const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
     const borderColor = localStorage.getItem('borderColor') || 'white';
@@ -207,41 +188,28 @@
         ownerBadge.style.display = 'inline-block';
     }
 
-    // Add a chat message to Firebase
-    function addMessage(messageText) {
-        const messageData = {
-            username: username,
-            messageText: messageText,
-            profilePictureUrl: profilePictureUrl,
-            borderColor: borderColor,
-            borderStyle: borderStyle
-        };
-        database.ref('messages').push(messageData);
-    }
-
-    // Function to display chat messages
-    function displayMessage(messageData) {
+    function addMessage(username, messageText, profilePictureUrl, borderStyle, borderColor) {
         const message = document.createElement('div');
         message.classList.add('message');
 
         const profileImage = document.createElement('img');
-        profileImage.src = messageData.profilePictureUrl;
+        profileImage.src = profilePictureUrl;
 
-        if (messageData.borderStyle === 'rainbow') {
+        if (borderStyle === 'rainbow') {
             profileImage.classList.add('rainbow-border');
-        } else if (messageData.borderStyle === 'gradient') {
+        } else if (borderStyle === 'gradient') {
             profileImage.style.borderImage = profilePic.style.borderImage;
             profileImage.style.borderWidth = '3px';
             profileImage.classList.add('gradient-border');
         } else {
-            profileImage.style.border = `3px solid ${messageData.borderColor}`;
+            profileImage.style.border = `3px solid ${borderColor}`;
         }
 
         const text = document.createElement('span');
-        if (messageData.username === 'zeptional') {
-            text.innerHTML = `<strong style="background: linear-gradient(90deg, #ffcc00, #e63946); padding: 2px 6px; border-radius: 5px;">Owner:</strong> ${messageData.username}: ${messageData.messageText}`;
+        if (username === 'zeptional') {
+            text.innerHTML = `<strong style="background: linear-gradient(90deg, #ffcc00, #e63946); padding: 2px 6px; border-radius: 5px;">Owner:</strong> ${username}: ${messageText}`;
         } else {
-            text.textContent = `${messageData.username}: ${messageData.messageText}`;
+            text.textContent = `${username}: ${messageText}`;
         }
 
         message.appendChild(profileImage);
@@ -249,23 +217,45 @@
         messagesContainer.appendChild(message);
     }
 
-    // Event listener for new messages
-    database.ref('messages').on('child_added', function(snapshot) {
-        const messageData = snapshot.val();
-        displayMessage(messageData);
-    });
-
-    // Send message when Enter is pressed
     document.getElementById('chat-input').addEventListener('keypress', function(e) {
         if (e.key === 'Enter' && this.value.trim() !== '') {
-            addMessage
             const messageText = this.value.trim();
-            addMessage(messageText);
-            this.value = '';  // Clear the input field after sending the message
+            addMessage(username, messageText, profilePictureUrl, borderStyle, borderColor);
+            this.value = '';
+
+            // Save to localStorage (simulating real-time chat)
+            let chatHistory = JSON.parse(localStorage.getItem('chatHistory')) || [];
+            chatHistory.push({ username, messageText, profilePictureUrl, borderStyle, borderColor });
+            localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
+
+            // Simulate receiving the message from another user
+            simulateIncomingMessages();
         }
     });
 
-    // Show a welcome popup with animation
+    function simulateIncomingMessages() {
+        setTimeout(() => {
+            let otherUser = {
+                username: 'User2',
+                messageText: 'Hello!',
+                profilePictureUrl: 'default-profile-pic.png',
+                borderStyle: 'solid',
+                borderColor: 'blue'
+            };
+            addMessage(otherUser.username, otherUser.messageText, otherUser.profilePictureUrl, otherUser.borderStyle, otherUser.borderColor);
+        }, 2000);
+    }
+
+    // Show previously saved chat messages
+    function loadChatHistory() {
+        const chatHistory = JSON.parse(localStorage.getItem('chatHistory')) || [];
+        chatHistory.forEach(chat => {
+            addMessage(chat.username, chat.messageText, chat.profilePictureUrl, chat.borderStyle, chat.borderColor);
+        });
+    }
+
+    loadChatHistory();
+
     function showWelcomePopup() {
         popup.textContent = `Welcome, ${username}!`;
         popup.style.display = 'block';
