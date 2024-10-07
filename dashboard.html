@@ -24,12 +24,13 @@
 
         const db = firebase.database();
 
-        // Function to send message to Firebase
-        function sendMessage(username, messageText) {
+        // Function to send message to Firebase with username and profile picture
+        function sendMessage(username, messageText, profilePic) {
             const messageRef = db.ref('messages').push();
             messageRef.set({
                 username: username,
                 message: messageText,
+                profilePic: profilePic, // Save profile picture with the message
                 timestamp: new Date().toISOString()
             });
         }
@@ -38,7 +39,7 @@
         function listenForMessages() {
             db.ref('messages').on('child_added', (snapshot) => {
                 const messageData = snapshot.val();
-                addMessageToChat(messageData.username, messageData.message);
+                addMessageToChat(messageData.username, messageData.message, messageData.profilePic);
             });
         }
 
@@ -239,13 +240,14 @@
         ownerBadge.style.display = 'inline-block';
     }
 
-    // Function to display chat messages with the username
-    function addMessageToChat(username, messageText) {
+    // Function to display chat messages with the correct profile picture
+    function addMessageToChat(username, messageText, profilePicUrl) {
         const message = document.createElement('div');
         message.classList.add('message');
 
         const profileImage = document.createElement('img');
-        profileImage.src = profilePictureUrl;
+        profileImage.src = profilePicUrl; // Use the sender's profile picture
+
         // Apply same border style as profile picture
         if (borderStyle === 'rainbow') {
             profileImage.classList.add('rainbow-border');
@@ -264,36 +266,35 @@
             text.textContent = `${username}: ${messageText}`;
         }
 
-        message.appendChild(profileImage);
-        message.appendChild(text);
-        messagesContainer.appendChild(message);
-    }
+        message.appendChild(profileimage); message.appendChild(text);
+    // Add message to the chat container
+    messagesContainer.appendChild(message);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight; // Auto-scroll to the bottom
+}
 
-    // Event listener for chat input
-    document.getElementById('chat-input').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter' && this.value.trim() !== '') {
-            const messageText = this.value.trim();
-            sendMessage(username, messageText);  // Send message to Firebase
-            this.value = '';
+// Send message when Enter key is pressed
+document.getElementById('chat-input').addEventListener('keydown', function(event) {
+    if (event.key === 'Enter') {
+        const messageText = event.target.value.trim();
+        if (messageText !== '') {
+            sendMessage(username, messageText, profilePic.src); // Send the current user's profile picture with the message
+            event.target.value = ''; // Clear the input field
         }
-    });
-
-    // Show a welcome popup with animation
-    function showWelcomePopup() {
-        popup.textContent = `Welcome, ${username}!`;
-        popup.style.display = 'block';
-        popup.style.top = '20px';
-
-        setTimeout(() => {
-            popup.style.top = '-50px';
-            setTimeout(() => {
-                popup.style.display = 'none';
-            }, 500);
-        }, 3000);
     }
+});
 
-    showWelcomePopup();
-</script>
+// Function to show popup notifications
+function showPopup(message) {
+    popup.textContent = message;
+    popup.style.display = 'block';
+    popup.style.top = '20px';
+    setTimeout(() => {
+        popup.style.top = '-50px';
+        setTimeout(() => {
+            popup.style.display = 'none';
+        }, 500);
+    }, 3000);
+}
 
-</body>
-</html>
+// Show welcome popup when user logs in
+showPopup(`Welcome ${username}!`);
