@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title>Sign Up</title>
     <style>
         body {
             margin: 0;
@@ -52,12 +52,41 @@
             background-color: #0056b3;
         }
 
-        .signup-link {
-            margin-top: 15px;
-            display: block;
-            color: #007BFF;
-            cursor: pointer;
-            text-decoration: underline;
+        .recent-accounts {
+            margin-top: 20px;
+            text-align: left;
+            background-color: #222;
+            padding: 15px;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .recent-accounts h2 {
+            text-align: center;
+        }
+
+        .recent-accounts ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .recent-accounts li {
+            margin: 5px 0;
+        }
+
+        /* Popup Styles */
+        .popup {
+            position: fixed;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 0, 0, 0.9);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 5px;
+            transition: top 0.5s ease;
+            z-index: 1000;
         }
     </style>
 </head>
@@ -66,27 +95,53 @@
 <div id="popup" class="popup" style="display: none;"></div>
 
 <div class="container">
-    <h1>Login</h1>
+    <h1>Sign Up</h1>
     <input type="text" id="username" placeholder="Username">
     <input type="password" id="password" placeholder="Password">
-    <button id="login-button">Login</button>
-    <a class="signup-link" href="signup.html">Don't have an account? Sign Up</a> <!-- Sign Up button -->
+    <button id="signup-button">Sign Up</button>
+
+    <div class="recent-accounts">
+        <h2>Recent Accounts</h2>
+        <ul id="recent-accounts-list">
+            <!-- Recently created accounts will appear here -->
+        </ul>
+    </div>
 </div>
 
 <script>
-    const loginButton = document.getElementById('login-button');
+    const signupButton = document.getElementById('signup-button');
+    const recentAccountsList = document.getElementById('recent-accounts-list');
     const popup = document.getElementById('popup');
 
-    loginButton.addEventListener('click', function() {
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
+    signupButton.addEventListener('click', function() {
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value.trim();
 
-        if (username === 'zeptional' && password === 'corndogs123') {
-            localStorage.setItem('username', 'zeptional');
-            window.location.href = 'dashboard.html';
-        } else {
-            showPopup('Invalid username or password');
+        if (username === "" || password === "") {
+            showPopup("Please fill in both fields.");
+            return;
         }
+
+        let accounts = JSON.parse(localStorage.getItem('accounts')) || [];
+
+        if (accounts.some(account => account.username === username)) {
+            showPopup("This username is already taken.");
+            return;
+        }
+
+        const timestamp = new Date().toLocaleString();
+        const newAccount = { username: username, password: password, timestamp: timestamp };
+
+        accounts.push(newAccount);
+        localStorage.setItem('accounts', JSON.stringify(accounts));
+        localStorage.setItem('username', username);
+
+        showPopup("Account created successfully!");
+
+        // Redirect to pfp.html after account creation
+        setTimeout(() => {
+            window.location.href = 'pfp.html';
+        }, 1000);
     });
 
     function showPopup(message) {
@@ -101,7 +156,13 @@
             }, 500);
         }, 3000);
     }
+
+    // Display recent accounts on page load
+    window.onload = function() {
+        const accounts = JSON.parse(localStorage.getItem('accounts')) || [];
+        recentAccountsList.innerHTML = accounts.map(account => <li>${account.username} (Created on: ${account.timestamp})</li>).join('');
+    }
 </script>
 
 </body>
-</html> 
+</html>
