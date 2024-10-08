@@ -102,6 +102,33 @@
             }, 500);
         }, 3000);
     }
+<script>
+// Function to check if the user has already logged in
+function checkLoginStatus() {
+    // Check if login data exists in localStorage
+    const username = localStorage.getItem("username");
+    const loggedIn = localStorage.getItem("loggedIn");
+
+    if (loggedIn === "true" && username) {
+        // Redirect the user to the dashboard with their username
+        window.location.href = `https://0100011100100.github.io/zeptionalsscripts/dashboard.html?username=${encodeURIComponent(username)}`;
+    }
+}
+
+// Run the function when the page loads
+window.onload = function() {
+    checkLoginStatus();
+};
+
+// Function to simulate logging in (to be used after login form submission)
+function loginUser(username) {
+    // Save login status and username in localStorage
+    localStorage.setItem("loggedIn", "true");
+    localStorage.setItem("username", username);
+
+    // Redirect to the dashboard with the username
+    window.location.href = `https://0100011100100.github.io/zeptionalsscripts/dashboard.html?username=${encodeURIComponent(username)}`;
+}
 </script>
 
 </body>
