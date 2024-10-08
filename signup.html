@@ -176,15 +176,15 @@
                 const newAccount = { username: username, password: password, timestamp: timestamp };
 
                 // Push the new account to Firebase
-                accountsRef.push(newAccount);
+                accountsRef.push(newAccount).then(() => {
+                    // Show success popup
+                    showPopup("Account created successfully!");
 
-                // Show success popup
-                showPopup("Account created successfully!");
-
-                // Redirect to pfp.html after successful signup
-                setTimeout(() => {
-                    window.location.href = "pfp.html";
-                }, 1000);
+                    // Redirect to pfp.html after successful signup
+                    setTimeout(() => {
+                        window.location.href = "pfp.html";
+                    }, 1000); // Delay to show popup message before redirect
+                });
             }
         });
     }
