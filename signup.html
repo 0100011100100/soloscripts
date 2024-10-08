@@ -185,7 +185,7 @@
             
             const accountInfoDiv = document.createElement('div');
             accountInfoDiv.classList.add('account-info');
-            accountInfoDiv.innerHTML = <strong>${account.username}</strong><span class="account-timestamp">Created on: ${account.timestamp}</span>;
+            accountInfoDiv.innerHTML = `<strong>${account.username}</strong><span class="account-timestamp">Created on: ${account.timestamp}</span>`;
             
             li.appendChild(accountInfoDiv);
             recentAccountsList.appendChild(li);
