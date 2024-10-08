@@ -4,10 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Up</title>
-    <!-- Firebase App (the core Firebase SDK) -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app.js"></script>
-    <!-- Firebase Realtime Database SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database.js"></script>
     <style>
         body {
             margin: 0;
@@ -93,6 +89,9 @@
             z-index: 1000;
         }
     </style>
+    <!-- Include Firebase Library -->
+    <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-auth.js"></script>
 </head>
 <body>
 
@@ -113,26 +112,26 @@
 </div>
 
 <script>
-    // Firebase Configuration (replace with your actual Firebase credentials)
+    // Firebase configuration
     const firebaseConfig = {
-        apiKey: "your-api-key",
-        authDomain: "your-project-id.firebaseapp.com",
-        projectId: "your-project-id",
-        storageBucket: "your-project-id.appspot.com",
-        messagingSenderId: "your-messaging-sender-id",
-        appId: "your-app-id",
-        databaseURL: "https://your-project-id.firebaseio.com"
+        apiKey: "AIzaSyClD-3xfEnSFwoGdGCbkJMce36UkDLeVnE",
+        authDomain: "realtimeaccountcreation.firebaseapp.com",
+        databaseURL: "https://realtimeaccountcreation-default-rtdb.firebaseio.com",
+        projectId: "realtimeaccountcreation",
+        storageBucket: "realtimeaccountcreation.appspot.com",
+        messagingSenderId: "658896933674",
+        appId: "1:658896933674:web:3275d0678c39b54e8f8453"
     };
 
     // Initialize Firebase
     const app = firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
+    const auth = firebase.auth();
 
     const signupButton = document.getElementById('signup-button');
     const recentAccountsList = document.getElementById('recent-accounts-list');
     const popup = document.getElementById('popup');
 
-    signupButton.addEventListener('click', function() {
+    signupButton.addEventListener('click', async function() {
         const username = document.getElementById('username').value.trim();
         const password = document.getElementById('password').value.trim();
 
@@ -141,32 +140,28 @@
             return;
         }
 
-        // Check for existing usernames in Firebase
-        database.ref('accounts/').once('value', (snapshot) => {
-            let accounts = snapshot.val() || {};
-            let usernameExists = Object.values(accounts).some(account => account.username === username);
+        try {
+            // Check if username exists in Firebase
+            const snapshot = await firebase.database().ref('users/' + username).once('value');
 
-            if (usernameExists) {
+            if (snapshot.exists()) {
                 showPopup("This username is already taken.");
                 return;
             }
 
-            const timestamp = new Date().toLocaleString();
-            const newAccount = { username: username, password: password, timestamp: timestamp };
-
-            // Store account in Firebase
-            createAccount(newAccount);
-
-            // Add the new account to the recent accounts list
-            addRecentAccountToList(newAccount);
+            // Create new user in Firebase
+            await auth.createUserWithEmailAndPassword(username + "@example.com", password);
+            await firebase.database().ref('users/' + username).set({ username, createdAt: new Date().toISOString() });
 
             showPopup("Account created successfully!");
 
-            // Redirect to pfp.html after a short delay
+            // Redirect to pfp.html after account creation
             setTimeout(() => {
                 window.location.href = 'pfp.html';
             }, 1000);
-        });
+        } catch (error) {
+            showPopup(error.message);
+        }
     });
 
     function showPopup(message) {
@@ -182,24 +177,10 @@
         }, 3000);
     }
 
-    function createAccount(account) {
-        const newAccountRef = database.ref('accounts/').push();
-        newAccountRef.set(account);
-    }
-
-    function addRecentAccountToList(account) {
-        const newListItem = document.createElement('li');
-        newListItem.textContent = account.username + " (Created on: " + account.timestamp + ")";
-        recentAccountsList.appendChild(newListItem);
-    }
-
     // Display recent accounts on page load
     window.onload = function() {
-        const accountsRef = database.ref('accounts/');
-        accountsRef.on('child_added', (snapshot) => {
-            const account = snapshot.val();
-            addRecentAccountToList(account);
-        });
+        const accounts = JSON.parse(localStorage.getItem('accounts')) || [];
+        recentAccountsList.innerHTML = accounts.map(account => `<li>${account.username} (Created on: ${account.timestamp})</li>`).join('');
     }
 </script>
 
