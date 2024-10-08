@@ -24,11 +24,12 @@
 
         const db = firebase.database();
 
-        // Function to send message to Firebase
-        function sendMessage(username, messageText) {
+        // Function to send message to Firebase, including profile picture URL
+        function sendMessage(username, profilePicUrl, messageText) {
             const messageRef = db.ref('messages').push();
             messageRef.set({
                 username: username,
+                profilePic: profilePicUrl,
                 message: messageText,
                 timestamp: new Date().toISOString()
             });
@@ -38,7 +39,7 @@
         function listenForMessages() {
             db.ref('messages').on('child_added', (snapshot) => {
                 const messageData = snapshot.val();
-                addMessageToChat(messageData.username, messageData.message);
+                addMessageToChat(messageData.username, messageData.profilePic, messageData.message);
             });
         }
 
@@ -239,14 +240,14 @@
         ownerBadge.style.display = 'inline-block';
     }
 
-    // Function to display chat messages with the username
-    function addMessageToChat(username, messageText) {
+    // Function to display chat messages with the username and profile picture
+    function addMessageToChat(username, profilePicUrl, messageText) {
         const message = document.createElement('div');
         message.classList.add('message');
 
         const profileImage = document.createElement('img');
-        profileImage.src = profilePictureUrl;
-        // Apply same border style as profile picture
+        profileImage.src = profilePicUrl || 'default-profile-pic.png'; // Display the sender's profile picture
+        // Apply the same border style as the profile picture
         if (borderStyle === 'rainbow') {
             profileImage.classList.add('rainbow-border');
         } else if (borderStyle === 'gradient') {
@@ -273,7 +274,7 @@
     document.getElementById('chat-input').addEventListener('keypress', function(e) {
         if (e.key === 'Enter' && this.value.trim() !== '') {
             const messageText = this.value.trim();
-            sendMessage(username, messageText);  // Send message to Firebase
+            sendMessage(username, profilePictureUrl, messageText);  // Send message with profile picture URL to Firebase
             this.value = '';
         }
     });
