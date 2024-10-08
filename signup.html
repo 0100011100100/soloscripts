@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up</title>
+    <title>Login</title>
     <style>
         body {
             margin: 0;
@@ -11,139 +11,89 @@
             background-color: #1e1e1e;
             color: white;
             font-family: Arial, sans-serif;
-        }
-
-        .container {
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #333;
             padding: 20px;
+            border-radius: 10px;
+            text-align: center;
         }
 
-        .signup-form {
-            width: 300px;
-            display: flex;
-            flex-direction: column;
+        h1 {
+            margin-bottom: 20px;
         }
 
-        .signup-form input {
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
             padding: 10px;
-            margin-bottom: 10px;
+            margin: 10px 0;
             border-radius: 5px;
             border: none;
-            background-color: #444;
-            color: white;
         }
 
-        .signup-form button {
-            padding: 10px;
+        button {
+            padding: 10px 20px;
             background-color: #007BFF;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            margin-top: 10px;
         }
 
-        .signup-form button:hover {
+        button:hover {
             background-color: #0056b3;
         }
 
-        .recent-accounts {
-            margin-top: 30px;
-            width: 100%;
-        }
-
-        .recent-accounts h2 {
-            font-size: 20px;
-            margin-bottom: 10px;
-            text-align: center;
-        }
-
-        .recent-accounts ul {
-            list-style: none;
-            padding: 0;
-        }
-
-        .recent-accounts ul li {
-            background-color: #333;
-            padding: 10px;
-            margin-bottom: 5px;
-            border-radius: 5px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .account-info {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .account-timestamp {
-            font-size: 12px;
-            color: #aaa;
-        }
-
-        /* Popup Styles */
-        .popup {
-            position: fixed;
-            top: -50px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(255, 0, 0, 0.9);
-            color: white;
-            padding: 15px 20px;
-            border-radius: 5px;
-            transition: top 0.5s ease;
-            z-index: 1000;
+        .signup-link {
+            margin-top: 15px;
+            display: block;
+            color: #007BFF;
+            cursor: pointer;
+            text-decoration: underline;
         }
     </style>
-    <!-- Firebase App (required) -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js"></script>
 </head>
 <body>
 
 <div id="popup" class="popup" style="display: none;"></div>
 
 <div class="container">
-    <h1>Sign Up</h1>
-
-    <form class="signup-form" id="signup-form">
-        <input type="text" id="username" placeholder="Enter your username" required>
-        <input type="password" id="password" placeholder="Enter your password" required>
-        <button type="button" onclick="createAccount()">Sign Up</button>
-    </form>
-
-    <div class="recent-accounts">
-        <h2>All Created Accounts:</h2>
-        <ul id="recent-accounts-list"></ul>
-    </div>
+    <h1>Login</h1>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <button id="login-button">Login</button>
+    <a class="signup-link" href="signup.html">Don't have an account? Sign Up</a> <!-- Sign Up button -->
 </div>
 
 <script>
+    const loginButton = document.getElementById('login-button');
     const popup = document.getElementById('popup');
 
-    // Firebase configuration
-    const firebaseConfig = {
-        apiKey: "AIzaSyClD-3xfEnSFwoGdGCbkJMce36UkDLeVnE",
-        authDomain: "realtimeaccountcreation.firebaseapp.com",
-        databaseURL: "https://realtimeaccountcreation-default-rtdb.firebaseio.com",
-        projectId: "realtimeaccountcreation",
-        storageBucket: "realtimeaccountcreation.appspot.com",
-        messagingSenderId: "658896933674",
-        appId: "1:658896933674:web:3275d0678c39b54e8f8453"
-    };
+    loginButton.addEventListener('click', function() {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
 
-    // Initialize Firebase
-    const app = firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
+        if (username === 'zeptional' && password === 'corndogs123') {
+            localStorage.setItem('username', 'zeptional');
+            window.location.href = 'dashboard.html';
+        } else {
+            showPopup('Invalid username or password');
+        }
+    });
 
-    // Function to show a popup
     function showPopup(message) {
         popup.textContent = message;
         popup.style.display = 'block';
         popup.style.top = '20px';
+
         setTimeout(() => {
             popup.style.top = '-50px';
             setTimeout(() => {
@@ -151,74 +101,7 @@
             }, 500);
         }, 3000);
     }
-
-    // Function to create an account
-    function createAccount() {
-        const username = document.getElementById('username').value.trim();
-        const password = document.getElementById('password').value.trim();
-
-        if (username === "" || password === "") {
-            showPopup("Please fill in both fields.");
-            return;
-        }
-
-        // Reference to Firebase accounts path
-        const accountsRef = firebase.database().ref('accounts');
-
-        // Check if the username already exists in Firebase
-        accountsRef.orderByChild('username').equalTo(username).once('value', snapshot => {
-            if (snapshot.exists()) {
-                // Username already exists
-                showPopup("This username is already taken.");
-            } else {
-                // Create new account object with timestamp
-                const timestamp = new Date().toLocaleString();
-                const newAccount = { username: username, password: password, timestamp: timestamp };
-
-                // Push the new account to Firebase
-                accountsRef.push(newAccount).then(() => {
-                    // Show success popup
-                    showPopup("Account created successfully!");
-
-                    // Redirect to pfp.html after successful signup
-                    setTimeout(() => {
-                        window.location.href = "pfp.html";
-                    }, 1000); // Delay to show popup message before redirect
-                });
-            }
-        });
-    }
-
-    // Function to display all accounts from Firebase
-    function updateRecentAccounts() {
-        const accountsRef = firebase.database().ref('accounts');
-        const recentAccountsList = document.getElementById('recent-accounts-list');
-        
-        // Clear the current list
-        recentAccountsList.innerHTML = '';
-
-        // Fetch accounts from Firebase and display them
-        accountsRef.once('value', snapshot => {
-            snapshot.forEach(accountSnapshot => {
-                const account = accountSnapshot.val();
-
-                const li = document.createElement('li');
-                
-                const accountInfoDiv = document.createElement('div');
-                accountInfoDiv.classList.add('account-info');
-                accountInfoDiv.innerHTML = `<strong>${account.username}</strong><span class="account-timestamp">Created on: ${account.timestamp}</span>`;
-                
-                li.appendChild(accountInfoDiv);
-                recentAccountsList.appendChild(li);
-            });
-        });
-    }
-
-    // Load all accounts on page load
-    window.onload = function() {
-        updateRecentAccounts();
-    }
 </script>
 
 </body>
-</html>
+</html> 
