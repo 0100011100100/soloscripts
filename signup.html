@@ -89,10 +89,6 @@
             z-index: 1000;
         }
     </style>
-    <!-- Include Firebase Library -->
-    <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-database.js"></script>
 </head>
 <body>
 
@@ -113,27 +109,11 @@
 </div>
 
 <script>
-    // Firebase configuration
-    const firebaseConfig = {
-        apiKey: "AIzaSyClD-3xfEnSFwoGdGCbkJMce36UkDLeVnE",
-        authDomain: "realtimeaccountcreation.firebaseapp.com",
-        databaseURL: "https://realtimeaccountcreation-default-rtdb.firebaseio.com",
-        projectId: "realtimeaccountcreation",
-        storageBucket: "realtimeaccountcreation.appspot.com",
-        messagingSenderId: "658896933674",
-        appId: "1:658896933674:web:3275d0678c39b54e8f8453"
-    };
-
-    // Initialize Firebase
-    const app = firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const database = firebase.database();
-
     const signupButton = document.getElementById('signup-button');
     const recentAccountsList = document.getElementById('recent-accounts-list');
     const popup = document.getElementById('popup');
 
-    signupButton.addEventListener('click', async function() {
+    signupButton.addEventListener('click', function() {
         const username = document.getElementById('username').value.trim();
         const password = document.getElementById('password').value.trim();
 
@@ -142,33 +122,26 @@
             return;
         }
 
-        try {
-            // Check if username exists in Firebase
-            const snapshot = await database.ref('users/' + username).once('value');
+        let accounts = JSON.parse(localStorage.getItem('accounts')) || [];
 
-            if (snapshot.exists()) {
-                showPopup("This username is already taken.");
-                return;
-            }
-
-            // Create new user in Firebase
-            await auth.createUserWithEmailAndPassword(username + "@example.com", password);
-            await database.ref('users/' + username).set({ username, createdAt: new Date().toISOString() });
-
-            // Save recent account locally
-            let accounts = JSON.parse(localStorage.getItem('accounts')) || [];
-            accounts.push({ username, timestamp: new Date().toLocaleString() });
-            localStorage.setItem('accounts', JSON.stringify(accounts));
-
-            showPopup("Account created successfully!");
-
-            // Redirect to pfp.html after account creation
-            setTimeout(() => {
-                window.location.href = 'pfp.html';
-            }, 1000);
-        } catch (error) {
-            showPopup(error.message);
+        if (accounts.some(account => account.username === username)) {
+            showPopup("This username is already taken.");
+            return;
         }
+
+        const timestamp = new Date().toLocaleString();
+        const newAccount = { username: username, password: password, timestamp: timestamp };
+
+        accounts.push(newAccount);
+        localStorage.setItem('accounts', JSON.stringify(accounts));
+        localStorage.setItem('username', username);
+
+        showPopup("Account created successfully!");
+
+        // Redirect to pfp.html after account creation
+        setTimeout(() => {
+            window.location.href = 'pfp.html';
+        }, 1000);
     });
 
     function showPopup(message) {
@@ -187,7 +160,7 @@
     // Display recent accounts on page load
     window.onload = function() {
         const accounts = JSON.parse(localStorage.getItem('accounts')) || [];
-        recentAccountsList.innerHTML = accounts.map(account => `<li>${account.username} (Created on: ${account.timestamp})</li>`).join('');
+        recentAccountsList.innerHTML = accounts.map(account => <li>${account.username} (Created on: ${account.timestamp})</li>).join('');
     }
 </script>
 
