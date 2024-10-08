@@ -92,6 +92,7 @@
     <!-- Include Firebase Library -->
     <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-database.js"></script>
 </head>
 <body>
 
@@ -126,6 +127,7 @@
     // Initialize Firebase
     const app = firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
+    const database = firebase.database();
 
     const signupButton = document.getElementById('signup-button');
     const recentAccountsList = document.getElementById('recent-accounts-list');
@@ -142,7 +144,7 @@
 
         try {
             // Check if username exists in Firebase
-            const snapshot = await firebase.database().ref('users/' + username).once('value');
+            const snapshot = await database.ref('users/' + username).once('value');
 
             if (snapshot.exists()) {
                 showPopup("This username is already taken.");
@@ -151,7 +153,12 @@
 
             // Create new user in Firebase
             await auth.createUserWithEmailAndPassword(username + "@example.com", password);
-            await firebase.database().ref('users/' + username).set({ username, createdAt: new Date().toISOString() });
+            await database.ref('users/' + username).set({ username, createdAt: new Date().toISOString() });
+
+            // Save recent account locally
+            let accounts = JSON.parse(localStorage.getItem('accounts')) || [];
+            accounts.push({ username, timestamp: new Date().toLocaleString() });
+            localStorage.setItem('accounts', JSON.stringify(accounts));
 
             showPopup("Account created successfully!");
 
