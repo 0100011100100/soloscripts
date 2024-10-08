@@ -98,6 +98,9 @@
             z-index: 1000;
         }
     </style>
+    <!-- Firebase App (required) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js"></script>
 </head>
 <body>
 
@@ -120,6 +123,21 @@
 
 <script>
     const popup = document.getElementById('popup');
+
+    // Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyClD-3xfEnSFwoGdGCbkJMce36UkDLeVnE",
+        authDomain: "realtimeaccountcreation.firebaseapp.com",
+        databaseURL: "https://realtimeaccountcreation-default-rtdb.firebaseio.com",
+        projectId: "realtimeaccountcreation",
+        storageBucket: "realtimeaccountcreation.appspot.com",
+        messagingSenderId: "658896933674",
+        appId: "1:658896933674:web:3275d0678c39b54e8f8453"
+    };
+
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
 
     // Function to show a popup
     function showPopup(message) {
@@ -144,51 +162,55 @@
             return;
         }
 
-        // Fetch existing users from localStorage
-        let accounts = JSON.parse(localStorage.getItem('accounts')) || [];
+        // Reference to Firebase accounts path
+        const accountsRef = firebase.database().ref('accounts');
 
-        // Check if the username already exists
-        if (accounts.some(account => account.username === username)) {
-            showPopup("This username is already taken.");
-            return;
-        }
+        // Check if the username already exists in Firebase
+        accountsRef.orderByChild('username').equalTo(username).once('value', snapshot => {
+            if (snapshot.exists()) {
+                // Username already exists
+                showPopup("This username is already taken.");
+            } else {
+                // Create new account object with timestamp
+                const timestamp = new Date().toLocaleString();
+                const newAccount = { username: username, password: password, timestamp: timestamp };
 
-        // Create new account object with timestamp
-        const timestamp = new Date().toLocaleString();
-        const newAccount = { username: username, password: password, timestamp: timestamp };
+                // Push the new account to Firebase
+                accountsRef.push(newAccount);
 
-        // Save the new account
-        accounts.push(newAccount);
-        localStorage.setItem('accounts', JSON.stringify(accounts));
+                // Show success popup
+                showPopup("Account created successfully!");
 
-        // Update the recent accounts display
-        updateRecentAccounts();
-
-        // Show success popup
-        showPopup("Account created successfully!");
-
-        // Reset form fields
-        document.getElementById('signup-form').reset();
+                // Redirect to pfp.html after successful signup
+                setTimeout(() => {
+                    window.location.href = "pfp.html";
+                }, 1000);
+            }
+        });
     }
 
-    // Function to display all accounts
+    // Function to display all accounts from Firebase
     function updateRecentAccounts() {
-        const accounts = JSON.parse(localStorage.getItem('accounts')) || [];
+        const accountsRef = firebase.database().ref('accounts');
         const recentAccountsList = document.getElementById('recent-accounts-list');
         
         // Clear the current list
         recentAccountsList.innerHTML = '';
 
-        // Display all accounts with their creation timestamps
-        accounts.forEach(account => {
-            const li = document.createElement('li');
-            
-            const accountInfoDiv = document.createElement('div');
-            accountInfoDiv.classList.add('account-info');
-            accountInfoDiv.innerHTML = <strong>${account.username}</strong><span class="account-timestamp">Created on: ${account.timestamp}</span>;
-            
-            li.appendChild(accountInfoDiv);
-            recentAccountsList.appendChild(li);
+        // Fetch accounts from Firebase and display them
+        accountsRef.once('value', snapshot => {
+            snapshot.forEach(accountSnapshot => {
+                const account = accountSnapshot.val();
+
+                const li = document.createElement('li');
+                
+                const accountInfoDiv = document.createElement('div');
+                accountInfoDiv.classList.add('account-info');
+                accountInfoDiv.innerHTML = `<strong>${account.username}</strong><span class="account-timestamp">Created on: ${account.timestamp}</span>`;
+                
+                li.appendChild(accountInfoDiv);
+                recentAccountsList.appendChild(li);
+            });
         });
     }
 
