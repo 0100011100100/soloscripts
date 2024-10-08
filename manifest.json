@@ -1,7 +1,7 @@
 {
   "name": "zeptionalsscripts",
   "short_name": "zeptionalsscripts",
-  "start_url": "/zeptionalsscripts/login.html",
+  "start_url": "https://0100011100100.github.io/zeptionalsscripts/login.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#000000",
