@@ -11,58 +11,51 @@
             background-color: #1e1e1e;
             color: white;
             font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
         }
 
         .container {
-            background-color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             padding: 20px;
-            border-radius: 10px;
-            text-align: center;
         }
 
-        h1 {
-            margin-bottom: 20px;
+        .signup-form {
+            width: 300px;
+            display: flex;
+            flex-direction: column;
         }
 
-        input[type="text"],
-        input[type="password"] {
-            width: 100%;
+        .signup-form input {
             padding: 10px;
-            margin: 10px 0;
+            margin-bottom: 10px;
             border-radius: 5px;
             border: none;
+            background-color: #444;
+            color: white;
         }
 
-        button {
-            padding: 10px 20px;
+        .signup-form button {
+            padding: 10px;
             background-color: #007BFF;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            margin-top: 10px;
         }
 
-        button:hover {
+        .signup-form button:hover {
             background-color: #0056b3;
         }
 
         .recent-accounts {
-            margin-top: 20px;
-            text-align: left;
-            background-color: #222;
-            padding: 15px;
-            border-radius: 10px;
+            margin-top: 30px;
             width: 100%;
-            max-width: 400px;
         }
 
         .recent-accounts h2 {
+            font-size: 20px;
+            margin-bottom: 10px;
             text-align: center;
         }
 
@@ -71,8 +64,24 @@
             padding: 0;
         }
 
-        .recent-accounts li {
-            margin: 5px 0;
+        .recent-accounts ul li {
+            background-color: #333;
+            padding: 10px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .account-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .account-timestamp {
+            font-size: 12px;
+            color: #aaa;
         }
 
         /* Popup Styles */
@@ -96,59 +105,27 @@
 
 <div class="container">
     <h1>Sign Up</h1>
-    <input type="text" id="username" placeholder="Username">
-    <input type="password" id="password" placeholder="Password">
-    <button id="signup-button">Sign Up</button>
+
+    <form class="signup-form" id="signup-form">
+        <input type="text" id="username" placeholder="Enter your username" required>
+        <input type="password" id="password" placeholder="Enter your password" required>
+        <button type="button" onclick="createAccount()">Sign Up</button>
+    </form>
 
     <div class="recent-accounts">
-        <h2>Recent Accounts</h2>
-        <ul id="recent-accounts-list">
-            <!-- Recently created accounts will appear here -->
-        </ul>
+        <h2>All Created Accounts:</h2>
+        <ul id="recent-accounts-list"></ul>
     </div>
 </div>
 
 <script>
-    const signupButton = document.getElementById('signup-button');
-    const recentAccountsList = document.getElementById('recent-accounts-list');
     const popup = document.getElementById('popup');
 
-    signupButton.addEventListener('click', function() {
-        const username = document.getElementById('username').value.trim();
-        const password = document.getElementById('password').value.trim();
-
-        if (username === "" || password === "") {
-            showPopup("Please fill in both fields.");
-            return;
-        }
-
-        let accounts = JSON.parse(localStorage.getItem('accounts')) || [];
-
-        if (accounts.some(account => account.username === username)) {
-            showPopup("This username is already taken.");
-            return;
-        }
-
-        const timestamp = new Date().toLocaleString();
-        const newAccount = { username: username, password: password, timestamp: timestamp };
-
-        accounts.push(newAccount);
-        localStorage.setItem('accounts', JSON.stringify(accounts));
-        localStorage.setItem('username', username);
-
-        showPopup("Account created successfully!");
-
-        // Redirect to pfp.html after account creation
-        setTimeout(() => {
-            window.location.href = 'pfp.html';
-        }, 1000);
-    });
-
+    // Function to show a popup
     function showPopup(message) {
         popup.textContent = message;
         popup.style.display = 'block';
         popup.style.top = '20px';
-
         setTimeout(() => {
             popup.style.top = '-50px';
             setTimeout(() => {
@@ -157,10 +134,67 @@
         }, 3000);
     }
 
-    // Display recent accounts on page load
-    window.onload = function() {
+    // Function to create an account
+    function createAccount() {
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value.trim();
+
+        if (username === "" || password === "") {
+            showPopup("Please fill in both fields.");
+            return;
+        }
+
+        // Fetch existing users from localStorage
+        let accounts = JSON.parse(localStorage.getItem('accounts')) || [];
+
+        // Check if the username already exists
+        if (accounts.some(account => account.username === username)) {
+            showPopup("This username is already taken.");
+            return;
+        }
+
+        // Create new account object with timestamp
+        const timestamp = new Date().toLocaleString();
+        const newAccount = { username: username, password: password, timestamp: timestamp };
+
+        // Save the new account
+        accounts.push(newAccount);
+        localStorage.setItem('accounts', JSON.stringify(accounts));
+
+        // Update the recent accounts display
+        updateRecentAccounts();
+
+        // Show success popup
+        showPopup("Account created successfully!");
+
+        // Reset form fields
+        document.getElementById('signup-form').reset();
+    }
+
+    // Function to display all accounts
+    function updateRecentAccounts() {
         const accounts = JSON.parse(localStorage.getItem('accounts')) || [];
-        recentAccountsList.innerHTML = accounts.map(account => <li>${account.username} (Created on: ${account.timestamp})</li>).join('');
+        const recentAccountsList = document.getElementById('recent-accounts-list');
+        
+        // Clear the current list
+        recentAccountsList.innerHTML = '';
+
+        // Display all accounts with their creation timestamps
+        accounts.forEach(account => {
+            const li = document.createElement('li');
+            
+            const accountInfoDiv = document.createElement('div');
+            accountInfoDiv.classList.add('account-info');
+            accountInfoDiv.innerHTML = `<strong>${account.username}</strong><span class="account-timestamp">Created on: ${account.timestamp}</span>`;
+            
+            li.appendChild(accountInfoDiv);
+            recentAccountsList.appendChild(li);
+        });
+    }
+
+    // Load all accounts on page load
+    window.onload = function() {
+        updateRecentAccounts();
     }
 </script>
 
