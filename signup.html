@@ -115,13 +115,13 @@
 <script>
     // Step 1: Firebase Configuration (use your own Firebase config here)
     const firebaseConfig = {
-        apiKey: "AIzaSyClD-3xfEnSFwoGdGCbkJMce36UkDLeVnE",
-        authDomain: "realtimeaccountcreation.firebaseapp.com",
-        projectId: "realtimeaccountcreation",
-        storageBucket: "realtimeaccountcreation.appspot.com",
-        messagingSenderId: "658896933674",
-        appId: "1:658896933674:web:3275d0678c39b54e8f8453",
-        databaseURL: "https://realtimeaccountcreation-default-rtdb.firebaseio.com"
+        apiKey: "your-api-key",
+        authDomain: "your-project-id.firebaseapp.com",
+        projectId: "your-project-id",
+        storageBucket: "your-project-id.appspot.com",
+        messagingSenderId: "your-messaging-sender-id",
+        appId: "your-app-id",
+        databaseURL: "https://your-project-id.firebaseio.com"
     };
 
     // Step 2: Initialize Firebase
@@ -156,9 +156,13 @@
 
             // Store account in Firebase
             createAccount(newAccount);
+
+            // Add the new account to the recent accounts list
+            addRecentAccountToList(newAccount);
+
             showPopup("Account created successfully!");
 
-            // Redirect to pfp.html after account creation
+            // Redirect to pfp.html after a short delay
             setTimeout(() => {
                 window.location.href = 'pfp.html';
             }, 1000);
@@ -183,14 +187,18 @@
         newAccountRef.set(account);
     }
 
+    function addRecentAccountToList(account) {
+        const newListItem = document.createElement('li');
+        newListItem.textContent = account.username + " (Created on: " + account.timestamp + ")";
+        recentAccountsList.appendChild(newListItem);
+    }
+
     // Display recent accounts on page load
     window.onload = function() {
         const accountsRef = database.ref('accounts/');
         accountsRef.on('child_added', (snapshot) => {
             const account = snapshot.val();
-            const newListItem = document.createElement('li');
-            newListItem.textContent = account.username + " (Created on: " + account.timestamp + ")";
-            recentAccountsList.appendChild(newListItem);
+            addRecentAccountToList(account);
         });
     }
 </script>
