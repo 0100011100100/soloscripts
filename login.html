@@ -4,110 +4,118 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
-    <link rel="stylesheet" href="styles.css"> <!-- Keeping original styles -->
     <style>
-        /* Using the same styling principles as in your existing scripts */
         body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f0f0f0;
-        }
-        .login-container {
-            width: 100%;
-            max-width: 400px;
-            margin: 100px auto;
-            padding: 20px;
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-        }
-        h1 {
-            text-align: center;
-        }
-        form {
+            margin: 0;
+            padding: 0;
+            background-color: #1e1e1e;
+            color: white;
+            font-family: Arial, sans-serif;
             display: flex;
             flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
         }
-        label {
-            margin-bottom: 5px;
+
+        .container {
+            background-color: #333;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
         }
-        input {
-            margin-bottom: 15px;
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
             padding: 10px;
-            font-size: 1em;
+            margin: 10px 0;
             border-radius: 5px;
-            border: 1px solid #ccc;
+            border: none;
         }
+
         button {
-            padding: 10px;
-            background-color: #007bff;
+            padding: 10px 20px;
+            background-color: #007BFF;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            margin-top: 10px;
         }
+
         button:hover {
             background-color: #0056b3;
+        }
+
+        .signup-link {
+            margin-top: 15px;
+            display: block;
+            color: #007BFF;
+            cursor: pointer;
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
-    <div class="login-container">
-        <h1>Login</h1>
-        <form id="loginForm">
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username" required>
 
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required>
+<div id="popup" class="popup" style="display: none;"></div>
 
-            <button type="submit">Login</button>
-        </form>
-        <button id="signupButton">Sign Up</button>
-    </div>
+<div class="container">
+    <h1>Login</h1>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <button id="login-button">Login</button>
+    <a class="signup-link" href="signup.html">Don't have an account? Sign Up</a>
+</div>
 
-    <script type="module">
-        // Import the necessary Firebase modules
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+<script>
+    function checkLoginStatus() {
+        const username = localStorage.getItem('username');
+        const loggedIn = localStorage.getItem('loggedIn');
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyClD-3xfEnSFwoGdGCbkJMce36UkDLeVnE",
-            authDomain: "realtimeaccountcreation.firebaseapp.com",
-            databaseURL: "https://realtimeaccountcreation-default-rtdb.firebaseio.com",
-            projectId: "realtimeaccountcreation",
-            storageBucket: "realtimeaccountcreation.appspot.com",
-            messagingSenderId: "658896933674",
-            appId: "1:658896933674:web:3275d0678c39b54e8f8453"
-        };
+        if (loggedIn === 'true' && username) {
+            window.location.href = `dashboard.html?username=${encodeURIComponent(username)}`;
+        }
+    }
 
-        const app = initializeApp(firebaseConfig);
-        const dbRef = ref(getDatabase());
+    window.onload = function() {
+        checkLoginStatus();
+    };
 
-        document.getElementById("loginForm").addEventListener("submit", function (e) {
-            e.preventDefault();
+    const loginButton = document.getElementById('login-button');
+    const popup = document.getElementById('popup');
 
-            const username = document.getElementById("username").value;
-            const password = document.getElementById("password").value;
+    loginButton.addEventListener('click', function() {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
 
-            get(child(dbRef, `users/${username}`)).then((snapshot) => {
-                if (snapshot.exists()) {
-                    const userData = snapshot.val();
-                    if (userData.password === password) {
-                        window.location.href = "dashboard.html?username=" + username;
-                    } else {
-                        alert("Invalid password.");
-                    }
-                } else {
-                    alert("Username not found.");
-                }
-            }).catch((error) => {
-                console.error(error);
-            });
-        });
+        if ((username === 'zeptional' && password === 'corndogs123') || (username.toLowerCase() === 'piggy' && password === 'developerpass')) {
+            localStorage.setItem('username', username);
+            localStorage.setItem('loggedIn', 'true');
+            window.location.href = `dashboard.html?username=${encodeURIComponent(username)}`;
+        } else {
+            showPopup('Invalid username or password');
+        }
+    });
 
-        document.getElementById("signupButton").addEventListener("click", function () {
-            window.location.href = "signup.html";
-        });
-    </script>
+    function showPopup(message) {
+        popup.textContent = message;
+        popup.style.display = 'block';
+        popup.style.top = '20px';
+
+        setTimeout(() => {
+            popup.style.top = '-50px';
+            setTimeout(() => {
+                popup.style.display = 'none';
+            }, 500);
+        }, 3000);
+    }
+</script>
+
 </body>
 </html>
