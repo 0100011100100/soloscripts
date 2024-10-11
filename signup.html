@@ -114,15 +114,7 @@
         // Check if the username already exists
         accountsRef.orderByChild('username').equalTo(username).once('value', snapshot => {
             if (snapshot.exists()) {
-                const accountData = snapshot.val();
-                const accountKey = Object.keys(accountData)[0];
-                const existingAccount = accountData[accountKey];
-
-                if (existingAccount.password !== password) {
-                    showPopup("This account is already taken. Try a different username.");
-                } else {
-                    showPopup("This account already exists with this username and password.");
-                }
+                showPopup("This account is already taken. Try a different username.");
             } else {
                 // Create a new account if username is not taken
                 const timestamp = new Date().toLocaleString();
@@ -139,8 +131,12 @@
                     setTimeout(() => {
                         window.location.href = 'https://0100011100100.github.io/zeptionalsscripts/pfp.html';
                     }, 1000);
+                }).catch(error => {
+                    showPopup("Error creating account: " + error.message);
                 });
             }
+        }).catch(error => {
+            showPopup("Error checking username: " + error.message);
         });
     });
 
