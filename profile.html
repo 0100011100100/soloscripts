@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile</title>
+    <title>Profile Settings</title>
     <style>
         body {
             margin: 0;
@@ -11,79 +11,53 @@
             background-color: #1e1e1e;
             color: white;
             font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
         }
 
-        .container {
-            background-color: #333;
-            padding: 20px;
-            border-radius: 10px;
+        .header {
+            background-color: #444;
+            padding: 10px;
             text-align: center;
         }
 
-        h1 {
-            margin-bottom: 20px;
+        .header h1 {
+            margin: 0;
         }
 
-        .profile-picture {
+        .settings-container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #333;
+            border-radius: 10px;
+        }
+
+        .settings-container input[type="file"],
+        .settings-container select,
+        .settings-container button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: none;
+            font-size: 16px;
+            background-color: #555;
+            color: white;
+            cursor: pointer;
+        }
+
+        .settings-container button:hover {
+            background-color: #777;
+        }
+
+        .profile-pic {
+            display: block;
+            margin: 0 auto 20px;
             width: 150px;
             height: 150px;
-            border-radius: 50%; /* Ensure it's always round */
-            border: 5px solid white;
-            margin-bottom: 20px;
-            transition: border 0.3s ease;
-        }
-
-        .controls {
-            margin-top: 20px;
-        }
-
-        input[type="file"],
-        input[type="color"],
-        select {
-            margin-top: 10px;
-            padding: 10px;
-            border-radius: 5px;
-            border: none;
-        }
-
-        /* Rainbow animation */
-        .rainbow-border {
-            animation: rainbow 3s linear infinite;
-        }
-
-        @keyframes rainbow {
-            0% { border-color: red; }
-            16.6% { border-color: orange; }
-            33.2% { border-color: yellow; }
-            49.8% { border-color: green; }
-            66.4% { border-color: blue; }
-            83% { border-color: indigo; }
-            100% { border-color: violet; }
-        }
-
-        /* Ensure the gradient is round */
-        .gradient-border {
-            border-image-slice: 1;
             border-radius: 50%;
-        }
-
-        button {
-            padding: 10px 20px;
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-
-        button:hover {
-            background-color: #0056b3;
+            border: 3px solid white;
+            object-fit: cover;
+            transition: border 0.3s ease;
         }
 
         /* Popup Styles */
@@ -92,7 +66,7 @@
             top: -50px;
             left: 50%;
             transform: translateX(-50%);
-            background-color: rgba(0, 255, 0, 0.9);
+            background-color: rgba(0, 0, 0, 0.8);
             color: white;
             padding: 15px 20px;
             border-radius: 5px;
@@ -105,62 +79,70 @@
 
 <div id="popup" class="popup" style="display: none;"></div>
 
-<div class="container">
+<div class="header">
     <h1>Profile Settings</h1>
-    <!-- Profile picture display -->
-    <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture" class="profile-picture">
+</div>
 
-    <!-- Controls for changing profile picture and border -->
-    <div class="controls">
-        <input type="file" id="profile-pic-input" accept="image/*"><br>
-
-        <label for="border-color-picker">Choose Border Color:</label><br>
-        <input type="color" id="border-color-picker"><br>
-
-        <label for="border-style">Border Style:</label><br>
-        <select id="border-style">
-            <option value="solid">Solid Color</option>
-            <option value="rainbow">Rainbow</option>
-            <option value="gradient">Gradient</option>
-        </select><br>
-
-        <!-- Gradient Customization Controls -->
-        <div id="gradient-controls" style="display:none; margin-top:10px;">
-            <label for="gradient-custom">Create your own gradient:</label><br>
-            <input type="color" id="gradient-color1" value="#ffcc00"> <!-- Default first color -->
-            <input type="color" id="gradient-color2" value="#e63946"> <!-- Default second color -->
-            <button id="random-gradient">Random Gradient</button>
-        </div>
-
-        <button id="save-button">Save Changes</button>
+<div class="settings-container">
+    <img id="profile-pic" class="profile-pic" src="default-profile-pic.png" alt="Profile Picture">
+    <input type="file" id="file-input" accept="image/*">
+    <label for="border-color">Border Color:</label>
+    <input type="color" id="border-color" value="#ffffff">
+    <label for="border-style">Border Style:</label>
+    <select id="border-style">
+        <option value="solid">Solid</option>
+        <option value="gradient">Gradient</option>
+    </select>
+    <div id="gradient-colors" style="display: none;">
+        <label for="gradient-color-1">Gradient Color 1:</label>
+        <input type="color" id="gradient-color-1" value="#ff0000">
+        <label for="gradient-color-2">Gradient Color 2:</label>
+        <input type="color" id="gradient-color-2" value="#0000ff">
     </div>
+    <button id="save-button">Save</button>
 </div>
 
 <script>
     const profilePic = document.getElementById('profile-pic');
-    const profilePicInput = document.getElementById('profile-pic-input');
-    const borderColorPicker = document.getElementById('border-color-picker');
+    const fileInput = document.getElementById('file-input');
+    const borderColorInput = document.getElementById('border-color');
     const borderStyleSelector = document.getElementById('border-style');
-    const gradientControls = document.getElementById('gradient-controls');
-    const gradientColor1 = document.getElementById('gradient-color1');
-    const gradientColor2 = document.getElementById('gradient-color2');
-    const randomGradientButton = document.getElementById('random-gradient');
+    const gradientColors = document.getElementById('gradient-colors');
+    const gradientColor1 = document.getElementById('gradient-color-1');
+    const gradientColor2 = document.getElementById('gradient-color-2');
     const saveButton = document.getElementById('save-button');
     const popup = document.getElementById('popup');
 
-    // Load saved profile settings
+    // Load saved profile picture and border settings
     window.onload = function() {
-        const savedProfilePic = localStorage.getItem('profilePic');
-        const savedBorderColor = localStorage.getItem('borderColor');
-        const savedBorderStyle = localStorage.getItem('borderStyle');
+        const savedProfilePic = localStorage.getItem('profilePic') || 'default-profile-pic.png';
+        const savedBorderColor = localStorage.getItem('borderColor') || '#ffffff';
+        const savedBorderStyle = localStorage.getItem('borderStyle') || 'solid';
 
-        if (savedProfilePic) profilePic.src = savedProfilePic;
-        if (savedBorderColor) profilePic.style.borderColor = savedBorderColor;
-        if (savedBorderStyle) applyBorderStyle(savedBorderStyle);
+        profilePic.src = savedProfilePic;
+        profilePic.style.borderColor = savedBorderColor;
+
+        borderColorInput.value = savedBorderColor;
+        borderStyleSelector.value = savedBorderStyle;
+
+        if (savedBorderStyle === 'gradient') {
+            gradientColors.style.display = 'block';
+            gradientColor1.value = localStorage.getItem('gradient1') || '#ff0000';
+            gradientColor2.value = localStorage.getItem('gradient2') || '#0000ff';
+        }
     };
 
-    // Handle profile picture upload
-    profilePicInput.addEventListener('change', function(event) {
+    // Show/hide gradient color inputs based on border style selection
+    borderStyleSelector.addEventListener('change', function() {
+        if (this.value === 'gradient') {
+            gradientColors.style.display = 'block';
+        } else {
+            gradientColors.style.display = 'none';
+        }
+    });
+
+    // Update profile picture on file selection
+    fileInput.addEventListener('change', function(event) {
         const file = event.target.files[0];
         if (file) {
             const reader = new FileReader();
@@ -171,90 +153,37 @@
         }
     });
 
-    // Handle border color change
-    borderColorPicker.addEventListener('input', function() {
-        profilePic.style.borderColor = this.value;
-        removeBorderClasses();  // Remove other border styles (rainbow/gradient)
-    });
-
-    // Handle border style change
-    borderStyleSelector.addEventListener('change', function() {
-        applyBorderStyle(this.value);
-    });
-
-    // Function to apply the selected border style
-    function applyBorderStyle(style) {
-        removeBorderClasses();  // Clear any previous styles
-
-        if (style === 'rainbow') {
-            profilePic.classList.add('rainbow-border');
-        } else if (style === 'gradient') {
-            gradientControls.style.display = 'block';  // Show gradient customization controls
-            applyGradient(gradientColor1.value, gradientColor2.value);
-        } else {
-            gradientControls.style.display = 'none';  // Hide gradient controls if solid or rainbow
-            profilePic.style.borderColor = borderColorPicker.value;  // Apply solid color
-        }
-    }
-
-    // Remove all border style classes
-    function removeBorderClasses() {
-        profilePic.classList.remove('rainbow-border', 'gradient-border');
-        profilePic.style.borderImage = '';  // Reset border image for gradient
-        gradientControls.style.display = 'none';  // Hide gradient controls
-    }
-
-    // Apply gradient border style
-    function applyGradient(color1, color2) {
-        profilePic.style.borderImage = `linear-gradient(45deg, ${color1}, ${color2}) 1`;
-        profilePic.classList.add('gradient-border');  // Ensure round border remains
-    }
-
-    // Random gradient generator
-    randomGradientButton.addEventListener('click', function() {
-        const randomColor1 = `#${Math.floor(Math.random() * 16777215).toString(16)}`;
-        const randomColor2 = `#${Math.floor(Math.random() * 16777215).toString(16)}`;
-        gradientColor1.value = randomColor1;
-        gradientColor2.value = randomColor2;
-        applyGradient(randomColor1, randomColor2);
-    });
-
-    // Handle gradient color change manually
-    gradientColor1.addEventListener('input', function() {
-        applyGradient(gradientColor1.value, gradientColor2.value);
-    });
-    gradientColor2.addEventListener('input', function() {
-        applyGradient(gradientColor1.value, gradientColor2.value);
-    });
-
-    // Function to show the popup message
-    function showPopup(message) {
-        popup.textContent = message;
-        popup.style.display = 'block';
-        popup.style.top = '20px';
-
-        setTimeout(() => {
-            popup.style.top = '-50px';
-            setTimeout(() => {
-                popup.style.display = 'none';
-                window.location.href = 'dashboard.html';  // Redirect to dashboard
-            }, 500);
-        }, 3000);
-    }
-
-    // Save changes to localStorage and show popup
+    // Save profile picture and border settings
     saveButton.addEventListener('click', function() {
         const profilePicSrc = profilePic.src;
-        const borderColor = profilePic.style.borderColor;
+        const borderColor = borderColorInput.value;
         const borderStyle = borderStyleSelector.value;
 
+        // Save settings to localStorage
         localStorage.setItem('profilePic', profilePicSrc);
         localStorage.setItem('borderColor', borderColor);
         localStorage.setItem('borderStyle', borderStyle);
 
-        showPopup('Profile updated successfully! Redirecting to dashboard...');
-    });
-</script>
+        if (borderStyle === 'gradient') {
+            const gradient1 = gradientColor1.value;
+            const gradient2 = gradientColor2.value;
+            localStorage.setItem('gradient1', gradient1);
+            localStorage.setItem('gradient2', gradient2);
+        }
 
+        showPopup('Profile settings saved!');
+    });
+
+    // Function to show a popup message
+    function showPopup(message) {
+        popup.textContent = message;
+        popup.style.display = 'block';
+        popup.style.top = '20px';
+        setTimeout(() => {
+            popup.style.top = '-50px';
+            popup.style.display = 'none';
+        }, 3000);
+    }
+</script>
 </body>
 </html>
