@@ -185,8 +185,8 @@
 
         .gradient-border {
             border-image-slice: 1;
-            border-radius: 50%;
             border-width: 3px;
+            border-style: solid;
         }
     </style>
 </head>
@@ -251,6 +251,7 @@
 
         const profileImage = document.createElement('img');
         profileImage.src = profilePicUrl || 'default-profile-pic.png'; // Display the sender's profile picture
+        profileImage.classList.add('gradient-border'); // Add the gradient border
 
         const text = document.createElement('span');
         let badgeText = '';
