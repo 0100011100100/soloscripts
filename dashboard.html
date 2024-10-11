@@ -24,12 +24,11 @@
 
         const db = firebase.database();
 
-        // Function to send message to Firebase, including profile picture URL
-        function sendMessage(username, profilePicUrl, messageText) {
+        // Function to send message to Firebase
+        function sendMessage(username, messageText) {
             const messageRef = db.ref('messages').push();
             messageRef.set({
                 username: username,
-                profilePic: profilePicUrl,
                 message: messageText,
                 timestamp: new Date().toISOString()
             });
@@ -39,7 +38,7 @@
         function listenForMessages() {
             db.ref('messages').on('child_added', (snapshot) => {
                 const messageData = snapshot.val();
-                addMessageToChat(messageData.username, messageData.profilePic, messageData.message);
+                addMessageToChat(messageData.username, messageData.message);
             });
         }
 
@@ -73,30 +72,31 @@
             height: 40px;
             border-radius: 50%;
             margin-right: 10px;
-            border: 3px solid white; /* Thinner border */
-            transition: border 0.3s ease; /* Smooth transition for border */
+            border: 3px solid white;
+            transition: border 0.3s ease;
         }
 
         .profile .username {
             font-size: 18px;
         }
 
-        .profile-owner-badge,
+        .profile-owner-badge {
+            font-size: 12px;
+            padding: 3px 10px;
+            background: linear-gradient(90deg, #ffcc00, #e63946);
+            color: white;
+            border-radius: 5px;
+            margin-left: 10px;
+        }
+
         .profile-developer-badge {
             font-size: 12px;
             padding: 3px 10px;
+            background: linear-gradient(90deg, #00ff00, #0000ff); /* Green to Blue Gradient */
+            color: white;
             border-radius: 5px;
             margin-left: 10px;
-            color: white;
-        }
-
-        .profile-owner-badge {
-            background: linear-gradient(90deg, #ffcc00, #e63946);
-        }
-
-        .profile-developer-badge {
-            background: linear-gradient(90deg, #00c6ff, #0072ff);
-            animation: rainbow 3s linear infinite; /* Rainbow animation */
+            animation: rainbow 3s linear infinite; /* Animation for the Developer badge */
         }
 
         /* Navigation Buttons */
@@ -150,7 +150,7 @@
             height: 30px;
             border-radius: 50%;
             margin-right: 10px;
-            border: 3px solid white; /* Thinner border for chat */
+            border: 3px solid white;
         }
 
         /* Popup Styles */
@@ -185,7 +185,7 @@
         .gradient-border {
             border-image-slice: 1;
             border-radius: 50%;
-            border-width: 3px; /* Thinner border for gradient */
+            border-width: 3px;
         }
     </style>
 </head>
@@ -206,7 +206,7 @@
 <div class="nav-buttons">
     <button onclick="window.location.href='settings.html'">Settings</button>
     <button onclick="window.location.href='profile.html'">Profile</button>
-    <button onclick="signOut()">Sign Out</button>
+    <button onclick="signOut()">Sign Out</button> <!-- Sign Out button -->
 </div>
 
 <!-- Chat section -->
@@ -225,27 +225,13 @@
     const messagesContainer = document.getElementById('messages-container');
     const popup = document.getElementById('popup');
 
-    // Fetch profile details from localStorage
+    // Fetch username from localStorage
     const username = localStorage.getItem('username') || 'Guest';
-    const profilePictureUrl = localStorage.getItem(`profilePic_${username}`) || 'default-profile-pic.png'; // Updated to save per account
-    const borderColor = localStorage.getItem(`borderColor_${username}`) || 'white';
-    const borderStyle = localStorage.getItem(`borderStyle_${username}`) || 'solid';
+    const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
 
     // Display the username and profile picture
     usernameDisplay.textContent = username;
     profilePic.src = profilePictureUrl;
-
-    // Apply border color or gradient/rainbow
-    if (borderStyle === 'rainbow') {
-        profilePic.classList.add('rainbow-border');
-    } else if (borderStyle === 'gradient') {
-        const gradientColor = localStorage.getItem(`gradientColor_${username}`) || 'linear-gradient(45deg, #6a11cb, #2575fc)';
-        profilePic.style.borderImage = gradientColor;
-        profilePic.style.borderWidth = '3px'; // Thinner border for gradient
-        profilePic.classList.add('gradient-border');
-    } else {
-        profilePic.style.border = `3px solid ${borderColor}`; // Thinner border
-    }
 
     // Show the Owner badge if the username is 'zeptional'
     if (username === 'zeptional') {
@@ -258,50 +244,45 @@
     }
 
     // Function to display chat messages with the username and profile picture
-    function addMessageToChat(username, profilePicUrl, messageText) {
+    function addMessageToChat(username, messageText) {
         const message = document.createElement('div');
-        message.className = 'message';
-        message.innerHTML = `<img src="${profilePicUrl}" alt="${username}'s Profile Picture"><strong>${username}:</strong> ${messageText}`;
+        message.classList.add('message');
+
+        const profileImage = document.createElement('img');
+        profileImage.src = profilePictureUrl || 'default-profile-pic.png'; // Display the sender's profile picture
+
+        const text = document.createElement('span');
+        let badgeText = '';
+
+        // Add badges in chat based on username
+        if (username === 'zeptional') {
+            badgeText = `<strong style="background: linear-gradient(90deg, #ffcc00, #e63946); padding: 2px 6px; border-radius: 5px;">Owner:</strong>`;
+        } else if (username.toLowerCase() === 'piggy') {
+            badgeText = `<strong style="background: linear-gradient(90deg, #00ff00, #0000ff); padding: 2px 6px; border-radius: 5px; animation: rainbow 3s linear infinite;">Developer:</strong>`;
+        }
+
+        text.innerHTML = `${badgeText} ${username}: ${messageText}`;
+        message.appendChild(profileImage);
+        message.appendChild(text);
         messagesContainer.appendChild(message);
-        messagesContainer.scrollTop = messagesContainer.scrollHeight; // Scroll to the bottom
     }
 
-    // Handle chat input
-    const chatInput = document.getElementById('chat-input');
-    chatInput.addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') {
-            const messageText = chatInput.value;
+    // Handle sending messages
+    document.getElementById('chat-input').addEventListener('keypress', function (event) {
+        if (event.key === 'Enter') {
+            const messageText = event.target.value;
             if (messageText) {
-                sendMessage(username, profilePictureUrl, messageText);
-                chatInput.value = ''; // Clear input
+                sendMessage(username, messageText);
+                event.target.value = ''; // Clear the input field after sending
             }
         }
     });
 
-    // Function to sign out the user
+    // Function to sign out user
     function signOut() {
-        // Clear localStorage
         localStorage.removeItem('username');
-        localStorage.removeItem(`profilePic_${username}`);
-        localStorage.removeItem(`borderColor_${username}`);
-        localStorage.removeItem(`borderStyle_${username}`);
-        localStorage.removeItem(`gradientColor_${username}`);
-
-        // Redirect to login page
-        window.location.href = 'login.html';
-    }
-
-    // Function to show a popup message
-    function showPopup(message) {
-        popup.textContent = message;
-        popup.style.display = 'block';
-        setTimeout(() => {
-            popup.style.top = '-50px';
-            setTimeout(() => {
-                popup.style.display = 'none';
-                popup.style.top = '0';
-            }, 500);
-        }, 2000);
+        localStorage.removeItem('profilePic');
+        window.location.href = 'login.html'; // Redirect to login page
     }
 </script>
 </body>
