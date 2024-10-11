@@ -101,6 +101,10 @@
             localStorage.setItem('username', 'zeptional');
             localStorage.setItem('loggedIn', 'true'); // Set login status
             window.location.href = 'dashboard.html';
+        } else if (username === 'Andrew' && password === '1234') {
+            localStorage.setItem('username', 'Andrew');
+            localStorage.setItem('loggedIn', 'true'); // Set login status
+            window.location.href = 'dashboard.html';
         } else {
             showPopup('Invalid username or password');
         }
