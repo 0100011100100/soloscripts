@@ -4,68 +4,72 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #1e1e1e;
-            color: white;
-        }
-        .login-container {
-            text-align: center;
-        }
-        input[type="text"], input[type="password"] {
-            padding: 10px;
-            margin: 10px;
-            width: 200px;
-            border: none;
-            border-radius: 5px;
-        }
-        button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            background-color: #444;
-            color: white;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #555;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="login-container">
         <h1>Login</h1>
-        <input type="text" id="username" placeholder="Username">
-        <input type="password" id="password" placeholder="Password">
-        <button onclick="login()">Login</button>
-        <div id="error" style="color: red; margin-top: 10px;"></div>
+        <form id="loginForm">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+
+            <button type="submit">Login</button>
+        </form>
+        <button id="signupButton">Sign Up</button>
     </div>
 
-    <script>
-        function login() {
-            const usernameInput = document.getElementById('username').value;
-            const passwordInput = document.getElementById('password').value;
-            const errorDisplay = document.getElementById('error');
+    <script type="module">
+        // Import the necessary Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
-            // Normalize usernames to lowercase
-            const normalizedUsername = usernameInput.toLowerCase();
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyClD-3xfEnSFwoGdGCbkJMce36UkDLeVnE",
+            authDomain: "realtimeaccountcreation.firebaseapp.com",
+            databaseURL: "https://realtimeaccountcreation-default-rtdb.firebaseio.com",
+            projectId: "realtimeaccountcreation",
+            storageBucket: "realtimeaccountcreation.appspot.com",
+            messagingSenderId: "658896933674",
+            appId: "1:658896933674:web:3275d0678c39b54e8f8453"
+        };
 
-            if (normalizedUsername === 'piggy' || normalizedUsername === 'zeptional') {
-                // Simulate login for valid usernames
-                localStorage.setItem('username', normalizedUsername);
-                // Navigate to dashboard
-                window.location.href = 'dashboard.html';
-            } else {
-                // Show error for invalid usernames
-                errorDisplay.textContent = 'Invalid username or password.';
-            }
-        }
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const dbRef = ref(getDatabase());
+
+        // Handle login form submission
+        document.getElementById("loginForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+
+            // Fetch user data from Firebase
+            get(child(dbRef, `users/${username}`)).then((snapshot) => {
+                if (snapshot.exists()) {
+                    const userData = snapshot.val();
+                    if (userData.password === password) {
+                        // Redirect to dashboard if login is successful
+                        window.location.href = "dashboard.html?username=" + username;
+                    } else {
+                        alert("Invalid password.");
+                    }
+                } else {
+                    alert("Username not found.");
+                }
+            }).catch((error) => {
+                console.error(error);
+            });
+        });
+
+        // Redirect to the signup page when signup button is clicked
+        document.getElementById("signupButton").addEventListener("click", function () {
+            window.location.href = "signup.html";
+        });
     </script>
 </body>
 </html>
