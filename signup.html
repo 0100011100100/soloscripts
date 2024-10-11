@@ -4,155 +4,85 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Up</title>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js"></script>
     <style>
         body {
-            margin: 0;
-            padding: 0;
-            background-color: #1e1e1e;
-            color: white;
             font-family: Arial, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100vh;
+            background-color: #f0f0f0;
         }
-
-        .container {
-            background-color: #333;
+        form {
+            background: white;
             padding: 20px;
-            border-radius: 10px;
-            text-align: center;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
-
-        h1 {
-            margin-bottom: 20px;
-        }
-
-        input[type="text"],
-        input[type="password"] {
-            width: 100%;
-            padding: 10px;
+        input {
             margin: 10px 0;
-            border-radius: 5px;
-            border: none;
+            padding: 10px;
+            width: 200px;
         }
-
         button {
-            padding: 10px 20px;
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-
-        button:hover {
-            background-color: #0056b3;
-        }
-
-        /* Popup Styles */
-        .popup {
-            position: fixed;
-            top: -50px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(255, 0, 0, 0.9);
-            color: white;
-            padding: 15px 20px;
-            border-radius: 5px;
-            transition: top 0.5s ease;
-            z-index: 1000;
+            padding: 10px;
+            width: 220px;
         }
     </style>
-    <!-- Firebase App (required) -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js"></script>
 </head>
 <body>
 
-<div id="popup" class="popup" style="display: none;"></div>
+    <form id="signupForm">
+        <h2>Sign Up</h2>
+        <input type="text" id="username" placeholder="Enter Username" required>
+        <button type="submit">Sign Up</button>
+        <p id="message"></p>
+    </form>
 
-<div class="container">
-    <h1>Sign Up</h1>
-    <input type="text" id="username" placeholder="Username">
-    <input type="password" id="password" placeholder="Password">
-    <button id="signup-button">Sign Up</button>
-</div>
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: 'AIzaSyClD-3xfEnSFwoGdGCbkJMce36UkDLeVnE',
+            authDomain: 'realtimeaccountcreation.firebaseapp.com',
+            databaseURL: 'https://realtimeaccountcreation-default-rtdb.firebaseio.com',
+            projectId: 'realtimeaccountcreation',
+            storageBucket: 'realtimeaccountcreation.appspot.com',
+            messagingSenderId: '658896933674',
+            appId: '1:658896933674:web:3275d0678c39b54e8f8453'
+        };
 
-<script>
-    const signupButton = document.getElementById('signup-button');
-    const popup = document.getElementById('popup');
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
 
-    // Firebase configuration
-    const firebaseConfig = {
-        apiKey: "AIzaSyClD-3xfEnSFwoGdGCbkJMce36UkDLeVnE",
-        authDomain: "realtimeaccountcreation.firebaseapp.com",
-        databaseURL: "https://realtimeaccountcreation-default-rtdb.firebaseio.com",
-        projectId: "realtimeaccountcreation",
-        storageBucket: "realtimeaccountcreation.appspot.com",
-        messagingSenderId: "658896933674",
-        appId: "1:658896933674:web:3275d0678c39b54e8f8453"
-    };
+        document.getElementById('signupForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent form submission
 
-    // Initialize Firebase
-    const app = firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
+            const username = document.getElementById('username').value.trim();
+            const message = document.getElementById('message');
 
-    signupButton.addEventListener('click', function() {
-        const username = document.getElementById('username').value.trim();
-        const password = document.getElementById('password').value.trim();
-
-        if (username === "" || password === "") {
-            showPopup("Please fill in both fields.");
-            return;
-        }
-
-        const accountsRef = firebase.database().ref('accounts');
-
-        // Check if the username already exists
-        accountsRef.orderByChild('username').equalTo(username).once('value', snapshot => {
-            if (snapshot.exists()) {
-                showPopup("This account is already taken. Try a different username.");
-            } else {
-                // Create a new account if username is not taken
-                const timestamp = new Date().toLocaleString();
-                const newAccount = { username: username, password: password, timestamp: timestamp };
-
-                accountsRef.push(newAccount).then(() => {
-                    // Show success popup
-                    showPopup("Account created successfully!");
-
-                    // Store username in localStorage for session tracking
-                    localStorage.setItem('username', username);
-
-                    // Redirect to profile page after successful account creation
-                    setTimeout(() => {
-                        window.location.href = 'https://0100011100100.github.io/zeptionalsscripts/pfp.html';
-                    }, 1000);
-                }).catch(error => {
-                    showPopup("Error creating account: " + error.message);
-                });
-            }
-        }).catch(error => {
-            showPopup("Error checking username: " + error.message);
+            // Check if username already exists in the database
+            const usernameRef = database.ref('users/' + username);
+            usernameRef.once('value').then((snapshot) => {
+                if (snapshot.exists()) {
+                    // Username already taken
+                    message.textContent = 'Username already taken, please choose another.';
+                    message.style.color = 'red';
+                } else {
+                    // Username is available, redirect to pfp.html
+                    usernameRef.set({}); // Create a new entry for the username
+                    window.location.href = 'pfp.html'; // Redirect to pfp.html
+                }
+            }).catch((error) => {
+                console.error('Error checking username:', error);
+                message.textContent = 'Error checking username, please try again.';
+                message.style.color = 'red';
+            });
         });
-    });
-
-    function showPopup(message) {
-        popup.textContent = message;
-        popup.style.display = 'block';
-        popup.style.top = '20px';
-
-        setTimeout(() => {
-            popup.style.top = '-50px';
-            setTimeout(() => {
-                popup.style.display = 'none';
-            }, 500);
-        }, 3000);
-    }
-</script>
+    </script>
 
 </body>
 </html>
