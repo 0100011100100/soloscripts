@@ -9,9 +9,9 @@
     <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-auth.js"></script>
     <style>
         body {
-            background-color: #121212;
-            color: #ffffff;
-            font-family: Arial, sans-serif;
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -21,25 +21,28 @@
         }
         h1 {
             margin-bottom: 20px;
+            font-size: 2rem;
         }
         form {
-            background-color: #1e1e1e;
+            background-color: #252525;
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            width: 300px;
         }
         label {
             display: block;
             margin-bottom: 8px;
+            font-weight: bold;
         }
         input {
             margin: 10px 0;
             width: 100%;
             padding: 10px;
-            border: 1px solid #333;
+            border: 1px solid #444;
             border-radius: 4px;
-            background-color: #2e2e2e;
-            color: #ffffff;
+            background-color: #333;
+            color: #e0e0e0;
         }
         button {
             background-color: #007bff;
@@ -49,6 +52,7 @@
             border-radius: 4px;
             cursor: pointer;
             width: 100%;
+            font-size: 1rem;
         }
         button:hover {
             background-color: #0056b3;
@@ -56,6 +60,7 @@
         #message {
             margin-top: 10px;
             color: red;
+            font-weight: bold;
         }
     </style>
 </head>
