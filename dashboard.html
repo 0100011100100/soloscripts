@@ -226,17 +226,13 @@
     const messagesContainer = document.getElementById('messages-container');
     const popup = document.getElementById('popup');
 
-    // Fetch username and profile settings from localStorage
+    // Fetch username from localStorage
     const username = localStorage.getItem('username') || 'Guest';
     const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
-    const borderStyle = localStorage.getItem('borderStyle') || 'solid';
-    const borderColor = localStorage.getItem('borderColor') || 'white';
 
     // Display the username and profile picture
     usernameDisplay.textContent = username;
     profilePic.src = profilePictureUrl;
-    profilePic.style.borderColor = borderColor;  // Set border color
-    applyBorderStyle(borderStyle);  // Apply the saved border style
 
     // Show the Owner badge if the username is 'zeptional'
     if (username === 'zeptional') {
@@ -262,58 +258,33 @@
 
         // Add badges in chat based on username
         if (username === 'zeptional') {
-            badgeText = `<strong style="background: linear-gradient(90deg, #ffcc00, #e63946); padding: 3px 5px; border-radius: 3px;">Owner</strong>`;
+            badgeText = `<strong style="background: linear-gradient(90deg, #ffcc00, #e63946); padding: 2px 6px; border-radius: 5px;">Owner:</strong>`;
         } else if (username.toLowerCase() === 'piggy') {
-            badgeText = `<strong style="background: linear-gradient(90deg, #ff00ff, #00ffff); padding: 3px 5px; border-radius: 3px;">Developer</strong>`;
+            badgeText = `<strong style="background: linear-gradient(90deg, #ff00ff, #00ffff); padding: 2px 6px; border-radius: 5px; animation: rainbow 3s linear infinite;">Developer:</strong>`;
         }
 
-        text.innerHTML = `${badgeText} <span>${username}: ${messageText}</span>`;
+        text.innerHTML = `${badgeText} ${username}: ${messageText}`;
         message.appendChild(profileImage);
         message.appendChild(text);
         messagesContainer.appendChild(message);
-        messagesContainer.scrollTop = messagesContainer.scrollHeight; // Scroll to the bottom
     }
 
-    // Function to handle message input
-    document.getElementById('chat-input').addEventListener('keypress', function(event) {
+    // Handle sending messages
+    document.getElementById('chat-input').addEventListener('keypress', function (event) {
         if (event.key === 'Enter') {
-            const messageText = this.value.trim();
+            const messageText = event.target.value;
             if (messageText) {
-                sendMessage(username, messageText, profilePic.src); // Send message with username and profile picture
-                this.value = ''; // Clear input
+                sendMessage(username, messageText, profilePictureUrl); // Send message with profile picture URL
+                event.target.value = ''; // Clear the input field after sending
             }
         }
     });
 
-    // Function to show a popup message
-    function showPopup(message) {
-        popup.textContent = message;
-        popup.style.display = 'block';
-        popup.style.top = '20px';
-        setTimeout(() => {
-            popup.style.top = '-50px';
-            popup.style.display = 'none';
-        }, 3000);
-    }
-
-    // Sign out function (optional)
+    // Function to sign out user
     function signOut() {
-        // Clear user data and redirect to login page
-        localStorage.clear();
-        window.location.href = 'login.html'; // Redirect to the login page
-    }
-
-    // Apply the selected border style to the profile picture
-    function applyBorderStyle(style) {
-        if (style === 'gradient') {
-            const gradient1 = localStorage.getItem('gradient1') || '#ff0000';
-            const gradient2 = localStorage.getItem('gradient2') || '#0000ff';
-            profilePic.style.border = `5px solid transparent`;
-            profilePic.style.borderImage = `linear-gradient(to right, ${gradient1}, ${gradient2})`;
-            profilePic.style.borderImageSlice = 1;
-        } else {
-            profilePic.style.border = `3px solid ${borderColor}`; // Default solid color
-        }
+        localStorage.removeItem('username');
+        localStorage.removeItem('profilePic');
+        window.location.href = 'login.html'; // Redirect to login page
     }
 </script>
 </body>
