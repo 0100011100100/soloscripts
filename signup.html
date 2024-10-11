@@ -56,6 +56,21 @@
         button:hover {
             background-color: #0056b3;
         }
+
+        /* Popup Notification Styles */
+        #notification {
+            position: fixed;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #ff3d00;
+            color: #ffffff;
+            padding: 15px;
+            border-radius: 5px;
+            transition: top 0.5s ease;
+            z-index: 1000;
+            display: none;
+        }
     </style>
     <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-database.js"></script>
@@ -71,6 +86,8 @@
         
         <button type="submit">Sign Up</button>
     </form>
+
+    <div id="notification">This username is taken</div>
 
     <script>
         // Your Firebase configuration
@@ -100,7 +117,8 @@
             usernameRef.once('value')
                 .then(snapshot => {
                     if (snapshot.exists()) {
-                        alert('Username already taken. Please choose another one.');
+                        // Show notification if username is taken
+                        showNotification();
                     } else {
                         // If the username doesn't exist, save it to the database
                         usernameRef.set({ password: password })
@@ -114,6 +132,18 @@
                     console.error('Error checking username:', error);
                 });
         });
+
+        // Show notification function
+        function showNotification() {
+            const notification = document.getElementById('notification');
+            notification.style.display = 'block';
+            notification.style.top = '20px'; // Animate in from the top
+
+            setTimeout(() => {
+                notification.style.top = '-50px'; // Animate out
+                notification.style.display = 'none';
+            }, 3000); // Hide after 3 seconds
+        }
     </script>
 </body>
 </html>
