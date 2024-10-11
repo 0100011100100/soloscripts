@@ -6,121 +6,82 @@
     <title>Login</title>
     <style>
         body {
-            margin: 0;
-            padding: 0;
-            background-color: #1e1e1e;
-            color: white;
             font-family: Arial, sans-serif;
             display: flex;
-            flex-direction: column;
-            align-items: center;
             justify-content: center;
+            align-items: center;
             height: 100vh;
+            margin: 0;
+            background-color: #1e1e1e;
+            color: white;
         }
 
-        .container {
-            background-color: #333;
+        .login-container {
+            width: 300px;
             padding: 20px;
+            background-color: #333;
             border-radius: 10px;
-            text-align: center;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
         }
 
-        h1 {
-            margin-bottom: 20px;
-        }
-
-        input[type="text"],
-        input[type="password"] {
+        .login-container input {
             width: 100%;
             padding: 10px;
             margin: 10px 0;
             border-radius: 5px;
             border: none;
+            font-size: 14px;
         }
 
-        button {
-            padding: 10px 20px;
-            background-color: #007BFF;
-            color: white;
+        .login-container button {
+            width: 100%;
+            padding: 10px;
+            background-color: #ffcc00;
             border: none;
             border-radius: 5px;
+            color: black;
+            font-size: 16px;
             cursor: pointer;
-            margin-top: 10px;
         }
 
-        button:hover {
-            background-color: #0056b3;
-        }
-
-        .signup-link {
-            margin-top: 15px;
-            display: block;
-            color: #007BFF;
-            cursor: pointer;
-            text-decoration: underline;
+        .login-container button:hover {
+            background-color: #e6b800;
         }
     </style>
 </head>
 <body>
 
-<div id="popup" class="popup" style="display: none;"></div>
-
-<div class="container">
-    <h1>Login</h1>
-    <input type="text" id="username" placeholder="Username">
-    <input type="password" id="password" placeholder="Password">
-    <button id="login-button">Login</button>
-    <a class="signup-link" href="signup.html">Don't have an account? Sign Up</a> <!-- Sign Up button -->
+<div class="login-container">
+    <h2>Login</h2>
+    <input type="text" id="username-input" placeholder="Enter username">
+    <input type="text" id="profile-pic-input" placeholder="Profile picture URL (optional)">
+    <button onclick="login()">Login</button>
 </div>
 
 <script>
-    // Check if the user has already logged in and redirect to the dashboard if so
-    function checkLoginStatus() {
-        const username = localStorage.getItem('username');
-        const loggedIn = localStorage.getItem('loggedIn');
+    function login() {
+        const usernameInput = document.getElementById('username-input').value.trim();
+        const profilePic = document.getElementById('profile-pic-input').value || 'default-profile-pic.png';
 
-        if (loggedIn === 'true' && username) {
-            window.location.href = `dashboard.html?username=${encodeURIComponent(username)}`;
+        // Case-insensitive check for Piggy
+        const username = (usernameInput.toLowerCase() === 'piggy') ? 'Piggy' : usernameInput;
+
+        if (username === '') {
+            alert('Please enter a username');
+            return;
         }
+
+        // Save profile picture and username for this specific user
+        localStorage.setItem(`${username}_profilePic`, profilePic);
+        localStorage.setItem('username', username);
+
+        window.location.href = 'dashboard.html';
     }
 
-    // Run the login status check when the page loads
     window.onload = function() {
-        checkLoginStatus();
-    };
-
-    // Original login functionality
-    const loginButton = document.getElementById('login-button');
-    const popup = document.getElementById('popup');
-
-    loginButton.addEventListener('click', function() {
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
-
-        if (username === 'zeptional' && password === 'corndogs123') {
-            localStorage.setItem('username', 'zeptional');
-            localStorage.setItem('loggedIn', 'true'); // Set login status
-            window.location.href = 'dashboard.html';
-        } else if (username === 'Andrew' && password === '1234') {
-            localStorage.setItem('username', 'Andrew');
-            localStorage.setItem('loggedIn', 'true'); // Set login status
-            window.location.href = 'dashboard.html';
-        } else {
-            showPopup('Invalid username or password');
+        if (localStorage.getItem('username')) {
+            return;
         }
-    });
-
-    function showPopup(message) {
-        popup.textContent = message;
-        popup.style.display = 'block';
-        popup.style.top = '20px';
-
-        setTimeout(() => {
-            popup.style.top = '-50px';
-            setTimeout(() => {
-                popup.style.display = 'none';
-            }, 500);
-        }, 3000);
     }
 </script>
 
