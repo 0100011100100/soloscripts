@@ -15,75 +15,57 @@
             background-color: #1e1e1e;
             color: white;
         }
-
         .login-container {
-            width: 300px;
-            padding: 20px;
-            background-color: #333;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            text-align: center;
         }
-
-        .login-container input {
-            width: 100%;
+        input[type="text"], input[type="password"] {
             padding: 10px;
-            margin: 10px 0;
-            border-radius: 5px;
-            border: none;
-            font-size: 14px;
-        }
-
-        .login-container button {
-            width: 100%;
-            padding: 10px;
-            background-color: #ffcc00;
+            margin: 10px;
+            width: 200px;
             border: none;
             border-radius: 5px;
-            color: black;
-            font-size: 16px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #444;
+            color: white;
             cursor: pointer;
         }
-
-        .login-container button:hover {
-            background-color: #e6b800;
+        button:hover {
+            background-color: #555;
         }
     </style>
 </head>
 <body>
+    <div class="login-container">
+        <h1>Login</h1>
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="login()">Login</button>
+        <div id="error" style="color: red; margin-top: 10px;"></div>
+    </div>
 
-<div class="login-container">
-    <h2>Login</h2>
-    <input type="text" id="username-input" placeholder="Enter username">
-    <input type="text" id="profile-pic-input" placeholder="Profile picture URL (optional)">
-    <button onclick="login()">Login</button>
-</div>
+    <script>
+        function login() {
+            const usernameInput = document.getElementById('username').value;
+            const passwordInput = document.getElementById('password').value;
+            const errorDisplay = document.getElementById('error');
 
-<script>
-    function login() {
-        const usernameInput = document.getElementById('username-input').value.trim();
-        const profilePic = document.getElementById('profile-pic-input').value || 'default-profile-pic.png';
+            // Normalize usernames to lowercase
+            const normalizedUsername = usernameInput.toLowerCase();
 
-        // Case-insensitive check for Piggy
-        const username = (usernameInput.toLowerCase() === 'piggy') ? 'Piggy' : usernameInput;
-
-        if (username === '') {
-            alert('Please enter a username');
-            return;
+            if (normalizedUsername === 'piggy' || normalizedUsername === 'zeptional') {
+                // Simulate login for valid usernames
+                localStorage.setItem('username', normalizedUsername);
+                // Navigate to dashboard
+                window.location.href = 'dashboard.html';
+            } else {
+                // Show error for invalid usernames
+                errorDisplay.textContent = 'Invalid username or password.';
+            }
         }
-
-        // Save profile picture and username for this specific user
-        localStorage.setItem(`${username}_profilePic`, profilePic);
-        localStorage.setItem('username', username);
-
-        window.location.href = 'dashboard.html';
-    }
-
-    window.onload = function() {
-        if (localStorage.getItem('username')) {
-            return;
-        }
-    }
-</script>
-
+    </script>
 </body>
 </html>
