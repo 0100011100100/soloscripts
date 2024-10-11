@@ -52,41 +52,12 @@
             background-color: #0056b3;
         }
 
-        .recent-accounts {
-            margin-top: 20px;
-            text-align: left;
-            background-color: #222;
-            padding: 15px;
-            border-radius: 10px;
-            width: 100%;
-            max-width: 400px;
-        }
-
-        .recent-accounts h2 {
-            text-align: center;
-        }
-
-        .recent-accounts ul {
-            list-style: none;
-            padding: 0;
-        }
-
-        .recent-accounts li {
-            margin: 5px 0;
-        }
-
-        /* Popup Styles */
-        .popup {
-            position: fixed;
-            top: -50px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(255, 0, 0, 0.9);
-            color: white;
-            padding: 15px 20px;
-            border-radius: 5px;
-            transition: top 0.5s ease;
-            z-index: 1000;
+        .signup-link {
+            margin-top: 15px;
+            display: block;
+            color: #007BFF;
+            cursor: pointer;
+            text-decoration: underline;
         }
     </style>
 </head>
@@ -99,49 +70,56 @@
     <input type="text" id="username" placeholder="Username">
     <input type="password" id="password" placeholder="Password">
     <button id="signup-button">Sign Up</button>
-
-    <div class="recent-accounts">
-        <h2>Recent Accounts</h2>
-        <ul id="recent-accounts-list">
-            <!-- Recently created accounts will appear here -->
-        </ul>
-    </div>
 </div>
 
-<script>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyClD-3xfEnSFwoGdGCbkJMce36UkDLeVnE",
+        authDomain: "realtimeaccountcreation.firebaseapp.com",
+        databaseURL: "https://realtimeaccountcreation-default-rtdb.firebaseio.com",
+        projectId: "realtimeaccountcreation",
+        storageBucket: "realtimeaccountcreation.appspot.com",
+        messagingSenderId: "658896933674",
+        appId: "1:658896933674:web:3275d0678c39b54e8f8453"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase();
+
+    const restrictedUsernames = ["zeptional", "piggy", "Piggy"];
+
     const signupButton = document.getElementById('signup-button');
-    const recentAccountsList = document.getElementById('recent-accounts-list');
     const popup = document.getElementById('popup');
 
-    signupButton.addEventListener('click', function() {
-        const username = document.getElementById('username').value.trim();
-        const password = document.getElementById('password').value.trim();
+    signupButton.addEventListener('click', function () {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
 
-        if (username === "" || password === "") {
-            showPopup("Please fill in both fields.");
+        if (restrictedUsernames.includes(username)) {
+            showPopup("This username is not allowed.");
             return;
         }
 
-        let accounts = JSON.parse(localStorage.getItem('accounts')) || [];
-
-        if (accounts.some(account => account.username === username)) {
-            showPopup("This username is already taken.");
-            return;
-        }
-
-        const timestamp = new Date().toLocaleString();
-        const newAccount = { username: username, password: password, timestamp: timestamp };
-
-        accounts.push(newAccount);
-        localStorage.setItem('accounts', JSON.stringify(accounts));
-        localStorage.setItem('username', username);
-
-        showPopup("Account created successfully!");
-
-        // Redirect to pfp.html after account creation
-        setTimeout(() => {
-            window.location.href = 'pfp.html';
-        }, 1000);
+        const dbRef = ref(db);
+        get(child(dbRef, `users/${username}`)).then((snapshot) => {
+            if (snapshot.exists()) {
+                showPopup("Username already taken.");
+            } else {
+                set(ref(db, `users/${username}`), {
+                    username: username,
+                    password: password
+                }).then(() => {
+                    localStorage.setItem('username', username);
+                    localStorage.setItem('loggedIn', 'true');
+                    window.location.href = "pfp.html?username=" + encodeURIComponent(username);
+                });
+            }
+        }).catch((error) => {
+            console.error(error);
+        });
     });
 
     function showPopup(message) {
@@ -155,12 +133,6 @@
                 popup.style.display = 'none';
             }, 500);
         }, 3000);
-    }
-
-    // Display recent accounts on page load
-    window.onload = function() {
-        const accounts = JSON.parse(localStorage.getItem('accounts')) || [];
-        recentAccountsList.innerHTML = accounts.map(account => <li>${account.username} (Created on: ${account.timestamp})</li>).join('');
     }
 </script>
 
