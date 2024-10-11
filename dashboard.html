@@ -1,40 +1,308 @@
-// Handle chat input
-const chatInput = document.getElementById('chat-input');
-chatInput.addEventListener('keypress', function (e) {
-    if (e.key === 'Enter') {
-        const messageText = chatInput.value;
-        if (messageText) {
-            sendMessage(username, profilePictureUrl, messageText);
-            chatInput.value = ''; // Clear input
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+
+    <!-- Firebase Configuration -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script>
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAe0hXfAJ0ijKNiGgAVfv4zG1ngADF2E4c",
+            authDomain: "chatapp-90c78.firebaseapp.com",
+            projectId: "chatapp-90c78",
+            storageBucket: "chatapp-90c78.appspot.com",
+            messagingSenderId: "195015101932",
+            appId: "1:195015101932:web:f352296f341c58458a84c9",
+            databaseURL: "https://chatapp-90c78-default-rtdb.firebaseio.com"
+        };
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        const db = firebase.database();
+
+        // Function to send message to Firebase, including profile picture URL
+        function sendMessage(username, profilePicUrl, messageText) {
+            const messageRef = db.ref('messages').push();
+            messageRef.set({
+                username: username,
+                profilePic: profilePicUrl,
+                message: messageText,
+                timestamp: new Date().toISOString()
+            });
         }
+
+        // Listen for new messages in Firebase
+        function listenForMessages() {
+            db.ref('messages').on('child_added', (snapshot) => {
+                const messageData = snapshot.val();
+                addMessageToChat(messageData.username, messageData.profilePic, messageData.message);
+            });
+        }
+
+        listenForMessages();
+    </script>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #1e1e1e;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #444;
+            padding: 10px 20px;
+        }
+
+        .profile {
+            display: flex;
+            align-items: center;
+        }
+
+        .profile img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+            border: 3px solid white; /* Thinner border */
+            transition: border 0.3s ease; /* Smooth transition for border */
+        }
+
+        .profile .username {
+            font-size: 18px;
+        }
+
+        .profile-owner-badge,
+        .profile-developer-badge {
+            font-size: 12px;
+            padding: 3px 10px;
+            border-radius: 5px;
+            margin-left: 10px;
+            color: white;
+        }
+
+        .profile-owner-badge {
+            background: linear-gradient(90deg, #ffcc00, #e63946);
+        }
+
+        .profile-developer-badge {
+            background: linear-gradient(90deg, #00c6ff, #0072ff);
+            animation: rainbow 3s linear infinite; /* Rainbow animation */
+        }
+
+        /* Navigation Buttons */
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .nav-buttons button {
+            margin: 0 10px;
+            padding: 10px 20px;
+            background-color: #555;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .nav-buttons button:hover {
+            background-color: #777;
+        }
+
+        .chat-box {
+            padding: 20px;
+        }
+
+        .chat-box input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            font-size: 14px;
+        }
+
+        .messages {
+            margin-top: 20px;
+        }
+
+        .messages .message {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #333;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+        }
+
+        .messages .message img {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin-right: 10px;
+            border: 3px solid white; /* Thinner border for chat */
+        }
+
+        /* Popup Styles */
+        .popup {
+            position: fixed;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 5px;
+            transition: top 0.5s ease;
+            z-index: 1000;
+        }
+
+        /* Rainbow and Gradient Borders */
+        .rainbow-border {
+            animation: rainbow 3s linear infinite;
+        }
+
+        @keyframes rainbow {
+            0% { border-color: red; }
+            16.6% { border-color: orange; }
+            33.2% { border-color: yellow; }
+            49.8% { border-color: green; }
+            66.4% { border-color: blue; }
+            83% { border-color: indigo; }
+            100% { border-color: violet; }
+        }
+
+        .gradient-border {
+            border-image-slice: 1;
+            border-radius: 50%;
+            border-width: 3px; /* Thinner border for gradient */
+        }
+    </style>
+</head>
+<body>
+
+<div id="popup" class="popup" style="display: none;"></div>
+
+<div class="header">
+    <div class="profile">
+        <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture" class="profile-picture">
+        <div class="username" id="username-display"></div>
+        <div id="owner-badge" class="profile-owner-badge" style="display: none;">Owner</div>
+        <div id="developer-badge" class="profile-developer-badge" style="display: none;">Developer</div>
+    </div>
+</div>
+
+<!-- Navigation buttons -->
+<div class="nav-buttons">
+    <button onclick="window.location.href='settings.html'">Settings</button>
+    <button onclick="window.location.href='profile.html'">Profile</button>
+    <button onclick="signOut()">Sign Out</button>
+</div>
+
+<!-- Chat section -->
+<div class="chat-box">
+    <input type="text" id="chat-input" placeholder="Type your message here...">
+    <div class="messages" id="messages-container">
+        <!-- Chat messages will appear here -->
+    </div>
+</div>
+
+<script>
+    const usernameDisplay = document.getElementById('username-display');
+    const profilePic = document.getElementById('profile-pic');
+    const ownerBadge = document.getElementById('owner-badge');
+    const developerBadge = document.getElementById('developer-badge');
+    const messagesContainer = document.getElementById('messages-container');
+    const popup = document.getElementById('popup');
+
+    // Fetch profile details from localStorage
+    const username = localStorage.getItem('username') || 'Guest';
+    const profilePictureUrl = localStorage.getItem(`profilePic_${username}`) || 'default-profile-pic.png'; // Updated to save per account
+    const borderColor = localStorage.getItem(`borderColor_${username}`) || 'white';
+    const borderStyle = localStorage.getItem(`borderStyle_${username}`) || 'solid';
+
+    // Display the username and profile picture
+    usernameDisplay.textContent = username;
+    profilePic.src = profilePictureUrl;
+
+    // Apply border color or gradient/rainbow
+    if (borderStyle === 'rainbow') {
+        profilePic.classList.add('rainbow-border');
+    } else if (borderStyle === 'gradient') {
+        const gradientColor = localStorage.getItem(`gradientColor_${username}`) || 'linear-gradient(45deg, #6a11cb, #2575fc)';
+        profilePic.style.borderImage = gradientColor;
+        profilePic.style.borderWidth = '3px'; // Thinner border for gradient
+        profilePic.classList.add('gradient-border');
+    } else {
+        profilePic.style.border = `3px solid ${borderColor}`; // Thinner border
     }
-});
 
-// Function to sign out the user
-function signOut() {
-    // Clear localStorage
-    localStorage.removeItem('username');
-    localStorage.removeItem(`profilePic_${username}`);
-    localStorage.removeItem(`borderColor_${username}`);
-    localStorage.removeItem(`borderStyle_${username}`);
-    localStorage.removeItem(`gradientColor_${username}`);
+    // Show the Owner badge if the username is 'zeptional'
+    if (username === 'zeptional') {
+        ownerBadge.style.display = 'inline-block';
+    }
 
-    // Redirect to login page
-    window.location.href = 'login.html';
-}
+    // Show the Developer badge if the username is 'piggy' or 'Piggy'
+    if (username.toLowerCase() === 'piggy') {
+        developerBadge.style.display = 'inline-block';
+    }
 
-// Function to show a popup message
-function showPopup(message) {
-    popup.textContent = message;
-    popup.style.display = 'block';
-    setTimeout(() => {
-        popup.style.top = '-50px';
+    // Function to display chat messages with the username and profile picture
+    function addMessageToChat(username, profilePicUrl, messageText) {
+        const message = document.createElement('div');
+        message.className = 'message';
+        message.innerHTML = `<img src="${profilePicUrl}" alt="${username}'s Profile Picture"><strong>${username}:</strong> ${messageText}`;
+        messagesContainer.appendChild(message);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight; // Scroll to the bottom
+    }
+
+    // Handle chat input
+    const chatInput = document.getElementById('chat-input');
+    chatInput.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            const messageText = chatInput.value;
+            if (messageText) {
+                sendMessage(username, profilePictureUrl, messageText);
+                chatInput.value = ''; // Clear input
+            }
+        }
+    });
+
+    // Function to sign out the user
+    function signOut() {
+        // Clear localStorage
+        localStorage.removeItem('username');
+        localStorage.removeItem(`profilePic_${username}`);
+        localStorage.removeItem(`borderColor_${username}`);
+        localStorage.removeItem(`borderStyle_${username}`);
+        localStorage.removeItem(`gradientColor_${username}`);
+
+        // Redirect to login page
+        window.location.href = 'login.html';
+    }
+
+    // Function to show a popup message
+    function showPopup(message) {
+        popup.textContent = message;
+        popup.style.display = 'block';
         setTimeout(() => {
-            popup.style.display = 'none';
-            popup.style.top = '0';
-        }, 500);
-    }, 2000);
-}
+            popup.style.top = '-50px';
+            setTimeout(() => {
+                popup.style.display = 'none';
+                popup.style.top = '0';
+            }, 500);
+        }, 2000);
+    }
 </script>
-</body> 
+</body>
 </html>
