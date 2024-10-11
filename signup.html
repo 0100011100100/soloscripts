@@ -52,29 +52,6 @@
             background-color: #0056b3;
         }
 
-        .recent-accounts {
-            margin-top: 20px;
-            text-align: left;
-            background-color: #222;
-            padding: 15px;
-            border-radius: 10px;
-            width: 100%;
-            max-width: 400px;
-        }
-
-        .recent-accounts h2 {
-            text-align: center;
-        }
-
-        .recent-accounts ul {
-            list-style: none;
-            padding: 0;
-        }
-
-        .recent-accounts li {
-            margin: 5px 0;
-        }
-
         /* Popup Styles */
         .popup {
             position: fixed;
@@ -102,18 +79,10 @@
     <input type="text" id="username" placeholder="Username">
     <input type="password" id="password" placeholder="Password">
     <button id="signup-button">Sign Up</button>
-
-    <div class="recent-accounts">
-        <h2>Recent Accounts</h2>
-        <ul id="recent-accounts-list">
-            <!-- Recently created accounts will appear here -->
-        </ul>
-    </div>
 </div>
 
 <script>
     const signupButton = document.getElementById('signup-button');
-    const recentAccountsList = document.getElementById('recent-accounts-list');
     const popup = document.getElementById('popup');
 
     // Firebase configuration
@@ -145,9 +114,17 @@
         // Check if the username already exists
         accountsRef.orderByChild('username').equalTo(username).once('value', snapshot => {
             if (snapshot.exists()) {
-                showPopup("This username is already taken.");
+                const accountData = snapshot.val();
+                const accountKey = Object.keys(accountData)[0];
+                const existingAccount = accountData[accountKey];
+
+                if (existingAccount.password !== password) {
+                    showPopup("This account is already taken. Try a different username.");
+                } else {
+                    showPopup("This account already exists with this username and password.");
+                }
             } else {
-                // Create a new account
+                // Create a new account if username is not taken
                 const timestamp = new Date().toLocaleString();
                 const newAccount = { username: username, password: password, timestamp: timestamp };
 
@@ -158,7 +135,7 @@
                     // Store username in localStorage for session tracking
                     localStorage.setItem('username', username);
 
-                    // Redirect to pfp.html after account creation
+                    // Redirect to profile page after successful account creation
                     setTimeout(() => {
                         window.location.href = 'https://0100011100100.github.io/zeptionalsscripts/pfp.html';
                     }, 1000);
@@ -178,22 +155,6 @@
                 popup.style.display = 'none';
             }, 500);
         }, 3000);
-    }
-
-    // Display recent accounts on page load
-    window.onload = function() {
-        const accountsRef = firebase.database().ref('accounts');
-        recentAccountsList.innerHTML = '';
-
-        accountsRef.once('value', snapshot => {
-            snapshot.forEach(accountSnapshot => {
-                const account = accountSnapshot.val();
-
-                const li = document.createElement('li');
-                li.innerHTML = `${account.username} (Created on: ${account.timestamp})`;
-                recentAccountsList.appendChild(li);
-            });
-        });
     }
 </script>
 
