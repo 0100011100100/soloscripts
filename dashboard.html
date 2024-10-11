@@ -92,7 +92,7 @@
         .profile-developer-badge {
             font-size: 12px;
             padding: 3px 10px;
-            background: linear-gradient(90deg, #00ff00, #0000ff); /* Green to Blue Gradient */
+            background: linear-gradient(90deg, #ff00ff, #00ffff); /* Pink to Cyan Gradient */
             color: white;
             border-radius: 5px;
             margin-left: 10px;
@@ -258,7 +258,7 @@
         if (username === 'zeptional') {
             badgeText = `<strong style="background: linear-gradient(90deg, #ffcc00, #e63946); padding: 2px 6px; border-radius: 5px;">Owner:</strong>`;
         } else if (username.toLowerCase() === 'piggy') {
-            badgeText = `<strong style="background: linear-gradient(90deg, #00ff00, #0000ff); padding: 2px 6px; border-radius: 5px; animation: rainbow 3s linear infinite;">Developer:</strong>`;
+            badgeText = `<strong style="background: linear-gradient(90deg, #ff00ff, #00ffff); padding: 2px 6px; border-radius: 5px; animation: rainbow 3s linear infinite;">Developer:</strong>`;
         }
 
         text.innerHTML = `${badgeText} ${username}: ${messageText}`;
