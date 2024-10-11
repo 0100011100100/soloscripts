@@ -11,19 +11,21 @@
             background-color: #1e1e1e;
             color: white;
             font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
         }
 
         .container {
-            max-width: 400px;
-            margin: 100px auto;
+            background-color: #333;
             padding: 20px;
-            background-color: #2a2a2a;
             border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            text-align: center;
         }
 
         h1 {
-            text-align: center;
             margin-bottom: 20px;
         }
 
@@ -32,51 +34,54 @@
             width: 100%;
             padding: 10px;
             margin: 10px 0;
-            border: none;
             border-radius: 5px;
-            background-color: #444;
-            color: white;
-        }
-
-        input[type="text"]:focus,
-        input[type="password"]:focus {
-            outline: none;
-            background-color: #555;
+            border: none;
         }
 
         button {
-            width: 100%;
-            padding: 10px;
-            background-color: #ffcc00;
-            color: black;
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 16px;
+            margin-top: 10px;
         }
 
         button:hover {
-            background-color: #e63946;
+            background-color: #0056b3;
         }
 
-        .error-message {
-            color: red;
-            display: none;
+        .recent-accounts {
+            margin-top: 20px;
+            text-align: left;
+            background-color: #222;
+            padding: 15px;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .recent-accounts h2 {
             text-align: center;
         }
 
-        .success-message {
-            color: green;
-            display: none;
-            text-align: center;
+        .recent-accounts ul {
+            list-style: none;
+            padding: 0;
         }
 
+        .recent-accounts li {
+            margin: 5px 0;
+        }
+
+        /* Popup Styles */
         .popup {
             position: fixed;
             top: -50px;
             left: 50%;
             transform: translateX(-50%);
-            background-color: rgba(0, 0, 0, 0.8);
+            background-color: rgba(255, 0, 0, 0.9);
             color: white;
             padding: 15px 20px;
             border-radius: 5px;
@@ -91,58 +96,53 @@
 
 <div class="container">
     <h1>Sign Up</h1>
-    <div class="error-message" id="error-message">This username is taken.</div>
-    <div class="success-message" id="success-message">Account created successfully!</div>
-    <input type="text" id="username" placeholder="Username" required>
-    <input type="password" id="password" placeholder="Password" required>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
     <button id="signup-button">Sign Up</button>
+
+    <div class="recent-accounts">
+        <h2>Recent Accounts</h2>
+        <ul id="recent-accounts-list">
+            <!-- Recently created accounts will appear here -->
+        </ul>
+    </div>
 </div>
 
 <script>
+    const signupButton = document.getElementById('signup-button');
+    const recentAccountsList = document.getElementById('recent-accounts-list');
     const popup = document.getElementById('popup');
-    const errorMessage = document.getElementById('error-message');
-    const successMessage = document.getElementById('success-message');
 
-    document.getElementById('signup-button').addEventListener('click', function() {
+    signupButton.addEventListener('click', function() {
         const username = document.getElementById('username').value.trim();
         const password = document.getElementById('password').value.trim();
 
-        // Check if username is taken
-        const usernamesRef = firebase.database().ref('usernames');
-        usernamesRef.once('value', (snapshot) => {
-            const usernames = snapshot.val() || {};
-            if (usernames[username]) {
-                showErrorMessage();
-            } else {
-                // Create new user account
-                usernamesRef.child(username).set({
-                    password: password
-                }).then(() => {
-                    showSuccessMessage();
-                    // Redirect to profile.html
-                    setTimeout(() => {
-                        window.location.href = 'pfp.html';
-                    }, 2000);
-                });
-            }
-        });
+        if (username === "" || password === "") {
+            showPopup("Please fill in both fields.");
+            return;
+        }
+
+        let accounts = JSON.parse(localStorage.getItem('accounts')) || [];
+
+        if (accounts.some(account => account.username === username)) {
+            showPopup("This username is already taken.");
+            return;
+        }
+
+        const timestamp = new Date().toLocaleString();
+        const newAccount = { username: username, password: password, timestamp: timestamp };
+
+        accounts.push(newAccount);
+        localStorage.setItem('accounts', JSON.stringify(accounts));
+        localStorage.setItem('username', username);
+
+        showPopup("Account created successfully!");
+
+        // Redirect to pfp.html after account creation
+        setTimeout(() => {
+            window.location.href = 'pfp.html';
+        }, 1000);
     });
-
-    function showErrorMessage() {
-        errorMessage.style.display = 'block';
-        setTimeout(() => {
-            errorMessage.style.display = 'none';
-        }, 3000);
-        showPopup('This username is taken.');
-    }
-
-    function showSuccessMessage() {
-        successMessage.style.display = 'block';
-        setTimeout(() => {
-            successMessage.style.display = 'none';
-        }, 3000);
-        showPopup('Account created successfully!');
-    }
 
     function showPopup(message) {
         popup.textContent = message;
@@ -155,6 +155,12 @@
                 popup.style.display = 'none';
             }, 500);
         }, 3000);
+    }
+
+    // Display recent accounts on page load
+    window.onload = function() {
+        const accounts = JSON.parse(localStorage.getItem('accounts')) || [];
+        recentAccountsList.innerHTML = accounts.map(account => <li>${account.username} (Created on: ${account.timestamp})</li>).join('');
     }
 </script>
 
