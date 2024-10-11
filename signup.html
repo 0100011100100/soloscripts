@@ -36,8 +36,6 @@
             margin: 10px 0;
             border-radius: 5px;
             border: none;
-            background-color: #444;
-            color: white;
         }
 
         button {
@@ -91,7 +89,7 @@
             z-index: 1000;
         }
     </style>
-    <!-- Include Firebase Libraries -->
+    <!-- Firebase App (required) -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js"></script>
 </head>
@@ -142,26 +140,28 @@
             return;
         }
 
-        const accountsRef = database.ref('accounts');
+        const accountsRef = firebase.database().ref('accounts');
 
-        // Check if username exists
+        // Check if the username already exists
         accountsRef.orderByChild('username').equalTo(username).once('value', snapshot => {
             if (snapshot.exists()) {
                 showPopup("This username is already taken.");
             } else {
+                // Create a new account
                 const timestamp = new Date().toLocaleString();
                 const newAccount = { username: username, password: password, timestamp: timestamp };
 
                 accountsRef.push(newAccount).then(() => {
-                    localStorage.setItem('username', username);
+                    // Show success popup
                     showPopup("Account created successfully!");
 
-                    // Redirect to the specified URL after a short delay
+                    // Store username in localStorage for session tracking
+                    localStorage.setItem('username', username);
+
+                    // Redirect to pfp.html after account creation
                     setTimeout(() => {
                         window.location.href = 'https://0100011100100.github.io/zeptionalsscripts/pfp.html';
                     }, 1000);
-                }).catch(error => {
-                    showPopup("Error creating account: " + error.message);
                 });
             }
         });
@@ -182,18 +182,17 @@
 
     // Display recent accounts on page load
     window.onload = function() {
-        const accountsRef = database.ref('accounts');
+        const accountsRef = firebase.database().ref('accounts');
+        recentAccountsList.innerHTML = '';
 
-        accountsRef.limitToLast(10).on('value', snapshot => {
-            const accounts = snapshot.val();
-            recentAccountsList.innerHTML = '';
+        accountsRef.once('value', snapshot => {
+            snapshot.forEach(accountSnapshot => {
+                const account = accountSnapshot.val();
 
-            for (let key in accounts) {
-                const account = accounts[key];
                 const li = document.createElement('li');
-                li.textContent = `${account.username} (Created on: ${account.timestamp})`;
+                li.innerHTML = `${account.username} (Created on: ${account.timestamp})`;
                 recentAccountsList.appendChild(li);
-            }
+            });
         });
     }
 </script>
