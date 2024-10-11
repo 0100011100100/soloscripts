@@ -25,11 +25,12 @@
         const db = firebase.database();
 
         // Function to send message to Firebase
-        function sendMessage(username, messageText) {
+        function sendMessage(username, messageText, profilePicUrl) {
             const messageRef = db.ref('messages').push();
             messageRef.set({
                 username: username,
                 message: messageText,
+                profilePic: profilePicUrl, // Save profile picture URL
                 timestamp: new Date().toISOString()
             });
         }
@@ -38,7 +39,7 @@
         function listenForMessages() {
             db.ref('messages').on('child_added', (snapshot) => {
                 const messageData = snapshot.val();
-                addMessageToChat(messageData.username, messageData.message);
+                addMessageToChat(messageData.username, messageData.message, messageData.profilePic);
             });
         }
 
@@ -243,13 +244,13 @@
         developerBadge.style.display = 'inline-block';
     }
 
-    // Function to display chat messages with the username and profile picture
-    function addMessageToChat(username, messageText) {
+    // Function to display chat messages with the username, profile picture, and badges
+    function addMessageToChat(username, messageText, profilePicUrl) {
         const message = document.createElement('div');
         message.classList.add('message');
 
         const profileImage = document.createElement('img');
-        profileImage.src = profilePictureUrl || 'default-profile-pic.png'; // Display the sender's profile picture
+        profileImage.src = profilePicUrl || 'default-profile-pic.png'; // Display the sender's profile picture
 
         const text = document.createElement('span');
         let badgeText = '';
@@ -272,7 +273,7 @@
         if (event.key === 'Enter') {
             const messageText = event.target.value;
             if (messageText) {
-                sendMessage(username, messageText);
+                sendMessage(username, messageText, profilePictureUrl); // Send message with profile picture URL
                 event.target.value = ''; // Clear the input field after sending
             }
         }
