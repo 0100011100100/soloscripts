@@ -3,73 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GDI Effects Simulation</title>
+    <title>Harmless Virus Simulation</title>
     <style>
         body {
             margin: 0;
             padding: 0;
             background-color: black;
-            color: white;
+            color: lime;
             font-family: 'Courier New', Courier, monospace;
             overflow: hidden;
         }
 
-        /* General page style */
+        /* General styles */
         h1, p {
             text-align: center;
-            margin-top: 20vh;
+            margin: 20px;
+            font-size: 2em;
         }
 
-        /* Jittery effect: the entire body will shake slightly */
-        @keyframes jitter {
+        .virus-warning {
+            font-size: 4em;
+            color: red;
+            text-shadow: 3px 3px black;
+            animation: flicker 0.1s infinite alternate, shake 0.2s infinite;
+        }
+
+        /* Screen shaking effect */
+        @keyframes shake {
             0% { transform: translate(0, 0); }
-            50% { transform: translate(-2px, 2px); }
-            100% { transform: translate(0, 0); }
-        }
-        body.jitter {
-            animation: jitter 0.2s infinite;
-        }
-
-        /* Vertical sync delay effect (tearing effect) */
-        @keyframes vsyncLag {
-            0% { transform: translateY(0); }
-            50% { transform: translateY(-3px); }
-            100% { transform: translateY(0); }
-        }
-        .vsync-tear {
-            animation: vsyncLag 2s infinite alternate;
+            25% { transform: translate(5px, -5px); }
+            50% { transform: translate(-5px, 5px); }
+            75% { transform: translate(-10px, -10px); }
+            100% { transform: translate(10px, 10px); }
         }
 
-        /* Slow fading for static elements */
-        @keyframes burnIn {
+        /* Random color glitch effect */
+        @keyframes glitch {
+            0% { background-color: black; }
+            25% { background-color: green; }
+            50% { background-color: purple; }
+            75% { background-color: red; }
+            100% { background-color: black; }
+        }
+
+        /* Flicker effect for text */
+        @keyframes flicker {
             0% { opacity: 1; }
-            100% { opacity: 0.6; }
-        }
-        .burn-in {
-            animation: burnIn 10s infinite;
+            50% { opacity: 0.2; }
+            100% { opacity: 1; }
         }
 
-        /* Scroll tearing effect */
-        @keyframes scrollTear {
-            0% { transform: skewY(0deg); }
-            50% { transform: skewY(5deg); }
-            100% { transform: skewY(0deg); }
-        }
-        .scroll-tear {
-            animation: scrollTear 0.5s infinite linear;
-        }
-
-        /* Vertical distortion bars */
-        @keyframes verticalDistortion {
-            0% { filter: blur(0px); }
-            50% { filter: blur(4px); }
-            100% { filter: blur(0px); }
-        }
-        .vertical-distort {
-            animation: verticalDistortion 3s infinite;
+        /* Glitchy vertical lines */
+        .glitch-line {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background-color: lime;
+            animation: glitch-lines 0.5s infinite alternate;
         }
 
-        /* Ghosting effect (motion blur) */
+        @keyframes glitch-lines {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(10vh); }
+            100% { transform: translateY(-10vh); }
+        }
+
+        /* CRT scanlines */
+        body::before {
+            content: "";
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0) 2px, rgba(0, 255, 0, 0.5) 3px);
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        /* Ghosting (motion blur) effect */
         @keyframes ghosting {
             0% { filter: blur(0); }
             50% { filter: blur(10px); }
@@ -79,19 +92,118 @@
             animation: ghosting 1s infinite;
         }
 
+        /* Jittery effect for entire page */
+        @keyframes jitter {
+            0% { transform: translate(0, 0); }
+            25% { transform: translate(-5px, 5px); }
+            50% { transform: translate(5px, -5px); }
+            100% { transform: translate(0, 0); }
+        }
+        body.jitter {
+            animation: jitter 0.1s infinite;
+        }
+
+        /* VSync tearing (vertical sync issue) */
+        @keyframes vsync {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0); }
+        }
+        .vsync {
+            animation: vsync 2s infinite;
+        }
+
+        /* Copy elements (duplicating glitch effect) */
+        @keyframes clone {
+            0% { opacity: 1; }
+            100% { opacity: 0.5; transform: translate(-50px, 50px); }
+        }
+        .clone {
+            animation: clone 5s infinite alternate;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Vertical distortion bars */
+        @keyframes verticalDistortion {
+            0% { filter: blur(0px); }
+            50% { filter: blur(5px); }
+            100% { filter: blur(0px); }
+        }
+        .distort {
+            animation: verticalDistortion 3s infinite;
+        }
+
+        /* Random pixel shifts (glitchy pixel movement) */
+        @keyframes pixelShift {
+            0% { transform: translate(0, 0); }
+            50% { transform: translate(10px, -10px); }
+            100% { transform: translate(0, 0); }
+        }
+        .pixel-shift {
+            animation: pixelShift 0.5s infinite;
+        }
+
+        /* Multiple screen tearing */
+        @keyframes screenTear {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(-20px); }
+        }
+        .screen-tear {
+            animation: screenTear 1s infinite;
+        }
+
+        /* Simulate random broken screens with tearing and color shift */
+        .broken-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(255, 0, 0, 0.3);
+            mix-blend-mode: difference;
+            animation: broken 0.3s infinite;
+        }
+
+        @keyframes broken {
+            0% { transform: rotate(0deg); opacity: 0; }
+            50% { transform: rotate(5deg); opacity: 0.8; }
+            100% { transform: rotate(-5deg); opacity: 0; }
+        }
     </style>
 </head>
 <body class="jitter">
 
-    <h1 class="vsync-tear burn-in">GDI Simulation Effects</h1>
-    <p class="scroll-tear vertical-distort">This is a page with GDI-like graphical tearing, distortion, and jittering effects!</p>
+    <h1 class="virus-warning ghosting vsync">VIRUS ACTIVATED</h1>
+    <p class="screen-tear pixel-shift distort">Your system is crashing... Please wait.</p>
+
+    <!-- Glitch lines -->
+    <div class="glitch-line" style="top: 10vh;"></div>
+    <div class="glitch-line" style="top: 30vh;"></div>
+    <div class="glitch-line" style="top: 50vh;"></div>
+    <div class="glitch-line" style="top: 70vh;"></div>
+
+    <!-- Broken screen overlay -->
+    <div class="broken-screen"></div>
+
+    <!-- Cloning effect -->
+    <h1 class="clone ghosting">System Error!</h1>
 
     <script>
-        // Optional: To dynamically switch classes for different effects (e.g., after some time)
-        setTimeout(() => {
-            document.body.classList.remove('jitter');
-            document.body.classList.add('ghosting');
-        }, 5000); // 5 seconds to switch to ghosting effect
+        // Randomly add more glitch elements to the body
+        setInterval(() => {
+            const clone = document.createElement('div');
+            clone.classList.add('virus-warning', 'clone');
+            clone.textContent = "System Critical!";
+            document.body.appendChild(clone);
+        }, 2000);
+
+        // More jitter and ghost effects on interval
+        setInterval(() => {
+            document.body.classList.toggle('jitter');
+        }, 3000);
     </script>
 </body>
 </html>
