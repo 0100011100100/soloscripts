@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chaotic Sound and Animation</title>
+    <title>Pixelated Chaos with Bytebeat Sound</title>
     <style>
         body {
             margin: 0;
@@ -39,75 +39,95 @@
         return `rgb(${r},${g},${b})`;
     }
 
-    // Bytebeat sound function
-    function bytebeat(t) {
+    // Bytebeat sound function 1
+    function bytebeat1(t) {
         return 2 * t * (t & 16384 ? 6 : 5) * (4 - (3 & (t >> 8))) >> (3 & -t >> (t & 4096 ? 2 : 15)) |
                t >> (t & 8192 ? (t & 4096 ? 4 : 5) : 3);
     }
 
-    // Create audio buffer with bytebeat sound
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const bufferSize = audioContext.sampleRate;
-    const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
-    const data = buffer.getChannelData(0);
-
-    for (let i = 0; i < bufferSize; i++) {
-        const t = i;
-        data[i] = bytebeat(t) / 32767; // Normalize to [-1, 1]
+    // Bytebeat sound function 2
+    function bytebeat2(t) {
+        return 2 * t * (t & 16384 ? 6 : 5) * (4 - (3 & (t >> 8))) >> (3 & -t >> (t & 4096 ? 2 : 15)) |
+               t >> (t & 8192 ? (t & 4096 ? 4 : 5) : 3);
     }
 
-    // Create audio source
-    const source = audioContext.createBufferSource();
-    source.buffer = buffer;
+    // Create audio buffer with first bytebeat sound
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const bufferSize = audioContext.sampleRate;
+    
+    // Buffer for first bytebeat sound
+    const buffer1 = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+    const data1 = buffer1.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+        const t = i;
+        data1[i] = bytebeat1(t) / 32767; // Normalize to [-1, 1]
+    }
+
+    // Buffer for second bytebeat sound
+    const buffer2 = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+    const data2 = buffer2.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+        const t = i;
+        data2[i] = bytebeat2(t) / 32767; // Normalize to [-1, 1]
+    }
+
+    // Create audio source for first bytebeat sound
+    let source = audioContext.createBufferSource();
+    source.buffer = buffer1;
     source.connect(audioContext.destination);
     source.start();
 
-    // Function to draw large circles with sound representation
-    function drawLargeCircles() {
+    // Function to draw pixelated chaotic shapes
+    function drawPixelatedShapes() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        const numCircles = 10; // Number of circles to draw
+        const numShapes = 15; // Number of main shapes
 
-        for (let i = 0; i < numCircles; i++) {
+        for (let i = 0; i < numShapes; i++) {
+            const size = Math.random() * 100 + 50; // Size of the main shape
             const x = Math.random() * canvas.width;
             const y = Math.random() * canvas.height;
-            const radius = Math.random() * 150 + 50; // Random radius
 
-            // Draw the outer circle with a stroke
-            ctx.strokeStyle = randomColor();
-            ctx.lineWidth = 5 + Math.random() * 5;
-            ctx.beginPath();
-            ctx.arc(x, y, radius, 0, Math.PI * 2);
-            ctx.stroke();
+            // Draw the main pixelated shape
+            ctx.fillStyle = randomColor();
+            ctx.fillRect(x, y, size, size);
 
-            // Draw random glitch effect inside the circle
-            for (let j = 0; j < 30; j++) {
-                const glitchX = x + (Math.random() - 0.5) * radius;
-                const glitchY = y + (Math.random() - 0.5) * radius;
-                const glitchRadius = Math.random() * 20 + 5;
-
+            // Create smaller cloned shapes
+            for (let j = 0; j < 5; j++) {
+                const cloneSize = size * (0.5 ** j); // Reduce size with each clone
                 ctx.fillStyle = randomColor();
-                ctx.beginPath();
-                ctx.arc(glitchX, glitchY, glitchRadius, 0, Math.PI * 2);
-                ctx.fill();
+                ctx.fillRect(x + (Math.random() * 30 - 15), y + (Math.random() * 30 - 15), cloneSize, cloneSize);
             }
         }
 
-        // Create tearing effect
-        for (let i = 0; i < 10; i++) {
-            const y = Math.random() * canvas.height;
+        // Create shaking effect
+        for (let i = 0; i < 20; i++) {
+            const shakeX = Math.random() * canvas.width;
+            const shakeY = Math.random() * canvas.height;
             ctx.strokeStyle = randomColor();
             ctx.lineWidth = Math.random() * 5 + 1;
             ctx.beginPath();
-            ctx.moveTo(0, y);
-            ctx.lineTo(canvas.width, y + Math.random() * 50 - 25);
+            ctx.moveTo(shakeX + Math.random() * 10 - 5, shakeY + Math.random() * 10 - 5);
+            ctx.lineTo(shakeX + Math.random() * 10 - 5, shakeY + Math.random() * 10 - 5 + 100);
             ctx.stroke();
         }
 
-        requestAnimationFrame(drawLargeCircles);
+        requestAnimationFrame(drawPixelatedShapes);
     }
 
     // Start drawing and playing audio
-    drawLargeCircles();
+    drawPixelatedShapes();
+
+    // Switch audio source after 10 seconds
+    setTimeout(() => {
+        // Stop the current source
+        source.stop();
+
+        // Create new audio source for second bytebeat sound
+        source = audioContext.createBufferSource();
+        source.buffer = buffer2;
+        source.connect(audioContext.destination);
+        source.start();
+    }, 10000);
 
     // Resize canvas on window resize
     window.addEventListener('resize', () => {
