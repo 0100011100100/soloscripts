@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bytebeat Sound and Chaos Simulation</title>
+    <title>Chaotic Sound and Animation</title>
     <style>
         body {
             margin: 0;
@@ -62,22 +62,37 @@
     source.connect(audioContext.destination);
     source.start();
 
-    // Function to draw random shapes
-    function drawRandomShapes() {
+    // Function to draw large circles with sound representation
+    function drawLargeCircles() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const numCircles = 10; // Number of circles to draw
 
-        for (let i = 0; i < 30; i++) {
+        for (let i = 0; i < numCircles; i++) {
             const x = Math.random() * canvas.width;
             const y = Math.random() * canvas.height;
-            const size = Math.random() * 100 + 20; // Random size
+            const radius = Math.random() * 150 + 50; // Random radius
 
-            ctx.fillStyle = randomColor();
+            // Draw the outer circle with a stroke
+            ctx.strokeStyle = randomColor();
+            ctx.lineWidth = 5 + Math.random() * 5;
             ctx.beginPath();
-            ctx.arc(x, y, size / 2, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Draw random glitch effect inside the circle
+            for (let j = 0; j < 30; j++) {
+                const glitchX = x + (Math.random() - 0.5) * radius;
+                const glitchY = y + (Math.random() - 0.5) * radius;
+                const glitchRadius = Math.random() * 20 + 5;
+
+                ctx.fillStyle = randomColor();
+                ctx.beginPath();
+                ctx.arc(glitchX, glitchY, glitchRadius, 0, Math.PI * 2);
+                ctx.fill();
+            }
         }
 
-        // Tearing effect
+        // Create tearing effect
         for (let i = 0; i < 10; i++) {
             const y = Math.random() * canvas.height;
             ctx.strokeStyle = randomColor();
@@ -88,11 +103,11 @@
             ctx.stroke();
         }
 
-        requestAnimationFrame(drawRandomShapes);
+        requestAnimationFrame(drawLargeCircles);
     }
 
     // Start drawing and playing audio
-    drawRandomShapes();
+    drawLargeCircles();
 
     // Resize canvas on window resize
     window.addEventListener('resize', () => {
