@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GDI Effects Simulation</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: black;
+            color: white;
+            font-family: 'Courier New', Courier, monospace;
+            overflow: hidden;
+        }
+
+        /* General page style */
+        h1, p {
+            text-align: center;
+            margin-top: 20vh;
+        }
+
+        /* Jittery effect: the entire body will shake slightly */
+        @keyframes jitter {
+            0% { transform: translate(0, 0); }
+            50% { transform: translate(-2px, 2px); }
+            100% { transform: translate(0, 0); }
+        }
+        body.jitter {
+            animation: jitter 0.2s infinite;
+        }
+
+        /* Vertical sync delay effect (tearing effect) */
+        @keyframes vsyncLag {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+            100% { transform: translateY(0); }
+        }
+        .vsync-tear {
+            animation: vsyncLag 2s infinite alternate;
+        }
+
+        /* Slow fading for static elements */
+        @keyframes burnIn {
+            0% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+        .burn-in {
+            animation: burnIn 10s infinite;
+        }
+
+        /* Scroll tearing effect */
+        @keyframes scrollTear {
+            0% { transform: skewY(0deg); }
+            50% { transform: skewY(5deg); }
+            100% { transform: skewY(0deg); }
+        }
+        .scroll-tear {
+            animation: scrollTear 0.5s infinite linear;
+        }
+
+        /* Vertical distortion bars */
+        @keyframes verticalDistortion {
+            0% { filter: blur(0px); }
+            50% { filter: blur(4px); }
+            100% { filter: blur(0px); }
+        }
+        .vertical-distort {
+            animation: verticalDistortion 3s infinite;
+        }
+
+        /* Ghosting effect (motion blur) */
+        @keyframes ghosting {
+            0% { filter: blur(0); }
+            50% { filter: blur(10px); }
+            100% { filter: blur(0); }
+        }
+        .ghosting {
+            animation: ghosting 1s infinite;
+        }
+
+    </style>
+</head>
+<body class="jitter">
+
+    <h1 class="vsync-tear burn-in">GDI Simulation Effects</h1>
+    <p class="scroll-tear vertical-distort">This is a page with GDI-like graphical tearing, distortion, and jittering effects!</p>
+
+    <script>
+        // Optional: To dynamically switch classes for different effects (e.g., after some time)
+        setTimeout(() => {
+            document.body.classList.remove('jitter');
+            document.body.classList.add('ghosting');
+        }, 5000); // 5 seconds to switch to ghosting effect
+    </script>
+</body>
+</html>
