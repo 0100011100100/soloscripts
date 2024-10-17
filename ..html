@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Classroom</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        iframe {
+            border: none;
+            width: 100%;
+            height: 90%;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin: 10px;
+            cursor: pointer;
+        }
+
+        .spotify-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .spotify-active {
+            display: flex;
+            width: 100%;
+        }
+
+        .music-upload {
+            margin-top: 20px;
+        }
+
+        .music-list {
+            margin-top: 20px;
+        }
+
+        audio {
+            margin-top: 10px;
+            width: 80%;
+        }
+    </style>
+</head>
+<body>
+    <iframe id="classroom" src="https://classroom.google.com"></iframe>
+    
+    <button id="toggleSpotify">Open Spotify-like Music App</button>
+    
+    <div id="spotifyApp" class="spotify-container">
+        <h1>My Music App</h1>
+        <div class="music-upload">
+            <input type="file" id="musicUpload" accept="audio/*">
+        </div>
+        <div class="music-list" id="musicList"></div>
+    </div>
+
+    <script>
+        // Toggle between Classroom and Music App
+        const toggleButton = document.getElementById('toggleSpotify');
+        const spotifyApp = document.getElementById('spotifyApp');
+        const iframe = document.getElementById('classroom');
+
+        toggleButton.addEventListener('click', () => {
+            if (spotifyApp.classList.contains('spotify-active')) {
+                spotifyApp.classList.remove('spotify-active');
+                iframe.style.display = 'block';
+            } else {
+                spotifyApp.classList.add('spotify-active');
+                iframe.style.display = 'none';
+            }
+        });
+
+        // Upload Music and Play it
+        const musicUpload = document.getElementById('musicUpload');
+        const musicList = document.getElementById('musicList');
+
+        musicUpload.addEventListener('change', (event) => {
+            const files = event.target.files;
+            if (files.length > 0) {
+                const file = files[0];
+                const audioElement = document.createElement('audio');
+                audioElement.src = URL.createObjectURL(file);
+                audioElement.controls = true;
+                musicList.appendChild(audioElement);
+            }
+        });
+    </script>
+</body>
+</html>
