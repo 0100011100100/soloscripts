@@ -25,7 +25,7 @@
             margin: 10px 0;
         }
 
-        input, select {
+        select {
             padding: 10px;
             width: 300px;
             background-color: #333;
@@ -44,22 +44,33 @@
         button:hover {
             background-color: #00b3a6;
         }
+
+        #messageList {
+            margin-top: 20px;
+        }
+
+        .message-item {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #333;
+            border: 1px solid #555;
+        }
+
+        .delete-button {
+            background-color: #e74c3c;
+            color: #fff;
+            padding: 5px 10px;
+            border: none;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
     <h1>Delete Message from Firebase</h1>
 
-    <label for="deletePath">Enter the chat ID (path):</label>
-    <input type="text" id="deletePath" placeholder="Enter the chat path (e.g., /chats/chatId)">
-
-    <label for="deleteField">Select the field to delete:</label>
-    <select id="deleteField">
-        <option value="message">Message</option>
-        <option value="sender">Sender</option>
-        <option value="timestamp">Timestamp</option>
-    </select>
-
-    <button onclick="deleteData()">Delete Selected Field</button>
+    <div id="messageList">
+        <!-- Messages will be listed here dynamically -->
+    </div>
 
     <script>
         // Firebase Initialization
@@ -77,18 +88,45 @@
         const app = firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // Function to delete selected field from Firebase Realtime Database
-        function deleteData() {
-            const path = document.getElementById("deletePath").value;
-            const field = document.getElementById("deleteField").value;
-            const fieldRef = firebase.database().ref(path + '/' + field); // Append selected field to path
+        // Function to fetch messages and display them in a list
+        function fetchMessages() {
+            const messagesRef = firebase.database().ref('/chats');
+            messagesRef.on('value', (snapshot) => {
+                const messages = snapshot.val();
+                const messageListDiv = document.getElementById('messageList');
+                messageListDiv.innerHTML = ''; // Clear existing list
 
-            fieldRef.remove().then(() => {
-                alert(field + ' deleted successfully!');
-            }).catch((error) => {
-                alert('Error deleting ' + field + ': ' + error);
+                for (const chatId in messages) {
+                    const chat = messages[chatId];
+
+                    // Create message item
+                    const messageItem = document.createElement('div');
+                    messageItem.className = 'message-item';
+                    messageItem.innerHTML = `
+                        <p><strong>Message:</strong> ${chat.message}</p>
+                        <p><strong>Sender:</strong> ${chat.sender}</p>
+                        <p><strong>Timestamp:</strong> ${chat.timestamp}</p>
+                        <button class="delete-button" onclick="deleteMessage('${chatId}')">Delete</button>
+                    `;
+
+                    // Append message item to the list
+                    messageListDiv.appendChild(messageItem);
+                }
             });
         }
+
+        // Function to delete a message from Firebase
+        function deleteMessage(chatId) {
+            const messageRef = firebase.database().ref('/chats/' + chatId);
+            messageRef.remove().then(() => {
+                alert('Message deleted successfully!');
+            }).catch((error) => {
+                alert('Error deleting message: ' + error);
+            });
+        }
+
+        // Fetch messages on page load
+        fetchMessages();
     </script>
 </body>
 </html>
