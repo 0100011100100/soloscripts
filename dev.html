@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Delete Data from Realtime Database</title>
+    <title>Dashboard - Delete Messages</title>
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js"></script>
@@ -47,10 +47,10 @@
     </style>
 </head>
 <body>
-    <h1>Delete Data from Firebase Realtime Database</h1>
+    <h1>Delete Message from Firebase</h1>
 
-    <label for="deletePath">Enter the path to the parent of the data:</label>
-    <input type="text" id="deletePath" placeholder="Enter the path (e.g., /chats/chatId)">
+    <label for="deletePath">Enter the chat ID (path):</label>
+    <input type="text" id="deletePath" placeholder="Enter the chat path (e.g., /chats/chatId)">
 
     <label for="deleteField">Select the field to delete:</label>
     <select id="deleteField">
@@ -59,7 +59,7 @@
         <option value="timestamp">Timestamp</option>
     </select>
 
-    <button onclick="deleteData()">Delete Data</button>
+    <button onclick="deleteData()">Delete Selected Field</button>
 
     <script>
         // Firebase Initialization
@@ -74,16 +74,16 @@
         };
 
         // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const database = getDatabase(app);
+        const app = firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
 
         // Function to delete selected field from Firebase Realtime Database
         function deleteData() {
             const path = document.getElementById("deletePath").value;
             const field = document.getElementById("deleteField").value;
-            const fieldRef = ref(database, path + '/' + field); // Append selected field to path
+            const fieldRef = firebase.database().ref(path + '/' + field); // Append selected field to path
 
-            remove(fieldRef).then(() => {
+            fieldRef.remove().then(() => {
                 alert(field + ' deleted successfully!');
             }).catch((error) => {
                 alert('Error deleting ' + field + ': ' + error);
