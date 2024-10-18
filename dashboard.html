@@ -11,7 +11,7 @@
     <script>
         // Your web app's Firebase configuration
         const firebaseConfig = {
-            apiKey: "YOUR_FIREBASE_API_KEY",
+            apiKey: "AIzaSyAe0hXfAJ0ijKNiGgAVfv4zG1ngADF2E4c",
             authDomain: "chatapp-90c78.firebaseapp.com",
             projectId: "chatapp-90c78",
             storageBucket: "chatapp-90c78.appspot.com",
@@ -30,23 +30,16 @@
             messageRef.set({
                 username: username,
                 message: messageText,
-                profilePic: profilePicUrl,
+                profilePic: profilePicUrl, // Save profile picture URL
                 timestamp: new Date().toISOString()
             });
-        }
-
-        // Function to delete a message from Firebase
-        function deleteMessage(messageId) {
-            db.ref('messages/' + messageId).remove()
-                .then(() => alert('Message deleted'))
-                .catch(error => console.error('Error deleting message:', error));
         }
 
         // Listen for new messages in Firebase
         function listenForMessages() {
             db.ref('messages').on('child_added', (snapshot) => {
                 const messageData = snapshot.val();
-                addMessageToChat(snapshot.key, messageData.username, messageData.message, messageData.profilePic);
+                addMessageToChat(messageData.username, messageData.message, messageData.profilePic);
             });
         }
 
@@ -81,6 +74,37 @@
             border-radius: 50%;
             margin-right: 10px;
             border: 3px solid white;
+            transition: border 0.3s ease;
+        }
+
+        .profile .username {
+            font-size: 18px;
+        }
+
+        .profile-owner-badge {
+            font-size: 12px;
+            padding: 3px 10px;
+            background: linear-gradient(90deg, #ffcc00, #e63946);
+            color: white;
+            border-radius: 5px;
+            margin-left: 10px;
+        }
+
+        .profile-developer-badge {
+            font-size: 12px;
+            padding: 3px 10px;
+            background: linear-gradient(90deg, #ff00ff, #00ffff); /* Pink to Cyan Gradient */
+            color: white;
+            border-radius: 5px;
+            margin-left: 10px;
+            animation: rainbow 3s linear infinite; /* Animation for the Developer badge */
+        }
+
+        /* Navigation Buttons */
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
         }
 
         .nav-buttons button {
@@ -122,13 +146,47 @@
             align-items: center;
         }
 
-        .delete-button {
-            background-color: red;
+        .messages .message img {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin-right: 10px;
+            border: 3px solid white;
+        }
+
+        /* Popup Styles */
+        .popup {
+            position: fixed;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
             color: white;
-            border: none;
-            padding: 5px 10px;
-            margin-left: 10px;
-            cursor: pointer;
+            padding: 15px 20px;
+            border-radius: 5px;
+            transition: top 0.5s ease;
+            z-index: 1000;
+        }
+
+        /* Rainbow and Gradient Borders */
+        .rainbow-border {
+            animation: rainbow 3s linear infinite;
+        }
+
+        @keyframes rainbow {
+            0% { border-color: red; }
+            16.6% { border-color: orange; }
+            33.2% { border-color: yellow; }
+            49.8% { border-color: green; }
+            66.4% { border-color: blue; }
+            83% { border-color: indigo; }
+            100% { border-color: violet; }
+        }
+
+        .gradient-border {
+            border-image-slice: 1;
+            border-width: 3px;
+            border-style: solid;
         }
     </style>
 </head>
@@ -140,6 +198,8 @@
     <div class="profile">
         <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture" class="profile-picture">
         <div class="username" id="username-display"></div>
+        <div id="owner-badge" class="profile-owner-badge" style="display: none;">Owner</div>
+        <div id="developer-badge" class="profile-developer-badge" style="display: none;">Developer</div>
     </div>
 </div>
 
@@ -161,7 +221,10 @@
 <script>
     const usernameDisplay = document.getElementById('username-display');
     const profilePic = document.getElementById('profile-pic');
+    const ownerBadge = document.getElementById('owner-badge');
+    const developerBadge = document.getElementById('developer-badge');
     const messagesContainer = document.getElementById('messages-container');
+    const popup = document.getElementById('popup');
 
     // Fetch username from localStorage
     const username = localStorage.getItem('username') || 'Guest';
@@ -171,28 +234,38 @@
     usernameDisplay.textContent = username;
     profilePic.src = profilePictureUrl;
 
-    // Function to display chat messages with the username, profile picture, and delete button for 'zeptional'
-    function addMessageToChat(messageId, username, messageText, profilePicUrl) {
+    // Show the Owner badge if the username is 'zeptional'
+    if (username === 'zeptional') {
+        ownerBadge.style.display = 'inline-block';
+    }
+
+    // Show the Developer badge if the username is 'piggy' or 'Piggy'
+    if (username.toLowerCase() === 'piggy') {
+        developerBadge.style.display = 'inline-block';
+    }
+
+    // Function to display chat messages with the username, profile picture, and badges
+    function addMessageToChat(username, messageText, profilePicUrl) {
         const message = document.createElement('div');
         message.classList.add('message');
 
         const profileImage = document.createElement('img');
         profileImage.src = profilePicUrl || 'default-profile-pic.png'; // Display the sender's profile picture
+        profileImage.classList.add('gradient-border'); // Add the gradient border
 
         const text = document.createElement('span');
-        text.textContent = `${username}: ${messageText}`;
+        let badgeText = '';
 
-        message.appendChild(profileImage);
-        message.appendChild(text);
-
+        // Add badges in chat based on username
         if (username === 'zeptional') {
-            const deleteBtn = document.createElement('button');
-            deleteBtn.textContent = 'Delete';
-            deleteBtn.classList.add('delete-button');
-            deleteBtn.onclick = () => deleteMessage(messageId);
-            message.appendChild(deleteBtn);
+            badgeText = `<strong style="background: linear-gradient(90deg, #ffcc00, #e63946); padding: 2px 6px; border-radius: 5px;">Owner:</strong>`;
+        } else if (username.toLowerCase() === 'piggy') {
+            badgeText = `<strong style="background: linear-gradient(90deg, #ff00ff, #00ffff); padding: 2px 6px; border-radius: 5px; animation: rainbow 3s linear infinite;">Developer:</strong>`;
         }
 
+        text.innerHTML = `${badgeText} ${username}: ${messageText}`;
+        message.appendChild(profileImage);
+        message.appendChild(text);
         messagesContainer.appendChild(message);
     }
 
@@ -201,7 +274,7 @@
         if (event.key === 'Enter') {
             const messageText = event.target.value;
             if (messageText) {
-                sendMessage(username, messageText, profilePictureUrl);
+                sendMessage(username, messageText, profilePictureUrl); // Send message with profile picture URL
                 event.target.value = ''; // Clear the input field after sending
             }
         }
@@ -214,6 +287,5 @@
         window.location.href = 'login.html'; // Redirect to login page
     }
 </script>
-
 </body>
 </html>
