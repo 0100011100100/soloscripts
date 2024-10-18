@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Delete Message from Realtime Database</title>
+    <title>Delete Data from Realtime Database</title>
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js"></script>
@@ -20,12 +20,12 @@
             color: #00ffcc;
         }
 
-        label, input, button {
+        label, input, select, button {
             display: block;
             margin: 10px 0;
         }
 
-        input {
+        input, select {
             padding: 10px;
             width: 300px;
             background-color: #333;
@@ -47,11 +47,19 @@
     </style>
 </head>
 <body>
-    <h1>Delete Message from Firebase Realtime Database</h1>
+    <h1>Delete Data from Firebase Realtime Database</h1>
 
-    <label for="deletePath">Enter the path to the parent of the message:</label>
+    <label for="deletePath">Enter the path to the parent of the data:</label>
     <input type="text" id="deletePath" placeholder="Enter the path (e.g., /chats/chatId)">
-    <button onclick="deleteMessage()">Delete Message</button>
+
+    <label for="deleteField">Select the field to delete:</label>
+    <select id="deleteField">
+        <option value="message">Message</option>
+        <option value="sender">Sender</option>
+        <option value="timestamp">Timestamp</option>
+    </select>
+
+    <button onclick="deleteData()">Delete Data</button>
 
     <script>
         // Firebase Initialization
@@ -69,15 +77,16 @@
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
 
-        // Function to delete the 'message' field from Firebase Realtime Database
-        function deleteMessage() {
+        // Function to delete selected field from Firebase Realtime Database
+        function deleteData() {
             const path = document.getElementById("deletePath").value;
-            const messageRef = ref(database, path + '/message'); // Path to the 'message' field
+            const field = document.getElementById("deleteField").value;
+            const fieldRef = ref(database, path + '/' + field); // Append selected field to path
 
-            remove(messageRef).then(() => {
-                alert('Message deleted successfully!');
+            remove(fieldRef).then(() => {
+                alert(field + ' deleted successfully!');
             }).catch((error) => {
-                alert('Error deleting message: ' + error);
+                alert('Error deleting ' + field + ': ' + error);
             });
         }
     </script>
