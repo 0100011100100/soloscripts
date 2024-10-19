@@ -26,7 +26,7 @@
 </head>
 <body>
     <h1>Website Source Code Viewer</h1>
-    <input type="text" id="urlInput" placeholder="Enter website URL" />
+    <input type="text" id="urlInput" placeholder="Enter website URL (e.g., https://www.roblox.com/home)" />
     <button id="fetchButton">Fetch Source Code</button>
     <div id="output"></div>
     <textarea id="codeOutput" placeholder="Source code will appear here..."></textarea>
@@ -36,8 +36,9 @@
         document.getElementById('fetchButton').addEventListener('click', async () => {
             const url = document.getElementById('urlInput').value;
 
-            if (!url) {
-                alert('Please enter a valid URL.');
+            // Ensure the URL starts with http:// or https://
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                alert('Please enter a valid URL starting with http:// or https://.');
                 return;
             }
 
