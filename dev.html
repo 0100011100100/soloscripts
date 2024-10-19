@@ -21,7 +21,6 @@
         };
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
-
         const db = firebase.database();
 
         // Function to send message to Firebase
@@ -30,12 +29,24 @@
             messageRef.set({
                 username: username,
                 message: messageText,
-                profilePic: profilePicUrl, // Save profile picture URL
+                profilePic: profilePicUrl, 
                 timestamp: new Date().toISOString()
             });
         }
 
-        // Listen for new messages in Firebase
+        // Function to ban a user
+        function banUser(username) {
+            db.ref('bannedUsers/' + username).set(true)
+                .then(() => showPopup(`${username} has been banned!`, 'success'))
+                .catch(error => showPopup(`Error banning user: ${error.message}`, 'error'));
+        }
+
+        // Check if a user is banned
+        function isUserBanned(username) {
+            return db.ref('bannedUsers/' + username).once('value').then(snapshot => !!snapshot.val());
+        }
+
+        // Listen for new messages
         function listenForMessages() {
             db.ref('messages').on('child_added', (snapshot) => {
                 const messageData = snapshot.val();
@@ -44,17 +55,32 @@
             });
         }
 
-        // Function to delete a message by its key
+        // Function to delete a message
         function deleteMessage(messageKey) {
             db.ref('messages/' + messageKey).remove()
                 .then(() => {
-                    showPopup('Message deleted successfully!');
-                    document.getElementById('message-' + messageKey).remove(); // Remove from DOM
+                    showPopup('Message deleted successfully!', 'success');
+                    document.getElementById('message-' + messageKey).remove();
                 })
                 .catch((error) => {
                     showPopup('Error deleting message: ' + error.message, 'error');
                 });
         }
+
+        // Automatically redirect banned users to login
+        function checkUserBan(username) {
+            isUserBanned(username).then(isBanned => {
+                if (isBanned) {
+                    window.location.href = 'login.html';
+                }
+            });
+        }
+
+        // On page load, check if the user is banned
+        window.onload = function() {
+            const username = localStorage.getItem('username') || 'Guest';
+            checkUserBan(username);
+        };
 
         listenForMessages();
     </script>
@@ -63,9 +89,54 @@
         body {
             margin: 0;
             padding: 0;
-            background-color: #121212;
+            background-color: #1e1e1e;
             color: white;
             font-family: Arial, sans-serif;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #444;
+            padding: 10px 20px;
+        }
+
+        .profile {
+            display: flex;
+            align-items: center;
+        }
+
+        .profile img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+            border: 3px solid white;
+        }
+
+        .username {
+            font-size: 18px;
+        }
+
+        .profile-badges {
+            margin-left: 10px;
+        }
+
+        .badge {
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+
+        .owner-badge {
+            background: linear-gradient(90deg, #ffcc00, #e63946);
+        }
+
+        .developer-badge {
+            background: linear-gradient(90deg, #ff00ff, #00ffff);
+            animation: rainbow 3s linear infinite;
         }
 
         .chat-box {
@@ -76,7 +147,7 @@
             margin-top: 20px;
         }
 
-        .messages .message {
+        .message {
             margin: 10px 0;
             padding: 15px;
             background-color: #333;
@@ -87,11 +158,7 @@
             transition: background-color 0.3s ease;
         }
 
-        .messages .message:hover {
-            background-color: #444;
-        }
-
-        .messages .message img {
+        .message img {
             width: 40px;
             height: 40px;
             border-radius: 50%;
@@ -99,18 +166,36 @@
             border: 2px solid white;
         }
 
-        .delete-button {
-            background-color: red;
-            color: white;
-            border: none;
+        .buttons {
+            display: flex;
+            align-items: center;
+        }
+
+        .button {
+            margin-left: 10px;
             padding: 8px 16px;
             cursor: pointer;
+            border: none;
             border-radius: 5px;
             transition: background-color 0.3s ease;
         }
 
+        .delete-button {
+            background-color: red;
+            color: white;
+        }
+
         .delete-button:hover {
             background-color: darkred;
+        }
+
+        .ban-button {
+            background-color: orange;
+            color: white;
+        }
+
+        .ban-button:hover {
+            background-color: darkorange;
         }
 
         /* Popup Styles */
@@ -129,11 +214,11 @@
         }
 
         .popup.show {
-            top: 20px; /* Animates from -100px to 20px */
+            top: 20px;
         }
 
         .popup.hide {
-            top: -100px; /* Moves the popup back up */
+            top: -100px;
         }
 
         .popup.success {
@@ -147,25 +232,55 @@
 </head>
 <body>
 
-<!-- Chat section -->
+<div class="header">
+    <div class="profile">
+        <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture">
+        <div class="username" id="username-display"></div>
+        <div class="profile-badges">
+            <span id="owner-badge" class="badge owner-badge" style="display: none;">Owner</span>
+            <span id="developer-badge" class="badge developer-badge" style="display: none;">Developer</span>
+        </div>
+    </div>
+</div>
+
 <div class="chat-box">
     <input type="text" id="chat-input" placeholder="Type your message here...">
-    <div class="messages" id="messages-container">
-        <!-- Chat messages will appear here -->
-    </div>
+    <div class="messages" id="messages-container"></div>
 </div>
 
 <div id="popup" class="popup"></div>
 
 <script>
+    const usernameDisplay = document.getElementById('username-display');
+    const profilePic = document.getElementById('profile-pic');
+    const ownerBadge = document.getElementById('owner-badge');
+    const developerBadge = document.getElementById('developer-badge');
     const messagesContainer = document.getElementById('messages-container');
     const popup = document.getElementById('popup');
 
-    // Function to display chat messages with a delete button
+    // Fetch username from localStorage
+    const username = localStorage.getItem('username') || 'Guest';
+    const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
+
+    // Display the username and profile picture
+    usernameDisplay.textContent = username;
+    profilePic.src = profilePictureUrl;
+
+    // Show the Owner badge if the username is 'zeptional'
+    if (username === 'zeptional') {
+        ownerBadge.style.display = 'inline-block';
+    }
+
+    // Show the Developer badge if the username is 'piggy' or 'Piggy'
+    if (username.toLowerCase() === 'piggy') {
+        developerBadge.style.display = 'inline-block';
+    }
+
+    // Function to add messages to the chat
     function addMessageToChat(messageKey, username, messageText, profilePicUrl) {
         const message = document.createElement('div');
         message.classList.add('message');
-        message.id = 'message-' + messageKey;  // Set a unique ID for each message div
+        message.id = 'message-' + messageKey;
 
         const profileImage = document.createElement('img');
         profileImage.src = profilePicUrl || 'default-profile-pic.png';
@@ -173,16 +288,31 @@
         const text = document.createElement('span');
         text.textContent = `${username}: ${messageText}`;
 
+        const buttons = document.createElement('div');
+        buttons.classList.add('buttons');
+
+        // Delete Button
         const deleteButton = document.createElement('button');
-        deleteButton.classList.add('delete-button');
+        deleteButton.classList.add('button', 'delete-button');
         deleteButton.textContent = 'Delete';
         deleteButton.onclick = function() {
-            deleteMessage(messageKey);  // Call the delete function with the message key
+            deleteMessage(messageKey);
         };
+
+        // Ban Button
+        const banButton = document.createElement('button');
+        banButton.classList.add('button', 'ban-button');
+        banButton.textContent = 'Ban';
+        banButton.onclick = function() {
+            banUser(username);
+        };
+
+        buttons.appendChild(deleteButton);
+        buttons.appendChild(banButton);
 
         message.appendChild(profileImage);
         message.appendChild(text);
-        message.appendChild(deleteButton);
+        message.appendChild(buttons);
 
         messagesContainer.appendChild(message);
     }
@@ -192,10 +322,14 @@
         if (event.key === 'Enter') {
             const messageText = event.target.value;
             if (messageText) {
-                const username = localStorage.getItem('username') || 'Guest';
-                const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
-                sendMessage(username, messageText, profilePictureUrl); // Send message with profile picture URL
-                event.target.value = ''; // Clear the input field after sending
+                isUserBanned(username).then(isBanned => {
+                    if (isBanned) {
+                        window.location.href = 'login.html'; // Redirect banned user to login page
+                    } else {
+                        sendMessage(username, messageText, profilePictureUrl);
+                        event.target.value = ''; // Clear the input field after sending
+                    }
+                });
             }
         }
     });
@@ -205,17 +339,15 @@
         popup.textContent = message;
         popup.classList.add(type, 'show');
 
-        // Remove the popup after a short delay
         setTimeout(() => {
             popup.classList.remove('show');
             popup.classList.add('hide');
 
-            // After the hide animation ends, remove the hide class
             setTimeout(() => {
                 popup.classList.remove('hide');
-                popup.classList.remove(type); // Remove the type class (success or error)
-            }, 600); // Match the transition time
-        }, 3000); // Popup stays for 3 seconds before hiding
+                popup.classList.remove(type);
+            }, 600);
+        }, 3000);
     }
 </script>
 
