@@ -21,6 +21,7 @@
         };
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
+
         const db = firebase.database();
 
         // Function to send message to Firebase
@@ -29,7 +30,7 @@
             messageRef.set({
                 username: username,
                 message: messageText,
-                profilePic: profilePicUrl,
+                profilePic: profilePicUrl, // Save profile picture URL
                 timestamp: new Date().toISOString()
             });
         }
@@ -42,79 +43,21 @@
             });
         }
 
-        // Check if the user is banned
+        listenForMessages();
+
+        // Function to check if user is banned
         function checkUserBan(username) {
             db.ref('bannedUsers/' + username).once('value').then(snapshot => {
-                if (snapshot.val()) {
-                    window.location.href = 'login.html'; // Redirect banned user to login page
+                if (snapshot.exists()) {
+                    window.location.href = 'login.html'; // Redirect to login page if banned
                 }
             });
         }
 
-        // Check if the user has the Developer badge
-        function hasDeveloperBadge(username) {
-            return db.ref('users/' + username + '/badges/developer').once('value').then(snapshot => !!snapshot.val());
-        }
-
-        // Fetch username and check for ban and developer badge on load
-        window.onload = function() {
-            const username = localStorage.getItem('username') || 'Guest';
-            const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
-
-            checkUserBan(username); // Check if user is banned
-            hasDeveloperBadge(username).then(hasBadge => {
-                if (hasBadge) {
-                    developerBadge.style.display = 'inline-block'; // Show Developer badge if the user has it
-                }
-            });
-
-            usernameDisplay.textContent = username;
-            profilePic.src = profilePictureUrl;
-            listenForMessages(); // Start listening for messages
-        };
-
-        // Function to display chat messages with badges
-        function addMessageToChat(username, messageText, profilePicUrl) {
-            const message = document.createElement('div');
-            message.classList.add('message');
-
-            const profileImage = document.createElement('img');
-            profileImage.src = profilePicUrl || 'default-profile-pic.png'; // Display the sender's profile picture
-
-            const text = document.createElement('span');
-            let badgeText = '';
-
-            // Add badges based on username
-            if (username === 'zeptional') {
-                badgeText = `<strong class="profile-owner-badge">Owner:</strong>`;
-            } else if (username.toLowerCase() === 'piggy') {
-                badgeText = `<strong class="profile-developer-badge">Developer:</strong>`;
-            }
-
-            text.innerHTML = `${badgeText} ${username}: ${messageText}`;
-            message.appendChild(profileImage);
-            message.appendChild(text);
-            messagesContainer.appendChild(message);
-        }
-
-        // Handle sending messages
-        document.getElementById('chat-input').addEventListener('keypress', function (event) {
-            if (event.key === 'Enter') {
-                const messageText = event.target.value;
-                if (messageText) {
-                    const username = localStorage.getItem('username') || 'Guest'; // Get username from localStorage
-                    const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png'; // Get profile pic URL
-                    sendMessage(username, messageText, profilePictureUrl); // Send message
-                    event.target.value = ''; // Clear the input field after sending
-                }
-            }
-        });
-
-        // Function to sign out user
-        function signOut() {
-            localStorage.removeItem('username');
-            localStorage.removeItem('profilePic');
-            window.location.href = 'login.html'; // Redirect to login page
+        // Example function to assign developer badge
+        function assignDeveloperBadge(username) {
+            const developerBadgeRef = db.ref('developerBadges/' + username);
+            developerBadgeRef.set(true); // Sets the developer badge to true for the username
         }
     </script>
 
@@ -165,11 +108,11 @@
         .profile-developer-badge {
             font-size: 12px;
             padding: 3px 10px;
-            background: linear-gradient(90deg, #ff00ff, #00ffff);
+            background: linear-gradient(90deg, #ff00ff, #00ffff); /* Pink to Cyan Gradient */
             color: white;
             border-radius: 5px;
             margin-left: 10px;
-            animation: rainbow 3s linear infinite;
+            animation: rainbow 3s linear infinite; /* Animation for the Developer badge */
         }
 
         /* Navigation Buttons */
@@ -311,10 +254,12 @@
         ownerBadge.style.display = 'inline-block';
     }
 
-    // Show the Developer badge if the username is 'piggy' or 'Piggy'
-    if (username.toLowerCase() === 'piggy') {
-        developerBadge.style.display = 'inline-block';
-    }
+    // Show the Developer badge if the username has the developer badge
+    db.ref('developerBadges/' + username).once('value').then(snapshot => {
+        if (snapshot.val()) {
+            developerBadge.style.display = 'inline-block';
+        }
+    });
 
     // Function to display chat messages with the username, profile picture, and badges
     function addMessageToChat(username, messageText, profilePicUrl) {
@@ -328,36 +273,35 @@
         const text = document.createElement('span');
         let badgeText = '';
 
-        // Add badges in chat based on username
-        if (username === 'zeptional') {
-            badgeText = `<strong class="profile-owner-badge">Owner:</strong>`;
-        } else if (username.toLowerCase() === 'piggy') {
-            badgeText = `<strong class="profile-developer-badge">Developer:</strong>`;
-        }
+        // Check if user is banned
+        checkUserBan(username); // Call to check for banned users
 
-        text.innerHTML = `${badgeText} ${username}: ${messageText}`;
-        message.appendChild(profileImage);
-        message.appendChild(text);
-        messagesContainer.appendChild(message);
+        // Fetch developer badge status from Firebase
+        db.ref('developerBadges/' + username).once('value').then(snapshot => {
+            const hasDeveloperBadge = snapshot.val() || false;
+
+            // Add badges in chat based on username
+            if (username === 'zeptional') {
+                badgeText = `<strong style="background: linear-gradient(90deg, #ffcc00, #e63946); padding: 2px 6px; border-radius: 5px;">Owner:</strong>`;
+            }
+            if (hasDeveloperBadge) {
+                badgeText += `<strong style="background: linear-gradient(90deg, #ff00ff, #00ffff); padding: 2px 6px; border-radius: 5px; animation: rainbow 3s linear infinite;">Developer:</strong>`;
+            }
+
+            text.innerHTML = `${badgeText} ${username}: ${messageText}`;
+            message.appendChild(profileImage);
+            message.appendChild(text);
+            messagesContainer.appendChild(message);
+        });
     }
 
-    // Handle sending messages
-    document.getElementById('chat-input').addEventListener('keypress', function (event) {
-        if (event.key === 'Enter') {
-            const messageText = event.target.value;
-            if (messageText) {
-                sendMessage(username, messageText, profilePictureUrl); // Send message with profile picture URL
-                event.target.value = ''; // Clear the input field after sending
-            }
-        }
-    });
-
-    // Function to sign out user
+    // Sign out function
     function signOut() {
         localStorage.removeItem('username');
         localStorage.removeItem('profilePic');
         window.location.href = 'login.html'; // Redirect to login page
     }
 </script>
+
 </body>
 </html>
