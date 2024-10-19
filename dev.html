@@ -49,12 +49,29 @@
                 .catch(error => showPopup(`Error banning user: ${error.message}`, 'error'));
         }
 
-        // Check if a user is banned
+        // Function to assign the Developer badge to a user
+        function assignDeveloperBadge(username) {
+            db.ref('users/' + username + '/badges/developer').set(true)
+                .then(() => {
+                    showPopup(`${username} has been given the Developer badge!`, 'success');
+                    if (localStorage.getItem('username') === username) {
+                        showDeveloperBadge(); // Show the badge to the current user if they are assigned it
+                    }
+                })
+                .catch(error => showPopup(`Error assigning Developer badge: ${error.message}`, 'error'));
+        }
+
+        // Function to check if the user is banned
         function isUserBanned(username) {
             return db.ref('bannedUsers/' + username).once('value').then(snapshot => !!snapshot.val());
         }
 
-        // Listen for new messages
+        // Function to check if the user has the Developer badge
+        function hasDeveloperBadge(username) {
+            return db.ref('users/' + username + '/badges/developer').once('value').then(snapshot => !!snapshot.val());
+        }
+
+        // Function to listen for new messages
         function listenForMessages() {
             db.ref('messages').on('child_added', (snapshot) => {
                 const messageData = snapshot.val();
@@ -85,10 +102,21 @@
             });
         }
 
-        // On page load, check if the user is banned
+        // Show developer badge if the current user has it
+        function showDeveloperBadge() {
+            developerBadge.style.display = 'inline-block';
+        }
+
+        // On page load, check if the user is banned or has the developer badge
         window.onload = function() {
             const username = localStorage.getItem('username') || 'Guest';
             checkUserBan(username);
+
+            hasDeveloperBadge(username).then(hasBadge => {
+                if (hasBadge) {
+                    showDeveloperBadge(); // Show the Developer badge if the user has it
+                }
+            });
         };
 
         listenForMessages();
@@ -139,10 +167,12 @@
         ownerBadge.style.display = 'inline-block';
     }
 
-    // Show the Developer badge if the username is 'piggy' or 'Piggy'
-    if (username.toLowerCase() === 'piggy') {
-        developerBadge.style.display = 'inline-block';
-    }
+    // Show the Developer badge if the username has it stored in Firebase
+    hasDeveloperBadge(username).then(hasBadge => {
+        if (hasBadge) {
+            showDeveloperBadge();
+        }
+    });
 
     // Function to add messages to the chat
     function addMessageToChat(messageKey, username, messageText, profilePicUrl) {
@@ -175,8 +205,17 @@
             banUser(username);
         };
 
+        // Assign Developer Badge Button
+        const devBadgeButton = document.createElement('button');
+        devBadgeButton.classList.add('button', 'dev-badge-button');
+        devBadgeButton.textContent = 'Assign Developer';
+        devBadgeButton.onclick = function() {
+            assignDeveloperBadge(username);
+        };
+
         buttons.appendChild(deleteButton);
         buttons.appendChild(banButton);
+        buttons.appendChild(devBadgeButton);
 
         message.appendChild(profileImage);
         message.appendChild(text);
