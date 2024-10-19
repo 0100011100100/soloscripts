@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Web Filter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        #blockMessage {
+            display: none;
+            font-size: 24px;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div id="blockMessage">This website is blocked.</div>
+
+    <script>
+        // List of blocked websites
+        const blockedWebsites = [
+            "classroom.google.com",
+            "chatgpt.com",
+            "example.com"
+        ];
+
+        // Function to check the current URL
+        function checkURL() {
+            const currentURL = window.location.hostname;
+
+            // Check if the current URL is in the list of blocked websites
+            if (blockedWebsites.includes(currentURL)) {
+                document.getElementById('blockMessage').style.display = 'block';
+                document.body.innerHTML = ''; // Clear the body to prevent page content
+            }
+        }
+
+        // Run the URL check when the page loads
+        window.onload = checkURL;
+    </script>
+</body>
+</html>
