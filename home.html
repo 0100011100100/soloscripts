@@ -5,17 +5,16 @@
    <!--[if gt IE 8]><!-->
    <html lang="en">
       <!--<![endif]-->
-      <head data-machine-id="0a974b65-c179-cf9c-9c2f-d14910847b5d">
-         <!-- MachineID: 0a974b65-c179-cf9c-9c2f-d14910847b5d -->
-         <title>Roblox</title>
+      <head data-machine-id="e000bbf9-6898-4839-6c37-7b8d819abb0f">
+         <!-- MachineID: e000bbf9-6898-4839-6c37-7b8d819abb0f -->
+         <title>Log in to Roblox</title>
          <meta http-equiv="X-UA-Compatible" content="IE=edge,requiresActiveX=true" />
          <meta charset="UTF-8">
          <meta name="viewport" content="width=device-width, initial-scale=1">
          <meta name="author" content="Roblox Corporation" />
-         <meta name="description" content="Roblox is the ultimate virtual universe that lets you create, share experiences with friends, and be anything you can imagine. Join millions of people and discover an infinite variety of immersive experiences created by a global community!" />
+         <meta name="description" content="Login to your Roblox account or sign up to create a new account." />
          <meta name="keywords" content="free games, online games, building games, virtual worlds, free mmo, gaming cloud, physics engine" />
          <meta name="apple-itunes-app" content="app-id=431946152" />
-         <meta name="google-site-verification" content="BfkEEZ1dsSAEJIS1yV2prCFgO8zboMYioG1c9VITB5Y" />
          <link rel="apple-touch-icon" href="https://images.rbxcdn.com/7c5fe83dffa97250aaddd54178900ea7.png" />
          <script type="application/ld+json">
             {
@@ -36,29 +35,6 @@
             ]
             }
          </script>
-         <meta property="og:site_name" content="Roblox" />
-         <meta property="og:title" content="Roblox" />
-         <meta property="og:type" content="website" />
-         <meta property="og:url" content="https://www.roblox.com/CreateAccount" />
-         <meta property="og:description" content="Roblox is ushering in the next generation of entertainment. Imagine, create, and play together with millions of people across an infinite variety of immersive, user-generated 3D worlds." />
-         <meta property="og:image" content="https://images.rbxcdn.com/5348266ea6c5e67b19d6a814cbbb70f6.jpg" />
-         <meta property="fb:app_id" content="190191627665278">
-         <meta name="twitter:card" content="summary_large_image">
-         <meta name="twitter:site" content="@Roblox">
-         <meta name="twitter:title" content="Roblox">
-         <meta name="twitter:description" content="Roblox is ushering in the next generation of entertainment. Imagine, create, and play together with millions of people across an infinite variety of immersive, user-generated 3D worlds.">
-         <meta name="twitter:creator">
-         <meta name=twitter:image1 content="https://images.rbxcdn.com/5348266ea6c5e67b19d6a814cbbb70f6.jpg" />
-         <meta name="twitter:app:country" content="US">
-         <meta name="twitter:app:name:iphone" content="Roblox Mobile">
-         <meta name="twitter:app:id:iphone" content="431946152">
-         <meta name="twitter:app:url:iphone">
-         <meta name="twitter:app:name:ipad" content="Roblox Mobile">
-         <meta name="twitter:app:id:ipad" content="431946152">
-         <meta name="twitter:app:url:ipad">
-         <meta name="twitter:app:name:googleplay" content="Roblox">
-         <meta name="twitter:app:id:googleplay" content="com.roblox.client">
-         <meta name="twitter:app:url:googleplay" />
          <meta ng-csp="no-unsafe-eval">
          <meta name="locale-data"
             data-language-code="en_us"
@@ -107,7 +83,7 @@
             data-is-passkey-login-enabled="true" />
          <meta name="passkey-data-android"
             data-is-passkey-login-enabled-android="true" />
-         <meta name="page-meta" data-internal-page-name="Landing" />
+         <meta name="page-meta" data-internal-page-name="Login" />
          <meta name="page-retry-header-enabled" data-retry-attempt-header-enabled="True" />
          <script type="text/javascript">
             var Roblox = Roblox || {};
@@ -318,4 +294,48 @@
          }
          //mark that we logged this bundle
          this.bundlesReported[failedBundle] = true;
-         //e.g. ja
+         //e.g. javascriptBundleError_Computer
+         this.logToEphemeralCounter(ephemeralCounterName);
+         //this will also log to event stream
+         this.getCdnInfo(failedBundle, ctx, ctx);
+         var bundleName;
+         if (bundleTag.dataset) {
+         bundleName = bundleTag.dataset.bundlename;
+         }
+         else {
+         bundleName = bundleTag.getAttribute('data-bundlename');
+         }
+         this.getCdnProviderAndReportMetrics(failedBundle, bundleName, loadStates.loadFailure, contentType);
+         },
+         bundleDetected: function (bundleName) {
+         this.jsBundlesLoaded[bundleName] = true;
+         },
+         verifyBundles: function (document) {
+         var ephemeralCounterName = this.counterNames.jsFileError,
+         eventContext = ephemeralCounterName;
+         //grab all roblox script tags in the page. 
+         var scripts = (document && document.scripts) || window.document.scripts;
+         var errorsList = [];
+         var bundleName;
+         var monitor;
+         for (var i = 0; i < scripts.length; i++) {
+         var item = scripts[i];
+         if (item.dataset) {
+         bundleName = item.dataset.bundlename;
+         monitor = item.dataset.monitor;
+         }
+         else {
+         bundleName = item.getAttribute('data-bundlename');
+         monitor = item.getAttribute('data-monitor');
+         }
+         if (item.src && monitor && bundleName) {
+         if (!Roblox.BundleDetector.jsBundlesLoaded.hasOwnProperty(bundleName)) {
+         errorsList.push(item);
+         }
+         }
+         }
+         if (errorsList.length > 0) {
+         for (var j = 0; j < errorsList.length; j++) {
+         var script = errorsList[j];
+         if (!this.bundlesReported[script.src]) {
+         //log the counter
