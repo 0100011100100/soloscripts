@@ -35,11 +35,8 @@
 
         // Function to log out a banned user
         function logOutUser(username) {
-            // Clear the localStorage to log out the user
             localStorage.removeItem('username');
             localStorage.removeItem('profilePic');
-            
-            // Redirect to login page
             window.location.href = 'login.html';
         }
 
@@ -80,7 +77,6 @@
         window.onload = function() {
             checkUserBan(); // Check if user is banned
 
-            // Fetch the username and check if they are a developer
             const username = localStorage.getItem('username') || 'Guest';
             updateUserBadges(username);
         };
@@ -90,30 +86,97 @@
             const developerBadge = document.getElementById('developer-badge');
             const ownerBadge = document.getElementById('owner-badge');
 
-            // Display Developer badge if they are a developer
             isUserDeveloper(username).then(isDeveloper => {
                 developerBadge.style.display = isDeveloper ? 'inline-block' : 'none';
             });
 
-            // Display Owner badge if the username is 'zeptional'
             ownerBadge.style.display = username === 'zeptional' ? 'inline-block' : 'none';
         }
 
-        // Function to display popup messages
+        // Function to display chat messages with actions (Assign Developer, Ban User)
+        function addMessageToChat(username, messageText, profilePicUrl) {
+            const message = document.createElement('div');
+            message.classList.add('message');
+
+            const profileImage = document.createElement('img');
+            profileImage.src = profilePicUrl || 'default-profile-pic.png';
+            profileImage.classList.add('gradient-border');
+
+            const text = document.createElement('span');
+            text.innerHTML = `${username}: ${messageText}`;
+
+            const buttons = document.createElement('div');
+            buttons.classList.add('buttons');
+
+            // Ban User button
+            const banButton = document.createElement('button');
+            banButton.classList.add('ban-button');
+            banButton.textContent = 'Ban';
+            banButton.onclick = () => banUser(username);
+
+            // Assign/Remove Developer Badge button
+            const developerButton = document.createElement('button');
+            developerButton.classList.add('developer-button');
+            isUserDeveloper(username).then(isDeveloper => {
+                developerButton.textContent = isDeveloper ? 'Remove Developer' : 'Assign Developer';
+                developerButton.onclick = () => toggleDeveloperBadge(username, !isDeveloper);
+            });
+
+            buttons.appendChild(banButton);
+            buttons.appendChild(developerButton);
+
+            message.appendChild(profileImage);
+            message.appendChild(text);
+            message.appendChild(buttons);
+
+            document.getElementById('messages-container').appendChild(message);
+        }
+
+        // Function to display popups
         function showPopup(message, type) {
             const popup = document.getElementById('popup');
             popup.textContent = message;
             popup.classList.add('show', type === 'success' ? 'success' : 'error');
 
-            // Hide the popup after 3 seconds
             setTimeout(() => {
                 popup.classList.remove('show');
             }, 3000);
         }
+
+        // Handle sending messages
+        document.getElementById('chat-input').addEventListener('keypress', function (event) {
+            if (event.key === 'Enter') {
+                const messageText = event.target.value;
+                if (messageText) {
+                    sendMessage(localStorage.getItem('username') || 'Guest', messageText, localStorage.getItem('profilePic'));
+                    event.target.value = '';
+                }
+            }
+        });
+
+        // Send message to Firebase
+        function sendMessage(username, messageText, profilePicUrl) {
+            const messageRef = db.ref('messages').push();
+            messageRef.set({
+                username: username,
+                message: messageText,
+                profilePic: profilePicUrl,
+                timestamp: new Date().toISOString()
+            });
+        }
+
+        // Listen for new messages and render them
+        function listenForMessages() {
+            db.ref('messages').on('child_added', (snapshot) => {
+                const messageData = snapshot.val();
+                addMessageToChat(messageData.username, messageData.message, messageData.profilePic);
+            });
+        }
+
+        listenForMessages(); // Start listening for messages
     </script>
 
     <style>
-        /* Styles for the dashboard (same as before) */
         body {
             margin: 0;
             padding: 0;
@@ -143,7 +206,7 @@
             border: 3px solid white;
         }
 
-        .username {
+        .profile .username {
             font-size: 18px;
         }
 
@@ -190,31 +253,17 @@
             top: -100px;
         }
 
-        .popup.success {
-            background-color: #28a745;
-        }
-
-        .popup.error {
-            background-color: #dc3545;
-        }
-
-        /* Button styles for toggling developer badge */
-        .developer-button {
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .developer-button:hover {
-            background-color: #0056b3;
-        }
-
-        /* Chat Box styles */
+        /* Additional Styles */
         .chat-box {
             padding: 20px;
+        }
+
+        .chat-box input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            font-size: 14px;
         }
 
         .messages {
@@ -223,40 +272,46 @@
 
         .message {
             margin: 10px 0;
-            padding: 15px;
+            padding: 10px;
             background-color: #333;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .buttons {
-            display: flex;
-            align-items: center;
-        }
-
-        .delete-button, .ban-button {
-            margin-left: 10px;
-            padding: 8px 16px;
-            cursor: pointer;
-            border: none;
             border-radius: 5px;
-            transition: background-color 0.3s ease;
+            display: flex;
+            align-items: center;
         }
 
-        .delete-button {
-            background-color: red;
-            color: white;
+        .message img {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin-right: 10px;
+            border: 3px solid white;
         }
 
-        .ban-button {
-            background-color: orange;
-            color: white;
+        .message .buttons {
+            margin-left: auto;
         }
 
-        .ban-button:hover {
-            background-color: darkorange;
+        .message button {
+            margin-left: 10px;
+            background-color: #ff4444;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .message button:hover {
+            background-color: #ff7777;
+        }
+
+        @keyframes rainbow {
+            0% { border-color: red; }
+            16.6% { border-color: orange; }
+            33.2% { border-color: yellow; }
+            49.8% { border-color: green; }
+            66.4% { border-color: blue; }
+            83% { border-color: indigo; }
+            100% { border-color: violet; }
         }
     </style>
 </head>
@@ -265,15 +320,12 @@
 <div class="header">
     <div class="profile">
         <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture">
-        <div class="username" id="username-display"></div>
+        <div class="username" id="username-display">Guest</div>
         <div class="profile-badges">
             <span id="owner-badge" class="badge owner-badge" style="display: none;">Owner</span>
             <span id="developer-badge" class="badge developer-badge" style="display: none;">Developer</span>
         </div>
     </div>
-    <!-- Button to assign/remove Developer badge -->
-    <button class="developer-button" onclick="toggleDeveloperBadge('usernameHere', true)">Assign Developer</button>
-    <button class="developer-button" onclick="toggleDeveloperBadge('usernameHere', false)">Remove Developer</button>
 </div>
 
 <div class="chat-box">
