@@ -286,5 +286,36 @@
 
 <div id="messages-container" class="messages"></div>
 
+<script>
+    // Developer badge shown in chat
+    function addMessageToChat(username, messageText, profilePicUrl) {
+        const message = document.createElement('div');
+        message.classList.add('message');
+
+        const profileImage = document.createElement('img');
+        profileImage.src = profilePicUrl || 'default-profile-pic.png'; // Display the sender's profile picture
+
+        const text = document.createElement('span');
+        let badgeText = '';
+
+        // Add badges based on username
+        if (username === 'zeptional') {
+            badgeText = `<strong class="profile-owner-badge">Owner:</strong>`;
+        }
+
+        // Fetch if the user has a developer badge dynamically
+        hasDeveloperBadge(username).then(hasBadge => {
+            if (hasBadge) {
+                badgeText += `<strong class="profile-developer-badge">Developer:</strong>`;
+            }
+
+            text.innerHTML = `${badgeText} ${username}: ${messageText}`;
+            message.appendChild(profileImage);
+            message.appendChild(text);
+            messagesContainer.appendChild(message);
+        });
+    }
+</script>
+
 </body>
 </html>
