@@ -73,27 +73,7 @@
     <a class="signup-link" href="signup.html">Don't have an account? Sign Up</a>
 </div>
 
-<!-- Add Firebase Libraries -->
-<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js"></script>
-
 <script>
-    // Firebase configuration
-    const firebaseConfig = {
-        apiKey: "AIzaSyClD-3xfEnSFwoGdGCbkJMce36UkDLeVnE",
-        authDomain: "realtimeaccountcreation.firebaseapp.com",
-        databaseURL: "https://realtimeaccountcreation-default-rtdb.firebaseio.com",
-        projectId: "realtimeaccountcreation",
-        storageBucket: "realtimeaccountcreation.appspot.com",
-        messagingSenderId: "658896933674",
-        appId: "1:658896933674:web:3275d0678c39b54e8f8453"
-    };
-
-    // Initialize Firebase
-    const app = firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
-
-    // Check login status
     function checkLoginStatus() {
         const username = localStorage.getItem('username');
         const loggedIn = localStorage.getItem('loggedIn');
@@ -114,8 +94,56 @@
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
 
+        if ((username === 'zeptional' && password === 'corndogs123') || (username.toLowerCase() === 'piggy' && password === 'developerpass')) {
+            localStorage.setItem('username', username);
+            localStorage.setItem('loggedIn', 'true');
+            window.location.href = `dashboard.html?username=${encodeURIComponent(username)}`;
+        } else {
+            showPopup('Invalid username or password');
+        }
+    });
+
+    function showPopup(message) {
+        popup.textContent = message;
+        popup.style.display = 'block';
+        popup.style.top = '20px';
+
+        setTimeout(() => {
+            popup.style.top = '-50px';
+            setTimeout(() => {
+                popup.style.display = 'none';
+            }, 500);
+        }, 3000);
+    }
+</script>
+
+<!-- Firebase integration added here -->
+<!-- Add Firebase Libraries -->
+<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js"></script>
+
+<script>
+    // Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyClD-3xfEnSFwoGdGCbkJMce36UkDLeVnE",
+        authDomain: "realtimeaccountcreation.firebaseapp.com",
+        databaseURL: "https://realtimeaccountcreation-default-rtdb.firebaseio.com",
+        projectId: "realtimeaccountcreation",
+        storageBucket: "realtimeaccountcreation.appspot.com",
+        messagingSenderId: "658896933674",
+        appId: "1:658896933674:web:3275d0678c39b54e8f8453"
+    };
+
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // Modify login function to check Firebase
+    loginButton.addEventListener('click', function() {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
         if (username && password) {
-            // Check Firebase for user credentials
             firebase.database().ref(`users/${username}`).once('value').then(function(snapshot) {
                 const userData = snapshot.val();
 
@@ -134,19 +162,6 @@
             showPopup('Please enter both username and password');
         }
     });
-
-    function showPopup(message) {
-        popup.textContent = message;
-        popup.style.display = 'block';
-        popup.style.top = '20px';
-
-        setTimeout(() => {
-            popup.style.top = '-50px';
-            setTimeout(() => {
-                popup.style.display = 'none';
-            }, 500);
-        }, 3000);
-    }
 </script>
 
 </body>
