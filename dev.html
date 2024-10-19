@@ -14,7 +14,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"></script>
 
   <script>
-    // Your Firebase config object
+    // Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyAe0hXfAJ0ijKNiGgAVfv4zG1ngADF2E4c",
       authDomain: "chatapp-90c78.firebaseapp.com",
@@ -29,31 +29,33 @@
     const app = firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Reference to messages in the database
-    const messagesRef = db.ref('messages');
+    // Reference to the messages in the Realtime Database
+    const messagesRef = db.ref('/messages');
 
-    // Function to render messages
+    // Function to render messages in the DOM
     function renderMessages(snapshot) {
       const messageList = document.getElementById('message-list');
-      messageList.innerHTML = '';  // Clear list before rendering
+      messageList.innerHTML = '';  // Clear the message list
 
+      // Iterate over each message in the snapshot
       snapshot.forEach(childSnapshot => {
         const key = childSnapshot.key;
-        const message = childSnapshot.val().text; // Assuming messages have a "text" field
+        const messageData = childSnapshot.val(); // Get the message data
 
+        // Create a div for each message
         const messageItem = document.createElement('div');
         messageItem.innerHTML = `
-          <p><strong>${message}</strong></p>
+          <p><strong>${messageData.text || 'No text available'}</strong></p>
           <button onclick="deleteMessage('${key}')">Delete</button>
         `;
         messageList.appendChild(messageItem);
       });
     }
 
-    // Fetch and display messages
+    // Fetch and display messages from Firebase Realtime Database
     messagesRef.on('value', renderMessages);
 
-    // Delete message by key
+    // Function to delete a message by its key
     function deleteMessage(messageKey) {
       if (confirm('Are you sure you want to delete this message?')) {
         messagesRef.child(messageKey).remove()
