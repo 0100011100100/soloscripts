@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roblox Group Wall Chat</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #chatBox {
+            width: 100%;
+            height: 200px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            overflow-y: scroll;
+        }
+        #messageInput {
+            width: calc(100% - 20px);
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Roblox Group Wall Chat</h1>
+<div id="chatBox"></div>
+<input type="text" id="messageInput" placeholder="Type your message here...">
+<button id="sendMessage">Send</button>
+
+<script>
+    const groupId = 'YOUR_GROUP_ID';  // Replace with your group ID
+    const chatBox = document.getElementById('chatBox');
+    const messageInput = document.getElementById('messageInput');
+    const sendMessageButton = document.getElementById('sendMessage');
+
+    sendMessageButton.addEventListener('click', function() {
+        const message = messageInput.value;
+
+        if (message) {
+            // Simulate posting message (actual posting not possible from client-side)
+            chatBox.innerHTML += `<p><strong>You:</strong> ${message}</p>`;
+            messageInput.value = '';  // Clear input field
+            
+            // Here, you would typically call your server to post the message to the Roblox API
+            // Example: postMessageToRobloxAPI(message);
+        } else {
+            alert('Please enter a message.');
+        }
+    });
+
+    function postMessageToRobloxAPI(message) {
+        // Placeholder for server-side function to post message
+        // This function would handle the API request to Roblox
+        // You can use fetch or XMLHttpRequest here
+    }
+</script>
+
+</body>
+</html>
