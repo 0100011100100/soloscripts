@@ -41,8 +41,8 @@
         }
 
         .profile-owner-badge {
-            font-size: 12px;
-            padding: 3px 10px;
+            font-size: 16px; /* Increased size */
+            padding: 5px 12px; /* Increased padding */
             background: linear-gradient(90deg, #ffcc00, #e63946);
             color: white;
             border-radius: 5px;
@@ -50,8 +50,8 @@
         }
 
         .profile-developer-badge {
-            font-size: 12px;
-            padding: 3px 10px;
+            font-size: 16px; /* Increased size */
+            padding: 5px 12px; /* Increased padding */
             background: linear-gradient(90deg, #ff00ff, #00ffff);
             color: white;
             border-radius: 5px;
@@ -263,58 +263,70 @@
     };
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    const db
 
-    // Function to send message to Firebase
-    function sendMessage(username, messageText, profilePicUrl) {
-        const messageRef = db.ref('messages').push();
-        messageRef.set({
-            username: username,
-            message: messageText,
-            profilePic: profilePicUrl,
-            timestamp: new Date().toISOString()
-        });
-    }
+2/2
 
-    // Listen for new messages in Firebase
-    function listenForMessages() {
-        db.ref('messages').on('child_added', (snapshot) => {
-            const messageData = snapshot.val();
-            addMessageToChat(messageData.username, messageData.message, messageData.profilePic);
-        });
-    }
 
-    // Check if the user is banned
-    function checkUserBan(username) {
-        db.ref('bannedUsers/' + username).once('value').then(snapshot => {
-            if (snapshot.val()) {
-                window.location.href = 'login.html'; // Redirect banned user to login page
-            }
-        });
-    }
 
-    // Check if the user has the Developer badge
-    function hasDeveloperBadge(username) {
-        return db.ref('users/' + username + '/badges/developer').once('value').then(snapshot => !!snapshot.val());
-    }
 
-    // Fetch username and check for ban and developer badge on load
-    window.onload = function() {
-        const username = localStorage.getItem('username') || 'Guest';
-        const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
 
-        checkUserBan(username); // Check if user is banned
-        hasDeveloperBadge(username).then(hasBadge => {
-            if (hasBadge) {
-                developerBadge.style.display = 'inline-block'; // Show Developer badge if the user has it
-            }
-        });
 
-        usernameDisplay.textContent = username; // Display username here
-        profilePic.src = profilePictureUrl;
-        listenForMessages(); // Start listening for messages
-    };
-</script>
+ChatGPT said:
+ChatGPT
+= firebase.database();
 
+javascript
+Copy code
+// Function to send messages to Firebase
+function sendMessage(username, messageText, profilePicUrl) {
+    const messageRef = db.ref('messages').push();
+    messageRef.set({
+        username: username,
+        message: messageText,
+        profilePic: profilePicUrl,
+        timestamp: new Date().toISOString()
+    });
+}
+
+// Listen for new messages in Firebase
+function listenForMessages() {
+    db.ref('messages').on('child_added', (snapshot) => {
+        const messageData = snapshot.val();
+        addMessageToChat(messageData.username, messageData.message, messageData.profilePic);
+    });
+}
+
+// Check if the user is banned
+function checkUserBan(username) {
+    db.ref('bannedUsers/' + username).once('value').then(snapshot => {
+        if (snapshot.val()) {
+            window.location.href = 'login.html'; // Redirect banned user to login page
+        }
+    });
+}
+
+// Check if the user has the Developer badge
+function hasDeveloperBadge(username) {
+    return db.ref('users/' + username + '/badges/developer').once('value').then(snapshot => !!snapshot.val());
+}
+
+// Fetch username and check for ban and developer badge on load
+window.onload = function() {
+    const username = localStorage.getItem('username') || 'Guest';
+    const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
+
+    checkUserBan(username); // Check if user is banned
+    hasDeveloperBadge(username).then(hasBadge => {
+        if (hasBadge) {
+            developerBadge.style.display = 'inline-block'; // Show Developer badge if the user has it
+        }
+    });
+
+    usernameDisplay.textContent = username; // Display username here
+    profilePic.src = profilePictureUrl;
+    listenForMessages(); // Start listening for messages
+};
+</script> 
 </body>
 </html>
