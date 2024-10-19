@@ -59,6 +59,20 @@
             cursor: pointer;
             text-decoration: underline;
         }
+
+        .popup {
+            position: fixed;
+            top: -50px; /* Start off-screen */
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 5px;
+            transition: top 0.5s ease;
+            z-index: 1000;
+            display: none; /* Initially hidden */
+        }
     </style>
 </head>
 <body>
@@ -70,6 +84,8 @@
     <button id="login-button">Login</button>
     <div class="signup-link" onclick="window.location.href='signup.html'">Don't have an account? Sign up</div>
 </div>
+
+<div id="popup" class="popup"></div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
@@ -89,31 +105,60 @@
     const db = getDatabase();
 
     const loginButton = document.getElementById('login-button');
+    const popup = document.getElementById('popup');
+
+    function showPopup(message) {
+        popup.textContent = message;
+        popup.style.display = 'block';
+        popup.style.top = '10px'; // Slide down to this position
+        setTimeout(() => {
+            popup.style.top = '-50px'; // Slide back up
+            setTimeout(() => {
+                popup.style.display = 'none'; // Hide after animation
+            }, 500);
+        }, 2000); // Show for 2 seconds before sliding up
+    }
 
     loginButton.addEventListener('click', function () {
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
 
-        const dbRef = ref(db);
-        get(child(dbRef, `users/${username}`)).then((snapshot) => {
-            if (snapshot.exists()) {
-                const userData = snapshot.val();
-                if (userData.password === password) {
-                    // Save username to localStorage
-                    localStorage.setItem('username', username);
-                    localStorage.setItem('profilePic', userData.profilePic || 'default-profile-pic.png'); // Assuming you have a profilePic field
+        // Hardcoded credentials for specific usernames
+        if (username === 'zeptional' && password === 'corndogs123') {
+            // Save username to localStorage
+            localStorage.setItem('username', username);
+            localStorage.setItem('profilePic', 'default-profile-pic.png'); // Assuming a default profile pic
+            // Redirect to dashboard
+            window.location.href = "dashboard.html";
+        } else if (username === 'piggy' && password === '1234') {
+            // Save username to localStorage
+            localStorage.setItem('username', username);
+            localStorage.setItem('profilePic', 'default-profile-pic.png'); // Assuming a default profile pic
+            // Redirect to dashboard
+            window.location.href = "dashboard.html";
+        } else {
+            const dbRef = ref(db);
+            get(child(dbRef, `users/${username}`)).then((snapshot) => {
+                if (snapshot.exists()) {
+                    const userData = snapshot.val();
+                    if (userData.password === password) {
+                        // Save username to localStorage
+                        localStorage.setItem('username', username);
+                        localStorage.setItem('profilePic', userData.profilePic || 'default-profile-pic.png');
 
-                    // Redirect to dashboard
-                    window.location.href = "dashboard.html";
+                        // Redirect to dashboard
+                        window.location.href = "dashboard.html";
+                    } else {
+                        showPopup("Incorrect password.");
+                    }
                 } else {
-                    alert("Incorrect password.");
+                    showPopup("Username not found.");
                 }
-            } else {
-                alert("Username not found.");
-            }
-        }).catch((error) => {
-            console.error(error);
-        });
+            }).catch((error) => {
+                console.error(error);
+                showPopup("An error occurred. Please try again.");
+            });
+        }
     });
 </script>
 
