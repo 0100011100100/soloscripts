@@ -58,11 +58,19 @@
             db.ref('users/' + username + '/badges/developer').set(true)
                 .then(() => {
                     showPopup(`${username} has been given the Developer badge!`, 'success');
-                    if (localStorage.getItem('username') === username) {
-                        showDeveloperBadge(); // Show the badge to the current user if they are assigned it
-                    }
+                    updateChatWithBadge(username); // Update the chat to show the Developer badge
                 })
                 .catch(error => showPopup(`Error assigning Developer badge: ${error.message}`, 'error'));
+        }
+
+        // Function to update the chat to show the Developer badge
+        function updateChatWithBadge(username) {
+            db.ref('messages').orderByChild('username').equalTo(username).once('value', snapshot => {
+                snapshot.forEach(childSnapshot => {
+                    const messageData = childSnapshot.val();
+                    addMessageToChat(childSnapshot.key, messageData.username, messageData.message, messageData.profilePic, true);
+                });
+            });
         }
 
         // Function to check if the user is banned
@@ -274,11 +282,11 @@
         }
 
         .popup.success {
-            background-color: #28a745;
+            background-color: green;
         }
 
         .popup.error {
-            background-color: #dc3545;
+            background-color: red;
         }
     </style>
 </head>
@@ -324,7 +332,7 @@
     }
 
     // Function to add messages to the chat
-    function addMessageToChat(messageKey, username, messageText, profilePicUrl) {
+    function addMessageToChat(messageKey, username, messageText, profilePicUrl, isDeveloper = false) {
         const message = document.createElement('div');
         message.classList.add('message');
         message.id = 'message-' + messageKey;
@@ -334,6 +342,14 @@
 
         const text = document.createElement('span');
         text.textContent = `${username}: ${messageText}`;
+
+        // Show the Developer badge if the user is a developer
+        if (isDeveloper) {
+            const devBadge = document.createElement('span');
+            devBadge.classList.add('badge', 'developer-badge');
+            devBadge.textContent = 'Developer';
+            text.appendChild(devBadge);
+        }
 
         const buttons = document.createElement('div');
         buttons.classList.add('buttons');
