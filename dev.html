@@ -37,27 +37,26 @@
       const messageList = document.getElementById('message-list');
       messageList.innerHTML = '';  // Clear the message list
 
-      // Iterate over each message in the snapshot
+      // Iterate over each child (key) under the `messages` parent node
       snapshot.forEach(childSnapshot => {
         const key = childSnapshot.key;
-        const messageData = childSnapshot.val(); // Get the message data
 
-        // Create a div for each message
+        // Create a div for each key
         const messageItem = document.createElement('div');
         messageItem.innerHTML = `
-          <p><strong>${messageData.text || 'No text available'}</strong></p>
+          <p><strong>Key: ${key}</strong></p>
           <button onclick="deleteMessage('${key}')">Delete</button>
         `;
         messageList.appendChild(messageItem);
       });
     }
 
-    // Fetch and display messages from Firebase Realtime Database
+    // Fetch and display message keys from Firebase Realtime Database
     messagesRef.on('value', renderMessages);
 
     // Function to delete a message by its key
     function deleteMessage(messageKey) {
-      if (confirm('Are you sure you want to delete this message?')) {
+      if (confirm(`Are you sure you want to delete the message with key: ${messageKey}?`)) {
         messagesRef.child(messageKey).remove()
           .then(() => {
             alert('Message deleted successfully');
