@@ -39,14 +39,18 @@
             db.ref('bannedUsers/' + username).set(true)
                 .then(() => {
                     showPopup(`${username} has been banned!`, 'success');
-                    // If the current user is being banned, redirect to login page
-                    const currentUser = localStorage.getItem('username');
-                    if (currentUser === username) {
-                        localStorage.removeItem('username'); // Clear the username
-                        window.location.href = 'login.html'; // Redirect to login
-                    }
+                    deleteUserMessages(username); // Delete all messages for the banned user
                 })
                 .catch(error => showPopup(`Error banning user: ${error.message}`, 'error'));
+        }
+
+        // Function to delete all messages from a banned user
+        function deleteUserMessages(username) {
+            db.ref('messages').orderByChild('username').equalTo(username).once('value', snapshot => {
+                snapshot.forEach(childSnapshot => {
+                    childSnapshot.ref.remove();
+                });
+            });
         }
 
         // Function to assign the Developer badge to a user
@@ -97,6 +101,7 @@
             isUserBanned(username).then(isBanned => {
                 if (isBanned) {
                     localStorage.removeItem('username'); // Clear the stored username
+                    deleteUserMessages(username); // Delete all messages of the banned user
                     window.location.href = 'login.html'; // Redirect to login page
                 }
             });
@@ -124,6 +129,157 @@
 
     <style>
         /* Your CSS styles remain unchanged */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #1e1e1e;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #444;
+            padding: 10px 20px;
+        }
+
+        .profile {
+            display: flex;
+            align-items: center;
+        }
+
+        .profile img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+            border: 3px solid white;
+        }
+
+        .username {
+            font-size: 18px;
+        }
+
+        .profile-badges {
+            margin-left: 10px;
+        }
+
+        .badge {
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+
+        .owner-badge {
+            background: linear-gradient(90deg, #ffcc00, #e63946);
+        }
+
+        .developer-badge {
+            background: linear-gradient(90deg, #ff00ff, #00ffff);
+            animation: rainbow 3s linear infinite;
+        }
+
+        .chat-box {
+            padding: 20px;
+        }
+
+        .messages {
+            margin-top: 20px;
+        }
+
+        .message {
+            margin: 10px 0;
+            padding: 15px;
+            background-color: #333;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background-color 0.3s ease;
+        }
+
+        .message img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 15px;
+            border: 2px solid white;
+        }
+
+        .buttons {
+            display: flex;
+            align-items: center;
+        }
+
+        .button {
+            margin-left: 10px;
+            padding: 8px 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .delete-button {
+            background-color: red;
+            color: white;
+        }
+
+        .delete-button:hover {
+            background-color: darkred;
+        }
+
+        .ban-button {
+            background-color: orange;
+            color: white;
+        }
+
+        .ban-button:hover {
+            background-color: darkorange;
+        }
+
+        .dev-badge-button {
+            background-color: blue;
+            color: white;
+        }
+
+        .dev-badge-button:hover {
+            background-color: darkblue;
+        }
+
+        /* Popup Styles */
+        .popup {
+            position: fixed;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            z-index: 1000;
+            font-size: 16px;
+            transition: top 0.6s ease;
+        }
+
+        .popup.show {
+            top: 20px;
+        }
+
+        .popup.hide {
+            top: -100px;
+        }
+
+        .popup.success {
+            background-color: #28a745;
+        }
+
+        .popup.error {
+            background-color: #dc3545;
+        }
     </style>
 </head>
 <body>
@@ -167,13 +323,6 @@
         ownerBadge.style.display = 'inline-block';
     }
 
-    // Show the Developer badge if the username has it stored in Firebase
-    hasDeveloperBadge(username).then(hasBadge => {
-        if (hasBadge) {
-            showDeveloperBadge();
-        }
-    });
-
     // Function to add messages to the chat
     function addMessageToChat(messageKey, username, messageText, profilePicUrl) {
         const message = document.createElement('div');
@@ -206,16 +355,16 @@
         };
 
         // Assign Developer Badge Button
-        const devBadgeButton = document.createElement('button');
-        devBadgeButton.classList.add('button', 'dev-badge-button');
-        devBadgeButton.textContent = 'Assign Developer';
-        devBadgeButton.onclick = function() {
+        const assignDevBadgeButton = document.createElement('button');
+        assignDevBadgeButton.classList.add('button', 'dev-badge-button');
+        assignDevBadgeButton.textContent = 'Assign Developer Badge';
+        assignDevBadgeButton.onclick = function() {
             assignDeveloperBadge(username);
         };
 
         buttons.appendChild(deleteButton);
         buttons.appendChild(banButton);
-        buttons.appendChild(devBadgeButton);
+        buttons.appendChild(assignDevBadgeButton);
 
         message.appendChild(profileImage);
         message.appendChild(text);
