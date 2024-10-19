@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token Extractor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            margin-top: 10px;
+        }
+        button {
+            margin-top: 10px;
+        }
+        #output {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            background: #f9f9f9;
+        }
+        #tokens {
+            margin-top: 10px;
+            color: blue;
+        }
+    </style>
+</head>
+<body>
+    <h1>Token Extractor</h1>
+    <textarea id="codeInput" placeholder="Paste your JavaScript code here..."></textarea>
+    <button id="extractButton">Extract Tokens</button>
+    
+    <div id="output"></div>
+    <div id="tokens"></div>
+
+    <script>
+        document.getElementById('extractButton').addEventListener('click', () => {
+            const code = document.getElementById('codeInput').value;
+            document.getElementById('output').innerText = `Original Code:\n${code}`;
+
+            // Regular expressions to extract potential tokens
+            const jwtPattern = /([A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+)/g;
+            const apiKeyPattern = /['"]?([A-Za-z0-9-_]{32,})['"]?/g;
+            const accessTokenPattern = /accessToken:\s*['"]?([A-Za-z0-9-_]{32,})['"]?/g;
+
+            // Extracting tokens
+            const jwtMatches = code.match(jwtPattern) || [];
+            const apiKeyMatches = code.match(apiKeyPattern) || [];
+            const accessTokenMatches = code.match(accessTokenPattern) || [];
+
+            // Display extracted tokens
+            const allTokens = [...jwtMatches, ...apiKeyMatches, ...accessTokenMatches];
+            document.getElementById('tokens').innerText = allTokens.length > 0 
+                ? `Extracted Tokens:\n${allTokens.join('\n')}`
+                : 'No tokens found.';
+        });
+    </script>
+</body>
+</html>
