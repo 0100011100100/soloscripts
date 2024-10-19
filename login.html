@@ -4,141 +4,146 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Login</title>
-    <link rel="stylesheet" href="styles.css">
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyClD-3xfEnSFwoGdGCbkJMce36UkDLeVnE",
+            authDomain: "realtimeaccountcreation.firebaseapp.com",
+            databaseURL: "https://realtimeaccountcreation-default-rtdb.firebaseio.com",
+            projectId: "realtimeaccountcreation",
+            storageBucket: "realtimeaccountcreation.appspot.com",
+            messagingSenderId: "658896933674",
+            appId: "1:658896933674:web:3275d0678c39b54e8f8453"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // Function to check login credentials
+        async function checkLogin(username, password) {
+            const dbRef = ref(db);
+            try {
+                const snapshot = await get(child(dbRef, `users/${username}`));
+                if (snapshot.exists() && snapshot.val().password === password) {
+                    return true;
+                }
+            } catch (error) {
+                console.error("Error accessing database:", error);
+            }
+            return false;
+        }
+
+        // Show message
+        function showMessage(msg, type) {
+            const messageElement = document.getElementById('message');
+            messageElement.textContent = msg;
+            messageElement.className = type === 'error' ? 'error-message' : 'success-message';
+            messageElement.style.display = 'block';
+            setTimeout(() => {
+                messageElement.style.display = 'none';
+            }, 3000);
+        }
+
+        // Event listeners for login button and sign-up button
+        document.addEventListener("DOMContentLoaded", () => {
+            document.getElementById('login-btn').addEventListener('click', async function() {
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+
+                const isValid = await checkLogin(username, password);
+                if (isValid) {
+                    window.location.href = `dashboard.html?username=${encodeURIComponent(username)}`;
+                } else {
+                    showMessage('Invalid username or password', 'error');
+                }
+            });
+
+            document.getElementById('signup-btn').addEventListener('click', function() {
+                window.location.href = 'signup.html';
+            });
+        });
+    </script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #1e1e1e;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .form-container {
+            background-color: #333;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            width: 300px;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: none;
+            background-color: #444;
+            color: white;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .message {
+            display: none;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        .error-message {
+            color: red;
+        }
+
+        .success-message {
+            color: green;
+        }
+    </style>
 </head>
 <body>
 
-<div class="overlay">
-    <div class="form-container">
-        <h2>Login to Your Account</h2>
-        <input type="text" id="username" placeholder="Enter Username" required>
-        <input type="password" id="password" placeholder="Enter Password" required>
-        <button id="login-btn">Login</button>
-        <button id="signup-btn">Sign Up</button>
-        <div id="message" class="message"></div>
-    </div>
+<div class="form-container">
+    <h2>Login to Your Account</h2>
+    <input type="text" id="username" placeholder="Enter Username" required>
+    <input type="password" id="password" placeholder="Enter Password" required>
+    <button id="login-btn">Login</button>
+    <button id="signup-btn">Sign Up</button>
+    <div id="message" class="message"></div>
 </div>
-
-<script>
-    // Firebase configuration
-    const firebaseConfig = {
-        apiKey: "AIzaSyClD-3xfEnSFwoGdGCbkJMce36UkDLeVnE",
-        authDomain: "realtimeaccountcreation.firebaseapp.com",
-        databaseURL: "https://realtimeaccountcreation-default-rtdb.firebaseio.com",
-        projectId: "realtimeaccountcreation",
-        storageBucket: "realtimeaccountcreation.appspot.com",
-        messagingSenderId: "658896933674",
-        appId: "1:658896933674:web:3275d0678c39b54e8f8453"
-    };
-
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
-
-    // Login functionality
-    document.getElementById('login-btn').addEventListener('click', function() {
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
-
-        firebase.database().ref('users/' + username).once('value').then((snapshot) => {
-            const userData = snapshot.val();
-            if (userData && userData.password === password) {
-                window.location.href = `dashboard.html?username=${encodeURIComponent(username)}`;
-            } else {
-                showMessage('Invalid username or password', 'error');
-            }
-        }).catch((error) => {
-            showMessage('Error accessing the database', 'error');
-        });
-    });
-
-    // Redirect to signup page
-    document.getElementById('signup-btn').addEventListener('click', function() {
-        window.location.href = 'signup.html';
-    });
-
-    // Function to display messages
-    function showMessage(msg, type) {
-        const messageElement = document.getElementById('message');
-        messageElement.textContent = msg;
-        messageElement.className = type === 'error' ? 'error-message' : 'success-message';
-        messageElement.style.display = 'block';
-        setTimeout(() => {
-            messageElement.style.display = 'none';
-        }, 3000);
-    }
-</script>
-
-<style>
-    body {
-        margin: 0;
-        padding: 0;
-        background-color: #121212;
-        color: white;
-        font-family: Arial, sans-serif;
-    }
-
-    .overlay {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-    }
-
-    .form-container {
-        background-color: #1e1e1e;
-        padding: 30px;
-        border-radius: 8px;
-        text-align: center;
-        width: 300px;
-    }
-
-    h2 {
-        margin-bottom: 20px;
-    }
-
-    input[type="text"],
-    input[type="password"] {
-        width: 100%;
-        padding: 10px;
-        margin: 10px 0;
-        border-radius: 5px;
-        border: none;
-        background-color: #333;
-        color: white;
-    }
-
-    button {
-        width: 100%;
-        padding: 10px;
-        margin-top: 10px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        background-color: #007BFF;
-        color: white;
-        font-weight: bold;
-    }
-
-    button:hover {
-        background-color: #0056b3;
-    }
-
-    .message {
-        display: none;
-        margin-top: 10px;
-    }
-
-    .error-message {
-        color: red;
-    }
-
-    .success-message {
-        color: green;
-    }
-</style>
 
 </body>
 </html>
