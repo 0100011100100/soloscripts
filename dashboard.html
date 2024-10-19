@@ -64,7 +64,7 @@
             checkUserBan(username); // Check if user is banned
             hasDeveloperBadge(username).then(hasBadge => {
                 if (hasBadge) {
-                    developerBadge.style.display = 'inline-block'; // Show Developer badge if the user has it
+                    developerBadge.style.display = 'inline-block'; // Show Developer badge at the top if the user has it
                 }
             });
 
@@ -274,8 +274,8 @@
 <div class="header">
     <div class="profile">
         <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture" class="profile-picture">
-        <span id="username-display" class="username"></span>
-        <strong id="developer-badge" class="profile-developer-badge" style="display: none;">Developer</strong>
+        <span id="username-display" class="username">Guest</span>
+        <strong id="profile-developer-badge" class="profile-developer-badge" style="display: none;">Developer</strong>
     </div>
     <button id="signout-button" onclick="signOut()">Sign Out</button>
 </div>
