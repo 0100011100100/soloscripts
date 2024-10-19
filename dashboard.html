@@ -68,7 +68,7 @@
                 }
             });
 
-            usernameDisplay.textContent = username; // Display username here
+            usernameDisplay.textContent = username;
             profilePic.src = profilePictureUrl;
             listenForMessages(); // Start listening for messages
         };
@@ -86,12 +86,12 @@
 
             // Add badges based on username
             if (username === 'zeptional') {
-                badgeText = <strong class="profile-owner-badge">Owner:</strong>;
+                badgeText = `<strong class="profile-owner-badge">Owner:</strong>`;
             } else if (username.toLowerCase() === 'piggy') {
-                badgeText = <strong class="profile-developer-badge">Developer:</strong>;
+                badgeText = `<strong class="profile-developer-badge">Developer:</strong>`;
             }
 
-            text.innerHTML = ${badgeText} ${username}: ${messageText};
+            text.innerHTML = `${badgeText} ${username}: ${messageText}`;
             message.appendChild(profileImage);
             message.appendChild(text);
             messagesContainer.appendChild(message);
@@ -269,7 +269,7 @@
 <div class="header">
     <div class="profile">
         <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture" class="profile-picture">
-        <div class="username" id="username-display"></div> <!-- Username display -->
+        <div class="username" id="username-display"></div>
         <div id="owner-badge" class="profile-owner-badge" style="display: none;">Owner</div>
         <div id="developer-badge" class="profile-developer-badge" style="display: none;">Developer</div>
     </div>
@@ -330,12 +330,12 @@
 
         // Add badges in chat based on username
         if (username === 'zeptional') {
-            badgeText = <strong class="profile-owner-badge">Owner:</strong>;
+            badgeText = `<strong class="profile-owner-badge">Owner:</strong>`;
         } else if (username.toLowerCase() === 'piggy') {
-            badgeText = <strong class="profile-developer-badge">Developer:</strong>;
+            badgeText = `<strong class="profile-developer-badge">Developer:</strong>`;
         }
 
-        text.innerHTML = ${badgeText} ${username}: ${messageText};
+        text.innerHTML = `${badgeText} ${username}: ${messageText}`;
         message.appendChild(profileImage);
         message.appendChild(text);
         messagesContainer.appendChild(message);
