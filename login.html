@@ -3,70 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Login</title>
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
-
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyClD-3xfEnSFwoGdGCbkJMce36UkDLeVnE",
-            authDomain: "realtimeaccountcreation.firebaseapp.com",
-            databaseURL: "https://realtimeaccountcreation-default-rtdb.firebaseio.com",
-            projectId: "realtimeaccountcreation",
-            storageBucket: "realtimeaccountcreation.appspot.com",
-            messagingSenderId: "658896933674",
-            appId: "1:658896933674:web:3275d0678c39b54e8f8453"
-        };
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-
-        // Function to check login credentials
-        async function checkLogin(username, password) {
-            const dbRef = ref(db);
-            try {
-                const snapshot = await get(child(dbRef, `users/${username}`));
-                if (snapshot.exists() && snapshot.val().password === password) {
-                    return true;
-                }
-            } catch (error) {
-                console.error("Error accessing database:", error);
-            }
-            return false;
-        }
-
-        // Show message
-        function showMessage(msg, type) {
-            const messageElement = document.getElementById('message');
-            messageElement.textContent = msg;
-            messageElement.className = type === 'error' ? 'error-message' : 'success-message';
-            messageElement.style.display = 'block';
-            setTimeout(() => {
-                messageElement.style.display = 'none';
-            }, 3000);
-        }
-
-        // Event listeners for login button and sign-up button
-        document.addEventListener("DOMContentLoaded", () => {
-            document.getElementById('login-btn').addEventListener('click', async function() {
-                const username = document.getElementById('username').value;
-                const password = document.getElementById('password').value;
-
-                const isValid = await checkLogin(username, password);
-                if (isValid) {
-                    window.location.href = `dashboard.html?username=${encodeURIComponent(username)}`;
-                } else {
-                    showMessage('Invalid username or password', 'error');
-                }
-            });
-
-            document.getElementById('signup-btn').addEventListener('click', function() {
-                window.location.href = 'signup.html';
-            });
-        });
-    </script>
+    <title>Login</title>
     <style>
         body {
             margin: 0;
@@ -81,15 +18,14 @@
             height: 100vh;
         }
 
-        .form-container {
+        .container {
             background-color: #333;
             padding: 20px;
             border-radius: 10px;
             text-align: center;
-            width: 300px;
         }
 
-        h2 {
+        h1 {
             margin-bottom: 20px;
         }
 
@@ -100,8 +36,6 @@
             margin: 10px 0;
             border-radius: 5px;
             border: none;
-            background-color: #444;
-            color: white;
         }
 
         button {
@@ -112,38 +46,76 @@
             border-radius: 5px;
             cursor: pointer;
             margin-top: 10px;
-            width: 100%;
         }
 
         button:hover {
             background-color: #0056b3;
         }
 
-        .message {
-            display: none;
-            margin-top: 10px;
-            font-weight: bold;
-        }
-
-        .error-message {
-            color: red;
-        }
-
-        .success-message {
-            color: green;
+        .signup-link {
+            margin-top: 15px;
+            display: block;
+            color: #007BFF;
+            cursor: pointer;
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
 
-<div class="form-container">
-    <h2>Login to Your Account</h2>
-    <input type="text" id="username" placeholder="Enter Username" required>
-    <input type="password" id="password" placeholder="Enter Password" required>
-    <button id="login-btn">Login</button>
-    <button id="signup-btn">Sign Up</button>
-    <div id="message" class="message"></div>
+<div class="container">
+    <h1>Login</h1>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <button id="login-button">Login</button>
+    <div class="signup-link" onclick="window.location.href='signup.html'">Don't have an account? Sign up</div>
 </div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyClD-3xfEnSFwoGdGCbkJMce36UkDLeVnE",
+        authDomain: "realtimeaccountcreation.firebaseapp.com",
+        databaseURL: "https://realtimeaccountcreation-default-rtdb.firebaseio.com",
+        projectId: "realtimeaccountcreation",
+        storageBucket: "realtimeaccountcreation.appspot.com",
+        messagingSenderId: "658896933674",
+        appId: "1:658896933674:web:3275d0678c39b54e8f8453"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase();
+
+    const loginButton = document.getElementById('login-button');
+
+    loginButton.addEventListener('click', function () {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        const dbRef = ref(db);
+        get(child(dbRef, `users/${username}`)).then((snapshot) => {
+            if (snapshot.exists()) {
+                const userData = snapshot.val();
+                if (userData.password === password) {
+                    // Save username to localStorage
+                    localStorage.setItem('username', username);
+                    localStorage.setItem('profilePic', userData.profilePic || 'default-profile-pic.png'); // Assuming you have a profilePic field
+
+                    // Redirect to dashboard
+                    window.location.href = "dashboard.html";
+                } else {
+                    alert("Incorrect password.");
+                }
+            } else {
+                alert("Username not found.");
+            }
+        }).catch((error) => {
+            console.error(error);
+        });
+    });
+</script>
 
 </body>
 </html>
