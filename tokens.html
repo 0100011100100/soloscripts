@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Token Extractor</title>
+    <title>Token Extractor with Explanations</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -17,25 +17,26 @@
         button {
             margin-top: 10px;
         }
-        #output {
+        #output, #tokens {
             margin-top: 20px;
             border: 1px solid #ccc;
             padding: 10px;
             background: #f9f9f9;
         }
-        #tokens {
+        .token-info {
             margin-top: 10px;
             color: blue;
         }
     </style>
 </head>
 <body>
-    <h1>Token Extractor</h1>
+    <h1>Token Extractor with Explanations</h1>
     <textarea id="codeInput" placeholder="Paste your JavaScript code here..."></textarea>
     <button id="extractButton">Extract Tokens</button>
     
     <div id="output"></div>
     <div id="tokens"></div>
+    <div id="tokenInfo" class="token-info"></div>
 
     <script>
         document.getElementById('extractButton').addEventListener('click', () => {
@@ -57,6 +58,23 @@
             document.getElementById('tokens').innerText = allTokens.length > 0 
                 ? `Extracted Tokens:\n${allTokens.join('\n')}`
                 : 'No tokens found.';
+
+            // Provide explanations for each type of token
+            let explanations = '';
+            allTokens.forEach(token => {
+                if (jwtPattern.test(token)) {
+                    explanations += `\n- ${token}: This is a JWT (JSON Web Token), typically used for authentication and information exchange. It can be placed in HTTP headers or cookies to validate user sessions.`;
+                }
+                if (apiKeyPattern.test(token)) {
+                    explanations += `\n- ${token}: This is an API key, used to authenticate requests made to an API. It should be kept secret and is typically sent in request headers or URL parameters.`;
+                }
+                if (accessTokenPattern.test(token)) {
+                    explanations += `\n- ${token}: This is an access token, usually provided after a user logs in. It grants access to specific resources and should be included in HTTP requests to protected endpoints.`;
+                }
+            });
+
+            // Display token information
+            document.getElementById('tokenInfo').innerText = explanations || 'No token explanations available.';
         });
     </script>
 </body>
