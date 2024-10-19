@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Token Extractor with Explanations</title>
+    <title>Advanced Token Extractor</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -27,16 +27,24 @@
             margin-top: 10px;
             color: blue;
         }
+        .image-container {
+            margin-top: 10px;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
     </style>
 </head>
 <body>
-    <h1>Token Extractor with Explanations</h1>
+    <h1>Advanced Token Extractor with AI Explanations</h1>
     <textarea id="codeInput" placeholder="Paste your JavaScript code here..."></textarea>
     <button id="extractButton">Extract Tokens</button>
     
     <div id="output"></div>
     <div id="tokens"></div>
     <div id="tokenInfo" class="token-info"></div>
+    <div id="imageContainer" class="image-container"></div>
 
     <script>
         document.getElementById('extractButton').addEventListener('click', () => {
@@ -59,22 +67,28 @@
                 ? `Extracted Tokens:\n${allTokens.join('\n')}`
                 : 'No tokens found.';
 
-            // Provide explanations for each type of token
+            // Provide AI-powered explanations for each type of token
             let explanations = '';
+            let images = '';
+
             allTokens.forEach(token => {
                 if (jwtPattern.test(token)) {
-                    explanations += `\n- ${token}: This is a JWT (JSON Web Token), typically used for authentication and information exchange. It can be placed in HTTP headers or cookies to validate user sessions.`;
+                    explanations += `\n- **${token}**: This is a JWT (JSON Web Token), typically used for authentication. It consists of three parts: Header, Payload, and Signature. JWTs are often placed in the Authorization header as a Bearer token. If compromised, attackers can impersonate users, gaining unauthorized access to sensitive resources.`;
+                    images += `<img src="https://via.placeholder.com/400x200?text=JWT+Token+Placement" alt="JWT Token Placement">`;
                 }
                 if (apiKeyPattern.test(token)) {
-                    explanations += `\n- ${token}: This is an API key, used to authenticate requests made to an API. It should be kept secret and is typically sent in request headers or URL parameters.`;
+                    explanations += `\n- **${token}**: This is an API key, used for authenticating requests made to an API. API keys are often included in HTTP request headers or as query parameters. If stolen, an attacker can access your services, potentially leading to data breaches or unauthorized actions.`;
+                    images += `<img src="https://via.placeholder.com/400x200?text=API+Key+Usage" alt="API Key Usage">`;
                 }
                 if (accessTokenPattern.test(token)) {
-                    explanations += `\n- ${token}: This is an access token, usually provided after a user logs in. It grants access to specific resources and should be included in HTTP requests to protected endpoints.`;
+                    explanations += `\n- **${token}**: This is an access token, usually granted after user authentication. Access tokens should be included in HTTP requests to protected endpoints. If an attacker gets hold of this token, they can access user accounts and sensitive data.`;
+                    images += `<img src="https://via.placeholder.com/400x200?text=Access+Token+Usage" alt="Access Token Usage">`;
                 }
             });
 
-            // Display token information
+            // Display token information and images
             document.getElementById('tokenInfo').innerText = explanations || 'No token explanations available.';
+            document.getElementById('imageContainer').innerHTML = images || '';
         });
     </script>
 </body>
