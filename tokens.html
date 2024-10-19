@@ -3,46 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Token Extractor</title>
+    <title>Advanced Token Extractor with Security Insights</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
+            background-color: #f4f4f4;
+        }
+        h1, h2 {
+            color: #333;
         }
         textarea {
             width: 100%;
             height: 200px;
             margin-top: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
         }
         button {
             margin-top: 10px;
+            padding: 10px 15px;
+            background-color: #5c8df5;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #4a7bde;
         }
         #output, #tokens {
             margin-top: 20px;
             border: 1px solid #ccc;
+            border-radius: 5px;
             padding: 10px;
-            background: #f9f9f9;
+            background: #fff;
         }
         .token-info {
-            margin-top: 10px;
-            color: blue;
+            margin-top: 20px;
+            color: #555;
+            line-height: 1.6;
         }
         .image-container {
-            margin-top: 10px;
+            margin-top: 20px;
         }
         img {
             max-width: 100%;
             height: auto;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .section {
+            margin-bottom: 20px;
         }
     </style>
 </head>
 <body>
-    <h1>Advanced Token Extractor with AI Explanations</h1>
-    <textarea id="codeInput" placeholder="Paste your JavaScript code here..."></textarea>
-    <button id="extractButton">Extract Tokens</button>
+    <h1>Advanced Token Extractor with Security Insights</h1>
+    <div class="section">
+        <textarea id="codeInput" placeholder="Paste your JavaScript code here..."></textarea>
+        <button id="extractButton">Extract Tokens</button>
+    </div>
     
-    <div id="output"></div>
-    <div id="tokens"></div>
+    <div id="output" class="section"></div>
+    <div id="tokens" class="section"></div>
     <div id="tokenInfo" class="token-info"></div>
     <div id="imageContainer" class="image-container"></div>
 
@@ -67,27 +92,42 @@
                 ? `Extracted Tokens:\n${allTokens.join('\n')}`
                 : 'No tokens found.';
 
-            // Provide AI-powered explanations for each type of token
+            // Provide detailed insights for each type of token
             let explanations = '';
             let images = '';
 
             allTokens.forEach(token => {
                 if (jwtPattern.test(token)) {
-                    explanations += `\n- **${token}**: This is a JWT (JSON Web Token), typically used for authentication. It consists of three parts: Header, Payload, and Signature. JWTs are often placed in the Authorization header as a Bearer token. If compromised, attackers can impersonate users, gaining unauthorized access to sensitive resources.`;
+                    explanations += `
+                    <h2>JWT (JSON Web Token):</h2>
+                    <p><strong>${token}</strong> is a JWT used for authentication. It consists of three parts: Header, Payload, and Signature.</p>
+                    <p><strong>How to Use:</strong> Place it in the HTTP Authorization header as a Bearer token.</p>
+                    <p><strong>Hacker Exploitation:</strong> If a hacker obtains this token, they can impersonate you and gain unauthorized access to your account.</p>
+                    `;
                     images += `<img src="https://via.placeholder.com/400x200?text=JWT+Token+Placement" alt="JWT Token Placement">`;
                 }
                 if (apiKeyPattern.test(token)) {
-                    explanations += `\n- **${token}**: This is an API key, used for authenticating requests made to an API. API keys are often included in HTTP request headers or as query parameters. If stolen, an attacker can access your services, potentially leading to data breaches or unauthorized actions.`;
+                    explanations += `
+                    <h2>API Key:</h2>
+                    <p><strong>${token}</strong> is an API key used to authenticate requests made to an API.</p>
+                    <p><strong>How to Use:</strong> Include it in HTTP request headers or as a query parameter.</p>
+                    <p><strong>Hacker Exploitation:</strong> If a hacker gets hold of this API key, they can access your API services, potentially leading to data breaches or unauthorized actions.</p>
+                    `;
                     images += `<img src="https://via.placeholder.com/400x200?text=API+Key+Usage" alt="API Key Usage">`;
                 }
                 if (accessTokenPattern.test(token)) {
-                    explanations += `\n- **${token}**: This is an access token, usually granted after user authentication. Access tokens should be included in HTTP requests to protected endpoints. If an attacker gets hold of this token, they can access user accounts and sensitive data.`;
+                    explanations += `
+                    <h2>Access Token:</h2>
+                    <p><strong>${token}</strong> is an access token granted after user authentication.</p>
+                    <p><strong>How to Use:</strong> Include it in HTTP requests to protected endpoints.</p>
+                    <p><strong>Hacker Exploitation:</strong> If a hacker obtains this token, they can gain access to your account and sensitive data.</p>
+                    `;
                     images += `<img src="https://via.placeholder.com/400x200?text=Access+Token+Usage" alt="Access Token Usage">`;
                 }
             });
 
             // Display token information and images
-            document.getElementById('tokenInfo').innerText = explanations || 'No token explanations available.';
+            document.getElementById('tokenInfo').innerHTML = explanations || 'No token explanations available.';
             document.getElementById('imageContainer').innerHTML = images || '';
         });
     </script>
