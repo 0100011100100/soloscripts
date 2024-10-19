@@ -4,130 +4,153 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
-    <link rel="stylesheet" href="styles.css">
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"></script>
-</head>
-<body>
-    <div class="container">
-        <h1>Login</h1>
-        <input type="text" id="username" placeholder="Username" required>
-        <input type="password" id="password" placeholder="Password" required>
-        <button id="loginBtn">Login</button>
-        <button id="signupBtn">Sign Up</button>
-        <div id="error-message" class="error-message"></div>
-    </div>
-
-    <script>
-        // Your Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyClD-3xfEnSFwoGdGCbkJMce36UkDLeVnE",
-            authDomain: "realtimeaccountcreation.firebaseapp.com",
-            databaseURL: "https://realtimeaccountcreation-default-rtdb.firebaseio.com",
-            projectId: "realtimeaccountcreation",
-            storageBucket: "realtimeaccountcreation.appspot.com",
-            messagingSenderId: "658896933674",
-            appId: "1:658896933674:web:3275d0678c39b54e8f8453"
-        };
-        
-        // Initialize Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-
-        document.getElementById("loginBtn").addEventListener("click", login);
-        document.getElementById("signupBtn").addEventListener("click", signUp);
-
-        function login() {
-            const username = document.getElementById("username").value;
-            const password = document.getElementById("password").value;
-
-            // Check the database for the user
-            firebase.database().ref('users/' + username).once('value').then((snapshot) => {
-                const userData = snapshot.val();
-                if (userData && userData.password === password) {
-                    window.location.href = 'dashboard.html';
-                } else {
-                    showError("Incorrect username or password.");
-                }
-            }).catch((error) => {
-                showError("Error logging in.");
-            });
-        }
-
-        function signUp() {
-            const username = document.getElementById("username").value;
-            const password = document.getElementById("password").value;
-
-            // Save the user in the database
-            firebase.database().ref('users/' + username).set({
-                password: password
-            }).then(() => {
-                alert("Sign up successful! You can now log in.");
-            }).catch((error) => {
-                showError("Error signing up.");
-            });
-        }
-
-        function showError(message) {
-            const errorMessageElement = document.getElementById("error-message");
-            errorMessageElement.innerText = message;
-            errorMessageElement.style.display = 'block';
-            setTimeout(() => {
-                errorMessageElement.style.display = 'none';
-            }, 3000); // Hide the error after 3 seconds
-        }
-    </script>
     <style>
         body {
+            margin: 0;
+            padding: 0;
+            background-color: #1e1e1e;
+            color: white;
             font-family: Arial, sans-serif;
-            background-color: #121212; /* Dark background */
-            color: #ffffff; /* Light text */
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
+            justify-content: center;
             height: 100vh;
         }
 
         .container {
-            background: #1e1e1e; /* Slightly lighter background for the container */
+            background-color: #333;
             padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-            width: 300px;
+            border-radius: 10px;
             text-align: center;
         }
 
-        input {
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        input[type="text"],
+        input[type="password"] {
             width: 100%;
             padding: 10px;
             margin: 10px 0;
-            border: 1px solid #444; /* Border color */
-            border-radius: 5px; /* Rounded corners */
-            background: #333; /* Darker input background */
-            color: #ffffff; /* Light input text */
+            border-radius: 5px;
+            border: none;
         }
 
         button {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            background-color: #6200ea; /* Purple button */
+            padding: 10px 20px;
+            background-color: #007BFF;
             color: white;
             border: none;
-            border-radius: 5px; /* Rounded corners */
+            border-radius: 5px;
             cursor: pointer;
-            transition: background-color 0.3s;
+            margin-top: 10px;
         }
 
         button:hover {
-            background-color: #3700b3; /* Darker purple on hover */
+            background-color: #0056b3;
         }
 
-        .error-message {
-            color: red;
-            margin-top: 10px;
+        .signup-link {
+            margin-top: 15px;
+            display: block;
+            color: #007BFF;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .popup {
+            position: fixed;
+            left: 50%;
+            transform: translateX(-50%);
+            top: 20px;
+            background-color: #ff4c4c;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
             display: none; /* Hidden by default */
         }
     </style>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"></script>
+</head>
+<body>
+
+<div id="popup" class="popup"></div>
+
+<div class="container">
+    <h1>Login</h1>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <button id="login-button">Login</button>
+    <a class="signup-link" href="signup.html">Don't have an account? Sign Up</a>
+</div>
+
+<script>
+    // Your Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyClD-3xfEnSFwoGdGCbkJMce36UkDLeVnE",
+        authDomain: "realtimeaccountcreation.firebaseapp.com",
+        databaseURL: "https://realtimeaccountcreation-default-rtdb.firebaseio.com",
+        projectId: "realtimeaccountcreation",
+        storageBucket: "realtimeaccountcreation.appspot.com",
+        messagingSenderId: "658896933674",
+        appId: "1:658896933674:web:3275d0678c39b54e8f8453"
+    };
+
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    function checkLoginStatus() {
+        const username = localStorage.getItem('username');
+        const loggedIn = localStorage.getItem('loggedIn');
+
+        if (loggedIn === 'true' && username) {
+            window.location.href = `dashboard.html?username=${encodeURIComponent(username)}`;
+        }
+    }
+
+    window.onload = function() {
+        checkLoginStatus();
+    };
+
+    const loginButton = document.getElementById('login-button');
+    const popup = document.getElementById('popup');
+
+    loginButton.addEventListener('click', function() {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        // Check the database for the user
+        firebase.database().ref('users/' + username).once('value').then((snapshot) => {
+            const userData = snapshot.val();
+            if (userData && userData.password === password) {
+                localStorage.setItem('username', username);
+                localStorage.setItem('loggedIn', 'true');
+                window.location.href = `dashboard.html?username=${encodeURIComponent(username)}`;
+            } else {
+                showPopup('Invalid username or password');
+            }
+        }).catch((error) => {
+            showPopup('Error checking login status');
+        });
+    });
+
+    function showPopup(message) {
+        popup.textContent = message;
+        popup.style.display = 'block';
+        popup.style.top = '20px';
+
+        setTimeout(() => {
+            popup.style.top = '-50px';
+            setTimeout(() => {
+                popup.style.display = 'none';
+            }, 500);
+        }, 3000);
+    }
+</script>
+
 </body>
 </html>
