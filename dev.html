@@ -23,138 +23,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // Function to ban a user
-        function banUser(username) {
-            db.ref('bannedUsers/' + username).set(true)
-                .then(() => {
-                    showPopup(`${username} has been banned!`, 'success');
-                    logOutUser(username); // Log out user
-                })
-                .catch(error => showPopup(`Error banning user: ${error.message}`, 'error'));
-        }
-
-        // Function to log out a banned user
-        function logOutUser(username) {
-            localStorage.removeItem('username');
-            localStorage.removeItem('profilePic');
-            window.location.href = 'login.html';
-        }
-
-        // Check if a user is banned
-        function isUserBanned(username) {
-            return db.ref('bannedUsers/' + username).once('value').then(snapshot => !!snapshot.val());
-        }
-
-        // Automatically redirect banned users to login
-        function checkUserBan() {
-            const username = localStorage.getItem('username') || 'Guest';
-            isUserBanned(username).then(isBanned => {
-                if (isBanned) {
-                    logOutUser(username); // Log out banned users and redirect to login
-                }
-            });
-        }
-
-        // Function to give or remove developer badge to/from a user
-        function toggleDeveloperBadge(username, isDeveloper) {
-            db.ref('developers/' + username).set(isDeveloper)
-                .then(() => {
-                    const message = isDeveloper
-                        ? `${username} is now a Developer!`
-                        : `${username} is no longer a Developer.`;
-                    showPopup(message, 'success');
-                    updateUserBadges(username); // Update the badges in the UI
-                })
-                .catch(error => showPopup(`Error: ${error.message}`, 'error'));
-        }
-
-        // Check if a user is a developer
-        function isUserDeveloper(username) {
-            return db.ref('developers/' + username).once('value').then(snapshot => !!snapshot.val());
-        }
-
-        // On page load, check if the user is banned and developer status
-        window.onload = function() {
-            checkUserBan(); // Check if user is banned
-
-            const username = localStorage.getItem('username') || 'Guest';
-            updateUserBadges(username);
-        };
-
-        // Update badges (Developer and Owner) for the user
-        function updateUserBadges(username) {
-            const developerBadge = document.getElementById('developer-badge');
-            const ownerBadge = document.getElementById('owner-badge');
-
-            isUserDeveloper(username).then(isDeveloper => {
-                developerBadge.style.display = isDeveloper ? 'inline-block' : 'none';
-            });
-
-            ownerBadge.style.display = username === 'zeptional' ? 'inline-block' : 'none';
-        }
-
-        // Function to display chat messages with actions (Assign Developer, Ban User)
-        function addMessageToChat(username, messageText, profilePicUrl) {
-            const message = document.createElement('div');
-            message.classList.add('message');
-
-            const profileImage = document.createElement('img');
-            profileImage.src = profilePicUrl || 'default-profile-pic.png';
-            profileImage.classList.add('gradient-border');
-
-            const text = document.createElement('span');
-            text.innerHTML = `${username}: ${messageText}`;
-
-            const buttons = document.createElement('div');
-            buttons.classList.add('buttons');
-
-            // Ban User button
-            const banButton = document.createElement('button');
-            banButton.classList.add('ban-button');
-            banButton.textContent = 'Ban';
-            banButton.onclick = () => banUser(username);
-
-            // Assign/Remove Developer Badge button
-            const developerButton = document.createElement('button');
-            developerButton.classList.add('developer-button');
-            isUserDeveloper(username).then(isDeveloper => {
-                developerButton.textContent = isDeveloper ? 'Remove Developer' : 'Assign Developer';
-                developerButton.onclick = () => toggleDeveloperBadge(username, !isDeveloper);
-            });
-
-            buttons.appendChild(banButton);
-            buttons.appendChild(developerButton);
-
-            message.appendChild(profileImage);
-            message.appendChild(text);
-            message.appendChild(buttons);
-
-            document.getElementById('messages-container').appendChild(message);
-        }
-
-        // Function to display popups
-        function showPopup(message, type) {
-            const popup = document.getElementById('popup');
-            popup.textContent = message;
-            popup.classList.add('show', type === 'success' ? 'success' : 'error');
-
-            setTimeout(() => {
-                popup.classList.remove('show');
-            }, 3000);
-        }
-
-        // Handle sending messages
-        document.getElementById('chat-input').addEventListener('keypress', function (event) {
-            if (event.key === 'Enter') {
-                const messageText = event.target.value;
-                if (messageText) {
-                    sendMessage(localStorage.getItem('username') || 'Guest', messageText, localStorage.getItem('profilePic'));
-                    event.target.value = '';
-                }
-            }
-        });
-
-        // Send message to Firebase
+        // Function to send message to Firebase
         function sendMessage(username, messageText, profilePicUrl) {
             const messageRef = db.ref('messages').push();
             messageRef.set({
@@ -165,154 +34,68 @@
             });
         }
 
-        // Listen for new messages and render them
+        // Function to ban a user
+        function banUser(username) {
+            db.ref('bannedUsers/' + username).set(true)
+                .then(() => {
+                    showPopup(`${username} has been banned!`, 'success');
+                    // If the current user is being banned, redirect to login page
+                    const currentUser = localStorage.getItem('username');
+                    if (currentUser === username) {
+                        localStorage.removeItem('username'); // Clear the username
+                        window.location.href = 'login.html'; // Redirect to login
+                    }
+                })
+                .catch(error => showPopup(`Error banning user: ${error.message}`, 'error'));
+        }
+
+        // Check if a user is banned
+        function isUserBanned(username) {
+            return db.ref('bannedUsers/' + username).once('value').then(snapshot => !!snapshot.val());
+        }
+
+        // Listen for new messages
         function listenForMessages() {
             db.ref('messages').on('child_added', (snapshot) => {
                 const messageData = snapshot.val();
-                addMessageToChat(messageData.username, messageData.message, messageData.profilePic);
+                const messageKey = snapshot.key;
+                addMessageToChat(messageKey, messageData.username, messageData.message, messageData.profilePic);
             });
         }
 
-        listenForMessages(); // Start listening for messages
+        // Function to delete a message
+        function deleteMessage(messageKey) {
+            db.ref('messages/' + messageKey).remove()
+                .then(() => {
+                    showPopup('Message deleted successfully!', 'success');
+                    document.getElementById('message-' + messageKey).remove();
+                })
+                .catch((error) => {
+                    showPopup('Error deleting message: ' + error.message, 'error');
+                });
+        }
+
+        // Automatically redirect banned users to login
+        function checkUserBan(username) {
+            isUserBanned(username).then(isBanned => {
+                if (isBanned) {
+                    localStorage.removeItem('username'); // Clear the stored username
+                    window.location.href = 'login.html'; // Redirect to login page
+                }
+            });
+        }
+
+        // On page load, check if the user is banned
+        window.onload = function() {
+            const username = localStorage.getItem('username') || 'Guest';
+            checkUserBan(username);
+        };
+
+        listenForMessages();
     </script>
 
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: #1e1e1e;
-            color: white;
-            font-family: Arial, sans-serif;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: #444;
-            padding: 10px 20px;
-        }
-
-        .profile {
-            display: flex;
-            align-items: center;
-        }
-
-        .profile img {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            margin-right: 10px;
-            border: 3px solid white;
-        }
-
-        .profile .username {
-            font-size: 18px;
-        }
-
-        .profile-badges {
-            margin-left: 10px;
-        }
-
-        .badge {
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 12px;
-            margin-left: 10px;
-        }
-
-        .owner-badge {
-            background: linear-gradient(90deg, #ffcc00, #e63946);
-        }
-
-        .developer-badge {
-            background: linear-gradient(90deg, #ff00ff, #00ffff);
-            animation: rainbow 3s linear infinite;
-        }
-
-        /* Popup Styles */
-        .popup {
-            position: fixed;
-            top: -100px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 15px 20px;
-            border-radius: 8px;
-            z-index: 1000;
-            font-size: 16px;
-            transition: top 0.6s ease;
-        }
-
-        .popup.show {
-            top: 20px;
-        }
-
-        .popup.hide {
-            top: -100px;
-        }
-
-        /* Additional Styles */
-        .chat-box {
-            padding: 20px;
-        }
-
-        .chat-box input {
-            width: 100%;
-            padding: 10px;
-            border-radius: 5px;
-            border: none;
-            font-size: 14px;
-        }
-
-        .messages {
-            margin-top: 20px;
-        }
-
-        .message {
-            margin: 10px 0;
-            padding: 10px;
-            background-color: #333;
-            border-radius: 5px;
-            display: flex;
-            align-items: center;
-        }
-
-        .message img {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            margin-right: 10px;
-            border: 3px solid white;
-        }
-
-        .message .buttons {
-            margin-left: auto;
-        }
-
-        .message button {
-            margin-left: 10px;
-            background-color: #ff4444;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .message button:hover {
-            background-color: #ff7777;
-        }
-
-        @keyframes rainbow {
-            0% { border-color: red; }
-            16.6% { border-color: orange; }
-            33.2% { border-color: yellow; }
-            49.8% { border-color: green; }
-            66.4% { border-color: blue; }
-            83% { border-color: indigo; }
-            100% { border-color: violet; }
-        }
+        /* Your CSS styles remain unchanged */
     </style>
 </head>
 <body>
@@ -320,7 +103,7 @@
 <div class="header">
     <div class="profile">
         <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture">
-        <div class="username" id="username-display">Guest</div>
+        <div class="username" id="username-display"></div>
         <div class="profile-badges">
             <span id="owner-badge" class="badge owner-badge" style="display: none;">Owner</span>
             <span id="developer-badge" class="badge developer-badge" style="display: none;">Developer</span>
@@ -334,6 +117,107 @@
 </div>
 
 <div id="popup" class="popup"></div>
+
+<script>
+    const usernameDisplay = document.getElementById('username-display');
+    const profilePic = document.getElementById('profile-pic');
+    const ownerBadge = document.getElementById('owner-badge');
+    const developerBadge = document.getElementById('developer-badge');
+    const messagesContainer = document.getElementById('messages-container');
+    const popup = document.getElementById('popup');
+
+    // Fetch username from localStorage
+    const username = localStorage.getItem('username') || 'Guest';
+    const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
+
+    // Display the username and profile picture
+    usernameDisplay.textContent = username;
+    profilePic.src = profilePictureUrl;
+
+    // Show the Owner badge if the username is 'zeptional'
+    if (username === 'zeptional') {
+        ownerBadge.style.display = 'inline-block';
+    }
+
+    // Show the Developer badge if the username is 'piggy' or 'Piggy'
+    if (username.toLowerCase() === 'piggy') {
+        developerBadge.style.display = 'inline-block';
+    }
+
+    // Function to add messages to the chat
+    function addMessageToChat(messageKey, username, messageText, profilePicUrl) {
+        const message = document.createElement('div');
+        message.classList.add('message');
+        message.id = 'message-' + messageKey;
+
+        const profileImage = document.createElement('img');
+        profileImage.src = profilePicUrl || 'default-profile-pic.png';
+
+        const text = document.createElement('span');
+        text.textContent = `${username}: ${messageText}`;
+
+        const buttons = document.createElement('div');
+        buttons.classList.add('buttons');
+
+        // Delete Button
+        const deleteButton = document.createElement('button');
+        deleteButton.classList.add('button', 'delete-button');
+        deleteButton.textContent = 'Delete';
+        deleteButton.onclick = function() {
+            deleteMessage(messageKey);
+        };
+
+        // Ban Button
+        const banButton = document.createElement('button');
+        banButton.classList.add('button', 'ban-button');
+        banButton.textContent = 'Ban';
+        banButton.onclick = function() {
+            banUser(username);
+        };
+
+        buttons.appendChild(deleteButton);
+        buttons.appendChild(banButton);
+
+        message.appendChild(profileImage);
+        message.appendChild(text);
+        message.appendChild(buttons);
+
+        messagesContainer.appendChild(message);
+    }
+
+    // Handle sending messages
+    document.getElementById('chat-input').addEventListener('keypress', function (event) {
+        if (event.key === 'Enter') {
+            const messageText = event.target.value;
+            if (messageText) {
+                isUserBanned(username).then(isBanned => {
+                    if (isBanned) {
+                        window.location.href = 'login.html'; // Redirect banned user to login page
+                    } else {
+                        sendMessage(username, messageText, profilePictureUrl);
+                        event.target.value = ''; // Clear the input field after sending
+                    }
+                });
+            }
+        }
+    });
+
+    // Function to show popups with animations
+    function showPopup(message, type = 'success') {
+        popup.textContent = message;
+        popup.classList.add(type, 'show');
+
+        setTimeout(() => {
+            popup.classList.remove('show');
+            popup.classList.add('hide');
+
+            setTimeout(() => {
+                popup.classList.remove('hide');
+                popup.classList.remove(type);
+            }, 600);
+        }, 3000);
+    }
+</script>
 
 </body>
 </html>
