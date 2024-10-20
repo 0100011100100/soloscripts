@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Website Redirect Analyzer</title>
+    <title>Website Script Analyzer</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -24,8 +24,8 @@
     </style>
 </head>
 <body>
-    <h1>Website Redirect Analyzer</h1>
-    <p>Enter the website URL below and click "Analyze" to check for potential redirects in the source code.</p>
+    <h1>Website Script Redirect Analyzer</h1>
+    <p>Enter the website URL below and click "Analyze" to check for potential redirects or login-based redirection in the JavaScript files.</p>
     
     <input type="text" id="websiteUrl" placeholder="Enter website URL (e.g., https://example.com)">
     <br>
@@ -39,6 +39,9 @@
             const url = document.getElementById('websiteUrl').value;
             const resultsDiv = document.getElementById('results');
             
+            // Clear results
+            resultsDiv.innerHTML = "Analyzing...";
+
             // Check if URL is entered
             if (!url) {
                 resultsDiv.innerHTML = "Please enter a valid URL.";
@@ -49,29 +52,45 @@
             fetch(url)
                 .then(response => response.text())
                 .then(data => {
-                    const redirectPatterns = [
-                        /window\.location\s*=\s*["']([^"']+)["']/gi,
-                        /window\.location\.href\s*=\s*["']([^"']+)["']/gi,
-                        /window\.open\s*\(\s*["']([^"']+)["']/gi,
-                        /meta\s+http-equiv=["']refresh["']\s+content=["']\d+;\s*url=([^"']+)["']/gi // Meta refresh
-                    ];
-
-                    let foundRedirects = [];
-
-                    // Check for each redirect pattern in the HTML
-                    redirectPatterns.forEach(pattern => {
-                        let match;
-                        while (match = pattern.exec(data)) {
-                            foundRedirects.push(`Redirect found: ${match[0]}`);
-                        }
-                    });
-
-                    // Show the results
-                    if (foundRedirects.length > 0) {
-                        resultsDiv.innerHTML = foundRedirects.join('<br>');
-                    } else {
-                        resultsDiv.innerHTML = "No redirects found in the source code.";
+                    // Look for external JavaScript files
+                    const scriptUrls = [...data.matchAll(/<script\s+src=["']([^"']+)["']/gi)].map(match => match[1]);
+                    if (scriptUrls.length === 0) {
+                        resultsDiv.innerHTML = "No external JavaScript files found.";
+                        return;
                     }
+
+                    // Analyze each JavaScript file
+                    Promise.all(scriptUrls.map(scriptUrl => fetch(scriptUrl).then(res => res.text())))
+                        .then(scripts => {
+                            let foundIssues = [];
+                            const redirectPatterns = [
+                                /window\.location\s*=\s*["']([^"']+)["']/gi,
+                                /window\.location\.href\s*=\s*["']([^"']+)["']/gi,
+                                /window\.open\s*\(\s*["']([^"']+)["']/gi,
+                                /if\s*\(\s*!?\s*loggedIn\s*\)\s*{\s*window\.location/gi, // Checks for redirection when not logged in
+                                /document\.cookie\s*=\s*["']([^"']+)=([^"']+)["'];/gi // Checks for cookies being set for login
+                            ];
+
+                            // Check for redirect patterns in each script
+                            scripts.forEach((script, index) => {
+                                redirectPatterns.forEach(pattern => {
+                                    let match;
+                                    while (match = pattern.exec(script)) {
+                                        foundIssues.push(`Issue found in ${scriptUrls[index]}: ${match[0]}`);
+                                    }
+                                });
+                            });
+
+                            // Show the results
+                            if (foundIssues.length > 0) {
+                                resultsDiv.innerHTML = foundIssues.join('<br>');
+                            } else {
+                                resultsDiv.innerHTML = "No redirect patterns or login redirection logic found.";
+                            }
+                        })
+                        .catch(error => {
+                            resultsDiv.innerHTML = "Error fetching JavaScript files. Some external resources may be restricted.";
+                        });
                 })
                 .catch(error => {
                     resultsDiv.innerHTML = "Error fetching the website source code. Please check the URL and try again.";
