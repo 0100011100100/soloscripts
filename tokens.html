@@ -87,14 +87,16 @@
             const jwtPattern = /([A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+)/g;
             const apiKeyPattern = /['"]?([A-Za-z0-9-_]{32,})['"]?/g;
             const accessTokenPattern = /accessToken:\s*['"]?([A-Za-z0-9-_]{32,})['"]?/g;
+            const cookiePattern = /document\.cookie\s*=\s*['"]([^;]+)['"]/g;
 
             // Extracting tokens
             const jwtMatches = code.match(jwtPattern) || [];
             const apiKeyMatches = code.match(apiKeyPattern) || [];
             const accessTokenMatches = code.match(accessTokenPattern) || [];
+            const cookieMatches = code.match(cookiePattern) || [];
 
             // Display extracted tokens
-            const allTokens = [...jwtMatches, ...apiKeyMatches, ...accessTokenMatches];
+            const allTokens = [...jwtMatches, ...apiKeyMatches, ...accessTokenMatches, ...cookieMatches];
             document.getElementById('tokens').innerText = allTokens.length > 0 
                 ? `Extracted Tokens:\n${allTokens.join('\n')}`
                 : 'No tokens found.';
@@ -112,9 +114,9 @@
                     <p><strong>How to Use:</strong> Place it in the HTTP Authorization header as a Bearer token.</p>
                     `;
 
-                    // Create a script using JWT for an API request
+                    // Create a script using JWT for an API request to a sample live API
                     scriptContent = `
-fetch('https://api.example.com/protected', {
+fetch('https://jsonplaceholder.typicode.com/posts', {
     method: 'GET',
     headers: {
         'Authorization': 'Bearer ${token}',
@@ -122,7 +124,8 @@ fetch('https://api.example.com/protected', {
     }
 })
 .then(response => response.json())
-.then(data => console.log(data));
+.then(data => console.log('API Response:', data))
+.catch(error => console.error('Error:', error));
                     `;
                 }
                 if (apiKeyPattern.test(token)) {
@@ -132,16 +135,17 @@ fetch('https://api.example.com/protected', {
                     <p><strong>How to Use:</strong> Include it in HTTP request headers or as a query parameter.</p>
                     `;
 
-                    // Create a script using API key for an API request
+                    // Create a script using API key for an API request to a sample live API
                     scriptContent = `
-fetch('https://api.example.com/data?api_key=${token}', {
+fetch('https://jsonplaceholder.typicode.com/comments?api_key=${token}', {
     method: 'GET',
     headers: {
         'Content-Type': 'application/json'
     }
 })
 .then(response => response.json())
-.then(data => console.log(data));
+.then(data => console.log('API Response:', data))
+.catch(error => console.error('Error:', error));
                     `;
                 }
                 if (accessTokenPattern.test(token)) {
@@ -151,9 +155,9 @@ fetch('https://api.example.com/data?api_key=${token}', {
                     <p><strong>How to Use:</strong> Include it in HTTP requests to protected endpoints.</p>
                     `;
 
-                    // Create a script using Access Token for an API request
+                    // Create a script using Access Token for an API request to a sample live API
                     scriptContent = `
-fetch('https://api.example.com/user/data', {
+fetch('https://jsonplaceholder.typicode.com/users', {
     method: 'GET',
     headers: {
         'Authorization': 'Bearer ${token}',
@@ -161,7 +165,21 @@ fetch('https://api.example.com/user/data', {
     }
 })
 .then(response => response.json())
-.then(data => console.log(data));
+.then(data => console.log('API Response:', data))
+.catch(error => console.error('Error:', error));
+                    `;
+                }
+                if (cookiePattern.test(token)) {
+                    explanations += `
+                    <h2>Cookie Token:</h2>
+                    <p><strong>${token}</strong> is a cookie value often used for session management.</p>
+                    <p><strong>How to Use:</strong> Set it in the document.cookie for managing user sessions or authentication.</p>
+                    `;
+
+                    // Create a script using cookie for session management
+                    scriptContent = `
+document.cookie = '${token}'; 
+console.log('Cookie set: ', document.cookie);
                     `;
                 }
 
@@ -169,14 +187,11 @@ fetch('https://api.example.com/user/data', {
                 const blob = new Blob([scriptContent], { type: 'text/javascript' });
                 const url = URL.createObjectURL(blob);
                 downloadableScripts += `
-                    <a href="${url}" download="token_script_${token.slice(0, 10)}.js" class="download-link">Download Script for ${token.slice(0, 10)}...</a>
-                    <pre class="code-snippet">${scriptContent}</pre>
+                    <a href="${url}" download="token_script_${token.slice(0, 5)}.js" class="download-link">Download Script with Token: ${token.slice(0, 5)}</a><br>
                 `;
-            });
 
-            // Display token information and downloadable script links
-            document.getElementById('tokenInfo').innerHTML = explanations || 'No token explanations available.';
-            document.getElementById('tokenInfo').innerHTML += downloadableScripts || '';
+                document.getElementById('tokenInfo').innerHTML = explanations + downloadableScripts;
+            });
         });
     </script>
 </body>
