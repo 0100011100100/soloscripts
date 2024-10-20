@@ -53,19 +53,24 @@
         }
     </script>
 
-    <!-- Displaying the main GoGuardian script as plain text -->
-    <h2>Main GoGuardian Script (main.fa7b5d6c.js):</h2>
-    <pre>
-        (function(){
-            // Your main GoGuardian script code here
-            // Since it's 500 lines long, you can copy the full content
-            // of your main.fa7b5d6c.js file into this <pre> block.
-            console.log("Main GoGuardian script loaded");
-            // ... (other code from the main.js file)
-        })();
-    </pre>
+    <!-- Displaying the main GoGuardian script contents fetched from the external URL -->
+    <h2>Main GoGuardian Script (from external source):</h2>
+    <pre id="scriptContent">Loading script content...</pre>
+
+    <!-- Fetching and displaying the external script -->
+    <script>
+        fetch('https://manage.goguardian.com/static/js/main.fa7b5d6c.js')
+        .then(response => response.text())
+        .then(data => {
+            document.getElementById('scriptContent').textContent = data;
+        })
+        .catch(error => {
+            document.getElementById('scriptContent').textContent = 'Failed to load script content.';
+            console.error('Error fetching script:', error);
+        });
+    </script>
 
     <!-- Main GoGuardian script (loaded as an external file) -->
-    <script type="text/javascript" src="/static/js/main.fa7b5d6c.js"></script>
+    <script type="text/javascript" src="https://manage.goguardian.com/static/js/main.fa7b5d6c.js"></script>
 </body>
 </html>
