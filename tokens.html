@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Token Extracter</title>
+    <title>Interactive Token Script Generator</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -45,22 +45,30 @@
             color: #555;
             line-height: 1.6;
         }
-        .image-container {
-            margin-top: 20px;
-        }
-        img {
-            max-width: 100%;
-            height: auto;
-            margin: 10px 0;
-            border-radius: 5px;
-        }
         .section {
             margin-bottom: 20px;
+        }
+        .download-link {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .code-snippet {
+            background-color: #f4f4f4;
+            border-left: 5px solid #5c8df5;
+            padding: 10px;
+            margin-top: 10px;
+            white-space: pre-wrap;
+            overflow: auto;
         }
     </style>
 </head>
 <body>
-    <h1>Advanced Token Extractor with Security Insights</h1>
+    <h1>Interactive Token Script Generator</h1>
     <div class="section">
         <textarea id="codeInput" placeholder="Paste your JavaScript code here..."></textarea>
         <button id="extractButton">Extract Tokens</button>
@@ -69,7 +77,6 @@
     <div id="output" class="section"></div>
     <div id="tokens" class="section"></div>
     <div id="tokenInfo" class="token-info"></div>
-    <div id="imageContainer" class="image-container"></div>
 
     <script>
         document.getElementById('extractButton').addEventListener('click', () => {
@@ -92,43 +99,84 @@
                 ? `Extracted Tokens:\n${allTokens.join('\n')}`
                 : 'No tokens found.';
 
-            // Provide detailed insights for each type of token
+            // Provide detailed insights for each type of token and generate downloadable scripts
             let explanations = '';
-            let images = '';
+            let downloadableScripts = '';
 
             allTokens.forEach(token => {
+                let scriptContent = '';
                 if (jwtPattern.test(token)) {
                     explanations += `
                     <h2>JWT (JSON Web Token):</h2>
                     <p><strong>${token}</strong> is a JWT used for authentication. It consists of three parts: Header, Payload, and Signature.</p>
                     <p><strong>How to Use:</strong> Place it in the HTTP Authorization header as a Bearer token.</p>
-                    <p><strong>Hacker Exploitation:</strong> If a hacker obtains this token, they can impersonate you and gain unauthorized access to your account.</p>
                     `;
-                    images += `<img src="https://via.placeholder.com/400x200?text=JWT+Token+Placement" alt="JWT Token Placement">`;
+
+                    // Create a script using JWT for an API request
+                    scriptContent = `
+fetch('https://api.example.com/protected', {
+    method: 'GET',
+    headers: {
+        'Authorization': 'Bearer ${token}',
+        'Content-Type': 'application/json'
+    }
+})
+.then(response => response.json())
+.then(data => console.log(data));
+                    `;
                 }
                 if (apiKeyPattern.test(token)) {
                     explanations += `
                     <h2>API Key:</h2>
                     <p><strong>${token}</strong> is an API key used to authenticate requests made to an API.</p>
                     <p><strong>How to Use:</strong> Include it in HTTP request headers or as a query parameter.</p>
-                    <p><strong>Hacker Exploitation:</strong> If a hacker gets hold of this API key, they can access your API services, potentially leading to data breaches or unauthorized actions.</p>
                     `;
-                    images += `<img src="https://via.placeholder.com/400x200?text=API+Key+Usage" alt="API Key Usage">`;
+
+                    // Create a script using API key for an API request
+                    scriptContent = `
+fetch('https://api.example.com/data?api_key=${token}', {
+    method: 'GET',
+    headers: {
+        'Content-Type': 'application/json'
+    }
+})
+.then(response => response.json())
+.then(data => console.log(data));
+                    `;
                 }
                 if (accessTokenPattern.test(token)) {
                     explanations += `
                     <h2>Access Token:</h2>
                     <p><strong>${token}</strong> is an access token granted after user authentication.</p>
                     <p><strong>How to Use:</strong> Include it in HTTP requests to protected endpoints.</p>
-                    <p><strong>Hacker Exploitation:</strong> If a hacker obtains this token, they can gain access to your account and sensitive data.</p>
                     `;
-                    images += `<img src="https://via.placeholder.com/400x200?text=Access+Token+Usage" alt="Access Token Usage">`;
+
+                    // Create a script using Access Token for an API request
+                    scriptContent = `
+fetch('https://api.example.com/user/data', {
+    method: 'GET',
+    headers: {
+        'Authorization': 'Bearer ${token}',
+        'Content-Type': 'application/json'
+    }
+})
+.then(response => response.json())
+.then(data => console.log(data));
+                    `;
                 }
+
+                // Create a downloadable script link
+                const blob = new Blob([scriptContent], { type: 'text/javascript' });
+                const url = URL.createObjectURL(blob);
+                downloadableScripts += `
+                    <a href="${url}" download="token_script_${token.slice(0, 10)}.js" class="download-link">Download Script for ${token.slice(0, 10)}...</a>
+                    <pre class="code-snippet">${scriptContent}</pre>
+                `;
             });
 
-            // Display token information and images
+            // Display token information and downloadable script links
             document.getElementById('tokenInfo').innerHTML = explanations || 'No token explanations available.';
-            document.getElementById('imageContainer').innerHTML = images || '';
+            document.getElementById('tokenInfo').innerHTML += downloadableScripts || '';
         });
     </script>
 </body>
