@@ -3,60 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Code Analyzer</title>
+    <title>Website Redirect Analyzer</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
         }
-        textarea {
-            width: 100%;
-            height: 200px;
+        input, button {
             margin-bottom: 20px;
+            padding: 10px;
+            width: 100%;
+            max-width: 600px;
+            font-size: 16px;
         }
         .results {
             font-weight: bold;
             color: red;
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
-    <h1>Script Code Analyzer</h1>
-    <p>Paste your code below and click "Analyze" to check for potential redirects.</p>
+    <h1>Website Redirect Analyzer</h1>
+    <p>Enter the website URL below and click "Analyze" to check for potential redirects in the source code.</p>
     
-    <textarea id="codeInput" placeholder="Paste your script or code here..."></textarea>
+    <input type="text" id="websiteUrl" placeholder="Enter website URL (e.g., https://example.com)">
     <br>
-    <button onclick="analyzeCode()">Analyze</button>
+    <button onclick="analyzeWebsite()">Analyze</button>
 
     <h2>Results:</h2>
     <div id="results" class="results">No analysis yet.</div>
 
     <script>
-        function analyzeCode() {
-            const code = document.getElementById('codeInput').value;
+        function analyzeWebsite() {
+            const url = document.getElementById('websiteUrl').value;
             const resultsDiv = document.getElementById('results');
-            const redirectPatterns = [
-                /window\.location\s*=\s*["']([^"']+)["']/gi,
-                /window\.location\.href\s*=\s*["']([^"']+)["']/gi,
-                /window\.open\s*\(\s*["']([^"']+)["']/gi
-            ];
             
-            let foundRedirects = [];
-
-            // Check for each redirect pattern
-            redirectPatterns.forEach(pattern => {
-                let match;
-                while (match = pattern.exec(code)) {
-                    foundRedirects.push(`Redirect found: ${match[0]}`);
-                }
-            });
-
-            // Show the results
-            if (foundRedirects.length > 0) {
-                resultsDiv.innerHTML = foundRedirects.join('<br>');
-            } else {
-                resultsDiv.innerHTML = "No redirects found.";
+            // Check if URL is entered
+            if (!url) {
+                resultsDiv.innerHTML = "Please enter a valid URL.";
+                return;
             }
+
+            // Fetch the source code of the website
+            fetch(url)
+                .then(response => response.text())
+                .then(data => {
+                    const redirectPatterns = [
+                        /window\.location\s*=\s*["']([^"']+)["']/gi,
+                        /window\.location\.href\s*=\s*["']([^"']+)["']/gi,
+                        /window\.open\s*\(\s*["']([^"']+)["']/gi,
+                        /meta\s+http-equiv=["']refresh["']\s+content=["']\d+;\s*url=([^"']+)["']/gi // Meta refresh
+                    ];
+
+                    let foundRedirects = [];
+
+                    // Check for each redirect pattern in the HTML
+                    redirectPatterns.forEach(pattern => {
+                        let match;
+                        while (match = pattern.exec(data)) {
+                            foundRedirects.push(`Redirect found: ${match[0]}`);
+                        }
+                    });
+
+                    // Show the results
+                    if (foundRedirects.length > 0) {
+                        resultsDiv.innerHTML = foundRedirects.join('<br>');
+                    } else {
+                        resultsDiv.innerHTML = "No redirects found in the source code.";
+                    }
+                })
+                .catch(error => {
+                    resultsDiv.innerHTML = "Error fetching the website source code. Please check the URL and try again.";
+                });
         }
     </script>
 </body>
