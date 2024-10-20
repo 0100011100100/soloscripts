@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Analyzer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            margin-bottom: 20px;
+        }
+        .results {
+            font-weight: bold;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Script Code Analyzer</h1>
+    <p>Paste your code below and click "Analyze" to check for potential redirects.</p>
+    
+    <textarea id="codeInput" placeholder="Paste your script or code here..."></textarea>
+    <br>
+    <button onclick="analyzeCode()">Analyze</button>
+
+    <h2>Results:</h2>
+    <div id="results" class="results">No analysis yet.</div>
+
+    <script>
+        function analyzeCode() {
+            const code = document.getElementById('codeInput').value;
+            const resultsDiv = document.getElementById('results');
+            const redirectPatterns = [
+                /window\.location\s*=\s*["']([^"']+)["']/gi,
+                /window\.location\.href\s*=\s*["']([^"']+)["']/gi,
+                /window\.open\s*\(\s*["']([^"']+)["']/gi
+            ];
+            
+            let foundRedirects = [];
+
+            // Check for each redirect pattern
+            redirectPatterns.forEach(pattern => {
+                let match;
+                while (match = pattern.exec(code)) {
+                    foundRedirects.push(`Redirect found: ${match[0]}`);
+                }
+            });
+
+            // Show the results
+            if (foundRedirects.length > 0) {
+                resultsDiv.innerHTML = foundRedirects.join('<br>');
+            } else {
+                resultsDiv.innerHTML = "No redirects found.";
+            }
+        }
+    </script>
+</body>
+</html>
