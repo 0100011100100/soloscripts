@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Key Login Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: auto;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>API Key Script Generator</h1>
+        <form id="api-form">
+            <label for="website">Website URL</label>
+            <input type="text" id="website" name="website" placeholder="Enter website URL" required>
+
+            <label for="apiKey">API Key</label>
+            <input type="text" id="apiKey" name="apiKey" placeholder="Enter API Key" required>
+
+            <button type="submit">Generate Script</button>
+        </form>
+
+        <h2>Generated Script:</h2>
+        <textarea id="generatedScript" rows="10" readonly></textarea>
+    </div>
+
+    <script>
+        document.getElementById('api-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const website = document.getElementById('website').value;
+            const apiKey = document.getElementById('apiKey').value;
+
+            // Simple generated script
+            const script = `
+(async () => {
+    const response = await fetch('${website}/login', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ${apiKey}'
+        },
+        body: JSON.stringify({
+            email: 'your_email',
+            password: 'your_password'
+        })
+    });
+
+    const data = await response.json();
+    console.log('Response:', data);
+})();
+`;
+
+            document.getElementById('generatedScript').value = script;
+        });
+    </script>
+</body>
+</html>
