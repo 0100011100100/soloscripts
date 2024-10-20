@@ -34,6 +34,7 @@
             border-radius: 4px;
             cursor: pointer;
             width: 100%;
+            margin: 5px 0;
         }
 
         button:hover {
@@ -55,8 +56,10 @@
     <button id="convert-button">Convert to HTML</button>
     <h2>Converted HTML:</h2>
     <pre id="html-output"></pre>
+    <button id="copy-button">Copy to Clipboard</button>
 
     <script>
+        // Convert JavaScript to HTML when button is clicked
         document.getElementById('convert-button').addEventListener('click', function () {
             const jsCode = document.getElementById('js-input').value;
 
@@ -77,6 +80,16 @@
 
             // Display the converted HTML
             document.getElementById('html-output').textContent = htmlCode;
+        });
+
+        // Copy the converted HTML to clipboard
+        document.getElementById('copy-button').addEventListener('click', function () {
+            const htmlOutput = document.getElementById('html-output').textContent;
+            navigator.clipboard.writeText(htmlOutput).then(() => {
+                alert('HTML code copied to clipboard!');
+            }).catch(err => {
+                alert('Failed to copy: ', err);
+            });
         });
     </script>
 </body>
