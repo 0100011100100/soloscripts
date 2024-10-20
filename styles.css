@@ -1,0 +1,343 @@
+/* Status page defaults */
+
+
+/* Fonts */
+/* lato-regular - latin */
+@font-face {
+  font-family: 'Lato';
+  font-style: normal;
+  font-weight: 400;
+  src: url('../fonts/lato-v14-latin-regular.eot'); /* IE9 Compat Modes */
+  src: local('Lato Regular'), local('Lato-Regular'),
+       url('../fonts/lato-v14-latin-regular.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+       url('../fonts/lato-v14-latin-regular.woff2') format('woff2'), /* Super Modern Browsers */
+       url('../fonts/lato-v14-latin-regular.woff') format('woff'), /* Modern Browsers */
+       url('../fonts/lato-v14-latin-regular.ttf') format('truetype'), /* Safari, Android, iOS */
+       url('../fonts/lato-v14-latin-regular.svg#Lato') format('svg'); /* Legacy iOS */
+}
+/* lato-italic - latin */
+@font-face {
+  font-family: 'Lato';
+  font-style: italic;
+  font-weight: 400;
+  src: url('../fonts/lato-v14-latin-italic.eot'); /* IE9 Compat Modes */
+  src: local('Lato Italic'), local('Lato-Italic'),
+       url('../fonts/lato-v14-latin-italic.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+       url('../fonts/lato-v14-latin-italic.woff2') format('woff2'), /* Super Modern Browsers */
+       url('../fonts/lato-v14-latin-italic.woff') format('woff'), /* Modern Browsers */
+       url('../fonts/lato-v14-latin-italic.ttf') format('truetype'), /* Safari, Android, iOS */
+       url('../fonts/lato-v14-latin-italic.svg#Lato') format('svg'); /* Legacy iOS */
+}
+/* lato-700 - latin */
+@font-face {
+  font-family: 'Lato';
+  font-style: normal;
+  font-weight: 700;
+  src: url('../fonts/lato-v14-latin-700.eot'); /* IE9 Compat Modes */
+  src: local('Lato Bold'), local('Lato-Bold'),
+       url('../fonts/lato-v14-latin-700.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+       url('../fonts/lato-v14-latin-700.woff2') format('woff2'), /* Super Modern Browsers */
+       url('../fonts/lato-v14-latin-700.woff') format('woff'), /* Modern Browsers */
+       url('../fonts/lato-v14-latin-700.ttf') format('truetype'), /* Safari, Android, iOS */
+       url('../fonts/lato-v14-latin-700.svg#Lato') format('svg'); /* Legacy iOS */
+}
+/* lato-900 - latin */
+@font-face {
+  font-family: 'Lato';
+  font-style: normal;
+  font-weight: 900;
+  src: url('../fonts/lato-v14-latin-900.eot'); /* IE9 Compat Modes */
+  src: local('Lato Black'), local('Lato-Black'),
+       url('../fonts/lato-v14-latin-900.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+       url('../fonts/lato-v14-latin-900.woff2') format('woff2'), /* Super Modern Browsers */
+       url('../fonts/lato-v14-latin-900.woff') format('woff'), /* Modern Browsers */
+       url('../fonts/lato-v14-latin-900.ttf') format('truetype'), /* Safari, Android, iOS */
+       url('../fonts/lato-v14-latin-900.svg#Lato') format('svg'); /* Legacy iOS */
+}
+
+body {
+  font-family: "Lato", Helvetica, Arial, sans-serif;
+}
+
+/* Colors */
+.white {
+  color: #fff;
+  font-size: 16px;
+}
+
+/* Space out content a bit */
+body {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+/* Everything gets side spacing for mobile first views */
+.header,
+.footer {
+  padding-right: 15px;
+  padding-left: 15px;
+}
+
+/* Make the masthead heading the same height as the navigation */
+.header h3 {
+  padding-bottom: 19px;
+  margin-top: 0;
+  margin-bottom: 0;
+  line-height: 40px;
+}
+.header_title_text {
+  padding-bottom: 19px;
+}
+
+/* Container size */
+@media (min-width: 958px) {
+  .container {
+    max-width: 928px;
+  }
+}
+
+/* Responsive: Portrait tablets and up */
+@media screen and (min-width: 768px) {
+  /* Remove the padding we set earlier */
+  .header,
+  .marketing,
+  .footer {
+    padding-right: 0;
+    padding-left: 0;
+  }
+  /* Space out the masthead */
+  .header {
+    margin-bottom: 30px;
+  }
+}
+
+/* Misc */
+hr { 
+  display: block;
+  height: 1px;
+  border: 0;
+  margin: 1em 0; padding: 0;
+}
+.margin-right-20 {
+  margin-right: 20px;
+}
+.margin-top-40 {
+  margin-top: 40px;
+}
+.margin-top-20 {
+  margin-top: 20px;
+}
+
+/* Navigation pills */
+.nav-pills > li.active > a,
+.nav-pills > li.active > a:hover,
+.nav-pills > li.active > a:focus {
+  color: #2C3E50;
+  background-color: #F2F3F4;
+  margin-left: 5px;
+  line-height: 15px;
+}
+.nav-pills > li > a {
+  color: #BFC6C6;
+  background-color: #5A6465;
+  margin-left: 5px;
+  line-height: 15px;
+}
+.nav-pills > li > a:hover,
+.nav-pills > li > a:focus {
+  color: #2C3E50;
+  background-color: #F2F3F4;
+  margin-left: 5px;
+  line-height: 15px;
+}
+
+
+/* Back text */
+.back-text {
+  font-family: "Lato", Helvetica, Arial, sans-serif;
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: bold;
+}
+
+/* History filter text */
+.history-filter-text {
+  font-family: "Lato", Helvetica, Arial, sans-serif;
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: bold;
+}
+
+/* Page sections */
+.page_section {
+  margin-top: 50px;
+}
+.page_section h3 {
+  font-size: 20px;
+  opacity: 0.6;
+}
+#section_page_links {
+  margin-bottom: 25px;
+}
+.panel {
+  background: none;
+  border: 0;
+}
+
+/* Logo */
+#statuspage_logo {
+  max-width: 300px;
+  max-height: 150px;
+}
+
+/* Header Image */
+#statuspage_header_image {
+  max-width: 100%;
+  max-height: auto;
+}
+
+/* Top bar */
+.statuspage_name {
+  font-size: 25px;
+  opacity: 0.9;
+  text-decoration: none;
+}
+
+/* Status bar */
+#statusbar_text {
+  font-size:18px;
+}
+.top_bar {
+  color: #fff;
+  border: 0;  
+}
+
+/* Metrics */
+.metric_name {
+  font-weight: normal;
+}
+
+/* Incident */
+.incident_section {
+  opacity: 0.7;
+}
+.incident_time {
+  font-size: 12px;
+  opacity: 0.5;
+}
+.incident_message_details {
+  margin-top: 10px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+.incident_message_details:hover a{
+  text-decoration: underline;
+}
+.incident_status_description {
+  opacity: 0.7;
+  color: #fff;
+}
+
+/* Maintenance */
+.maintenance_section {
+  opacity: 0.7;
+}
+.maintenance_time {
+  font-size: 12px;
+  opacity: 0.5;
+}
+.maintenance_message_details {
+  margin-top: 10px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+.maintenance_message_details:hover a{
+  text-decoration: underline;
+}
+.maintenance_status_description {
+  opacity: 0.7;
+  color: #fff;
+}
+
+/* About */
+#statusio_about_text {
+  opacity: 0.9;
+  white-space: pre-wrap;
+  word-wrap: break-word;  
+}
+
+/* Components */
+.component {
+  border-right: 0;
+}
+.component-single {
+  border-top-width: 1px;
+}
+.component-first {
+  border-bottom: 0;  
+  border-top-width: 1px;  
+}
+.component-middle {
+  border-bottom: 0;
+  border-top-width: 0px;      
+}
+.component-last {
+  border-top-width: 0px;    
+}
+.component-status {
+  margin-right: 20px;
+  margin-top: 7px;
+  font-size: 17px;
+  opacity: 0.9;
+}
+.component_name {
+  font-size:17px; 
+  opacity:0.9; 
+  margin-top:7px; 
+  margin-left:10px;  
+}
+.container_name {
+  margin-bottom:7px; 
+  margin-left:10px;  
+}
+
+/* Locations */
+#world-map-markers {
+  max-width: 950px;
+  height: 400px;
+}
+
+/* Subscriber modal */
+.subscribe-modal-footer {
+  padding: 15px;
+  text-align: right;
+  margin-top: 40px;
+  border-top: 1px solid #e5e5e5;
+}
+.subscribe-modal-footer .btn + .btn {
+  margin-bottom: 0;
+  margin-left: 5px;
+}
+.subscribe-modal-footer .btn-group .btn + .btn {
+  margin-left: -1px;
+}
+.subscribe-modal-footer .btn-block + .btn-block {
+  margin-left: 0;
+}
+.modal-text {
+  color: #363434;
+}
+
+/* External services */
+.external_service {
+  font-family: "Lato", Helvetica, Arial, sans-serif;
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: bold;
+}
+
+/* History */
+.no_history {
+  margin-top: 120px;
+  margin-bottom: 260px;
+}
