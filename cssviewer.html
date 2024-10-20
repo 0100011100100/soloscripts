@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live CSS Preview</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            margin-bottom: 20px;
+        }
+        #previewBox {
+            width: 200px;
+            height: 200px;
+            border: 2px solid #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <h1>Live CSS Preview</h1>
+    <p>Enter your CSS below and see it applied to the preview box:</p>
+    
+    <textarea id="cssInput" placeholder="Enter CSS here..."></textarea>
+    <button onclick="applyCSS()">Apply CSS</button>
+
+    <div id="previewBox">Preview</div>
+
+    <script>
+        function applyCSS() {
+            const css = document.getElementById('cssInput').value;
+            const previewBox = document.getElementById('previewBox');
+            
+            // Apply the entered CSS to the preview box
+            previewBox.style = css;
+        }
+    </script>
+</body>
+</html>
