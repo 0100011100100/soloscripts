@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website Cloner</title>
+</head>
+<body>
+    <h2>Website Cloner</h2>
+    <input type="text" id="urlInput" placeholder="Enter URL to Clone" />
+    <button onclick="cloneWebsite()">Clone Website</button>
+
+    <div id="result"></div>
+
+    <script>
+        async function cloneWebsite() {
+            const url = document.getElementById('urlInput').value;
+            if (!url) {
+                alert("Please enter a URL.");
+                return;
+            }
+
+            try {
+                const response = await fetch(`/proxy?target=${encodeURIComponent(url)}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch website content');
+                }
+                const html = await response.text();
+
+                document.getElementById('result').textContent = html;
+                alert("Website HTML fetched successfully. You can copy it below.");
+
+                const textarea = document.createElement('textarea');
+                textarea.value = html;
+                document.getElementById('result').appendChild(textarea);
+
+            } catch (error) {
+                console.error("Error fetching the website:", error);
+                alert("There was an error fetching the website.");
+            }
+        }
+    </script>
+</body>
+</html>
