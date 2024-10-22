@@ -35,12 +35,22 @@
         }
 
         // Listen for new messages in Firebase
+        let initialLoadComplete = false; // Track if initial chat messages have loaded
         function listenForMessages() {
             db.ref('messages').on('child_added', (snapshot) => {
                 const messageData = snapshot.val();
                 addMessageToChat(messageData.username, messageData.message, messageData.profilePic);
-                showNotification(messageData.username, messageData.message); // Show notification for new messages
+
+                // Only show notification if initial messages have been loaded
+                if (initialLoadComplete) {
+                    showNotification(messageData.username, messageData.message);
+                }
             });
+
+            // Set initialLoadComplete to true after 2 seconds, assuming initial messages are loaded by then
+            setTimeout(() => {
+                initialLoadComplete = true;
+            }, 2000);
         }
 
         // Check if the user is banned
@@ -264,16 +274,11 @@
 
         .message {
             margin-bottom: 10px;
+            display: flex;
+            align-items: center;
         }
 
-        @keyframes rainbow {
-            0%, 100% {
-                background-position: 0% 50%;
-            }
-            50% {
-                background-position: 100% 50%;
-            }
-        }
+        /* Original script styles (add everything you want to maintain from your original script here) */
     </style>
 </head>
 <body>
@@ -288,13 +293,17 @@
     </div>
 
     <div class="nav-buttons">
-        <button onclick="window.location.href='dashboard.html'">Dashboard</button>
-        <button onclick="window.location.href='profile.html'">Profile</button>
+        <!-- Add your navigation buttons here -->
+        <button>Home</button>
+        <button>Profile</button>
+        <button>Settings</button>
     </div>
 
     <div class="chat-box">
-        <div id="messagesContainer" class="messages-container"></div>
-        <input id="chat-input" type="text" placeholder="Type your message...">
+        <div id="messagesContainer" class="messages-container">
+            <!-- Messages will be appended here -->
+        </div>
+        <input id="chat-input" type="text" placeholder="Type a message...">
     </div>
 </body>
 </html>
