@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Segment Analytics Integration</title>
+    <script type="text/javascript">
+        // Initialize Segment Analytics Object
+        (function() {
+            var analytics = window.analytics = window.analytics || [];
+            if (!analytics.initialize) {
+                if (analytics.invoked) {
+                    window.console && console.error && console.error("Segment snippet included twice.");
+                } else {
+                    analytics.invoked = true;
+                    analytics.methods = [
+                        "trackSubmit", "trackClick", "trackLink", "trackForm", "pageview",
+                        "identify", "reset", "group", "track", "ready", "alias", "debug",
+                        "page", "once", "off", "on"
+                    ];
+                    analytics.factory = function(method) {
+                        return function() {
+                            var args = Array.prototype.slice.call(arguments);
+                            args.unshift(method);
+                            analytics.push(args);
+                            return analytics;
+                        };
+                    };
+                    for (var i = 0; i < analytics.methods.length; i++) {
+                        var method = analytics.methods[i];
+                        analytics[method] = analytics.factory(method);
+                    }
+                    analytics.load = function(key) {
+                        var script = document.createElement("script");
+                        script.type = "text/javascript";
+                        script.async = true;
+                        script.src = "https://cdn.segment.com/analytics.js/v1/" + key + "/analytics.min.js";
+                        var first = document.getElementsByTagName("script")[0];
+                        first.parentNode.insertBefore(script, first);
+                    };
+                    // Replace 'YOUR_WRITE_KEY' with your actual Segment Write Key
+                    analytics.load("Iqsh3Wt2YGjQiO7UfIdflmLEiTaSsGqe");
+                    analytics.page();
+                }
+            }
+        })();
+    </script>
+</head>
+<body>
+
+    <h1>Welcome to My Site</h1>
+    <p>This page is integrated with Segment Analytics.js</p>
+
+    <!-- Button to track click events -->
+    <button id="trackButton">Click Me</button>
+
+    <script type="text/javascript">
+        // Track button click
+        document.getElementById("trackButton").addEventListener("click", function() {
+            analytics.track("Button Clicked", {
+                category: "User Interactions",
+                label: "Track Button",
+                value: 1
+            });
+            alert("Button Click event tracked!");
+        });
+    </script>
+
+</body>
+</html>
