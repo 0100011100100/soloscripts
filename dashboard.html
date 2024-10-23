@@ -35,22 +35,11 @@
         }
 
         // Listen for new messages in Firebase
-        let initialLoadComplete = false; // Track if initial chat messages have loaded
         function listenForMessages() {
             db.ref('messages').on('child_added', (snapshot) => {
                 const messageData = snapshot.val();
                 addMessageToChat(messageData.username, messageData.message, messageData.profilePic);
-
-                // Only show notification if initial messages have been loaded
-                if (initialLoadComplete) {
-                    showNotification(messageData.username, messageData.message);
-                }
             });
-
-            // Set initialLoadComplete to true after 2 seconds, assuming initial messages are loaded by then
-            setTimeout(() => {
-                initialLoadComplete = true;
-            }, 2000);
         }
 
         // Check if the user is banned
@@ -67,45 +56,21 @@
             return db.ref('users/' + username + '/badges/developer').once('value').then(snapshot => !!snapshot.val());
         }
 
-        // Check if the user has the Contributor badge
-        function hasContributorBadge(username) {
-            return db.ref('users/' + username + '/badges/contributor').once('value').then(snapshot => !!snapshot.val());
-        }
-
-        // Save profile picture URL to Firebase
-        function saveProfilePic(username, profilePicUrl) {
-            db.ref('users/' + username + '/profilePic').set(profilePicUrl);
-        }
-
-        // Fetch profile picture from Firebase
-        function fetchProfilePic(username) {
-            return db.ref('users/' + username + '/profilePic').once('value').then(snapshot => snapshot.val() || 'default-profile-pic.png');
-        }
-
-        // Fetch username and check for ban, badges, and profile picture on load
+        // Fetch username and check for ban and developer badge on load
         window.onload = function() {
             const username = localStorage.getItem('username') || 'Guest';
+            const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
 
-            // Fetch profile picture from Firebase or localStorage
-            fetchProfilePic(username).then(profilePicUrl => {
-                profilePic.src = profilePicUrl;
-                localStorage.setItem('profilePic', profilePicUrl); // Save to localStorage
-
-                checkUserBan(username); // Check if user is banned
-                hasDeveloperBadge(username).then(hasBadge => {
-                    if (hasBadge) {
-                        developerBadge.style.display = 'inline-block'; // Show Developer badge if the user has it
-                    }
-                });
-                hasContributorBadge(username).then(hasBadge => {
-                    if (hasBadge) {
-                        contributorBadge.style.display = 'inline-block'; // Show Contributor badge if the user has it
-                    }
-                });
-
-                usernameDisplay.textContent = username;
-                listenForMessages(); // Start listening for messages
+            checkUserBan(username); // Check if user is banned
+            hasDeveloperBadge(username).then(hasBadge => {
+                if (hasBadge) {
+                    developerBadge.style.display = 'inline-block'; // Show Developer badge if the user has it
+                }
             });
+
+            usernameDisplay.textContent = username;
+            profilePic.src = profilePictureUrl;
+            listenForMessages(); // Start listening for messages
         };
 
         // Function to display chat messages with badges
@@ -124,8 +89,6 @@
                 badgeText = `<strong class="profile-owner-badge">Owner:</strong>`;
             } else if (username.toLowerCase() === 'piggy') {
                 badgeText = `<strong class="profile-developer-badge">Developer:</strong>`;
-            } else if (username.toLowerCase() === 'contributor') {
-                badgeText = `<strong class="profile-contributor-badge">Contributor:</strong>`;
             }
 
             text.innerHTML = `${badgeText} ${username}: ${messageText}`;
@@ -143,23 +106,9 @@
                     const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png'; // Get profile pic URL
                     sendMessage(username, messageText, profilePictureUrl); // Send message
                     event.target.value = ''; // Clear the input field after sending
-                    saveProfilePic(username, profilePictureUrl); // Save profile picture to Firebase
                 }
             }
         });
-
-        // Function to show notifications
-        function showNotification(username, messageText) {
-            if (Notification.permission === 'granted') {
-                new Notification(`New message from ${username}`, { body: messageText });
-            } else if (Notification.permission !== 'denied') {
-                Notification.requestPermission().then(permission => {
-                    if (permission === 'granted') {
-                        new Notification(`New message from ${username}`, { body: messageText });
-                    }
-                });
-            }
-        }
 
         // Function to sign out user
         function signOut() {
@@ -223,15 +172,6 @@
             animation: rainbow 3s linear infinite;
         }
 
-        .profile-contributor-badge {
-            font-size: 12px;
-            padding: 3px 10px;
-            background: linear-gradient(90deg, #00ff00, #0000ff);
-            color: white;
-            border-radius: 5px;
-            margin-left: 10px;
-        }
-
         /* Navigation Buttons */
         .nav-buttons {
             display: flex;
@@ -262,48 +202,93 @@
             padding: 10px;
             border-radius: 5px;
             border: none;
-            background-color: #333;
-            color: white;
+            font-size: 14px;
         }
 
-        .messages-container {
-            padding: 20px;
-            background-color: #333;
-            margin-bottom: 20px;
+        .messages {
+            margin-top: 20px;
         }
 
-        .message {
-            margin-bottom: 10px;
+        .messages .message {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #333;
+            border-radius: 5px;
             display: flex;
             align-items: center;
         }
 
-        /* Original script styles (add everything you want to maintain from your original script here) */
+        .messages .message img {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin-right: 10px;
+            border: 3px solid white;
+        }
+
+        /* Popup Styles */
+        .popup {
+            position: fixed;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 5px;
+            transition: top 0.5s ease;
+            z-index: 1000;
+        }
+
+        /* Rainbow and Gradient Borders */
+        .rainbow-border {
+            animation: rainbow 3s linear infinite;
+        }
+
+        @keyframes rainbow {
+            0% { border-color: red; }
+            16.6% { border-color: orange; }
+            33.2% { border-color: yellow; }
+            49.8% { border-color: green; }
+            66.4% { border-color: blue; }
+            83% { border-color: indigo; }
+            100% { border-color: violet; }
+        }
+
+        .gradient-border {
+            border-image-slice: 1;
+            border-width: 3px;
+            border-style: solid;
+        }
     </style>
 </head>
 <body>
-    <div class="header">
-        <div class="profile">
-            <img id="profilePic" src="default-profile-pic.png" alt="Profile Picture">
-            <span id="usernameDisplay" class="username">Guest</span>
-            <span id="developerBadge" class="profile-developer-badge" style="display: none;">Developer</span>
-            <span id="contributorBadge" class="profile-contributor-badge" style="display: none;">Contributor</span>
-        </div>
-        <button onclick="signOut()">Sign Out</button>
-    </div>
 
-    <div class="nav-buttons">
-        <!-- Add your navigation buttons here -->
-        <button>Home</button>
-        <button>Profile</button>
-        <button>Settings</button>
-    </div>
+<div id="popup" class="popup" style="display: none;"></div>
 
-    <div class="chat-box">
-        <div id="messagesContainer" class="messages-container">
-            <!-- Messages will be appended here -->
-        </div>
-        <input id="chat-input" type="text" placeholder="Type a message...">
+<div class="header">
+    <div class="profile">
+        <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture" class="profile-picture">
+        <div class="username" id="username-display"></div>
+        <div id="owner-badge" class="profile-owner-badge" style="display: none;">Owner</div>
+        <div id="developer-badge" class="profile-developer-badge" style="display: none;">Developer</div>
     </div>
+    <button onclick="signOut()">Sign Out</button>
+</div>
+
+<!-- Navigation Buttons -->
+<div class="nav-buttons">
+    <button onclick="window.location.href='dashboard.html'">Dashboard</button>
+    <button onclick="window.location.href='signup.html'">Sign Up</button>
+</div>
+
+<!-- Chatbox -->
+<div class="chat-box">
+    <input type="text" id="chat-input" placeholder="Type your message and press Enter">
+</div>
+
+<!-- Messages Section -->
+<div class="messages" id="messages-container"></div>
+
 </body>
 </html>
