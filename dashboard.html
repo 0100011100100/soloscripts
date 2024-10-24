@@ -51,31 +51,25 @@
             });
         }
 
-        // Check if the user has the Developer or Contributor badge
-        function hasBadge(username, badgeType) {
-            return db.ref('users/' + username + '/badges/' + badgeType).once('value').then(snapshot => !!snapshot.val());
+        // Check if the user has the Developer badge
+        function hasDeveloperBadge(username) {
+            return db.ref('users/' + username + '/badges/developer').once('value').then(snapshot => !!snapshot.val());
         }
 
-        // Fetch username and check for ban, developer, and contributor badges on load
+        // Fetch username and check for ban and developer badge on load
         window.onload = function() {
             const username = localStorage.getItem('username') || 'Guest';
             const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
 
             checkUserBan(username); // Check if user is banned
-            hasBadge(username, 'developer').then(hasDeveloperBadge => {
-                if (hasDeveloperBadge) {
-                    document.getElementById('developer-badge').style.display = 'inline-block'; // Show Developer badge if the user has it
+            hasDeveloperBadge(username).then(hasBadge => {
+                if (hasBadge) {
+                    developerBadge.style.display = 'inline-block'; // Show Developer badge if the user has it
                 }
             });
 
-            hasBadge(username, 'contributor').then(hasContributorBadge => {
-                if (hasContributorBadge) {
-                    document.getElementById('contributor-badge').style.display = 'inline-block'; // Show Contributor badge if the user has it
-                }
-            });
-
-            document.getElementById('username-display').textContent = username;
-            document.getElementById('profile-pic').src = profilePictureUrl;
+            usernameDisplay.textContent = username;
+            profilePic.src = profilePictureUrl;
             listenForMessages(); // Start listening for messages
         };
 
@@ -92,17 +86,15 @@
 
             // Add badges based on username
             if (username === 'zeptional') {
-                badgeText = `<strong class="profile-owner-badge">Owner:</strong>`;
+                badgeText = '<strong class="profile-owner-badge">Owner:</strong>';
             } else if (username.toLowerCase() === 'piggy') {
-                badgeText = `<strong class="profile-developer-badge">Developer:</strong>`;
-            } else if (username.toLowerCase() === 'contributorUser') { // Check for contributor badge
-                badgeText = `<strong class="profile-contributor-badge">Contributor:</strong>`;
+                badgeText = '<strong class="profile-developer-badge">Developer:</strong>';
             }
 
             text.innerHTML = `${badgeText} ${username}: ${messageText}`;
             message.appendChild(profileImage);
             message.appendChild(text);
-            document.getElementById('messages-container').appendChild(message);
+            messagesContainer.appendChild(message);
         }
 
         // Handle sending messages
@@ -127,7 +119,6 @@
     </script>
 
     <style>
-        /* Same styles as before */
         body {
             margin: 0;
             padding: 0;
@@ -178,28 +169,32 @@
             color: white;
             border-radius: 5px;
             margin-left: 10px;
-            animation: glow 3s linear infinite;
+            animation: rainbow 3s linear infinite;
         }
 
-        /* Contributor badge style */
-        .profile-contributor-badge {
-            font-size: 12px;
-            padding: 3px 10px;
-            background: linear-gradient(90deg, #00ff00, #ffff00);
+        /* Navigation Buttons */
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .nav-buttons button {
+            margin: 0 10px;
+            padding: 10px 20px;
+            background-color: #555;
             color: white;
+            border: none;
             border-radius: 5px;
-            margin-left: 10px;
-            animation: glow 3s linear infinite;
+            cursor: pointer;
         }
 
-        @keyframes glow {
-            0% { text-shadow: 0 0 10px #ff00ff, 0 0 20px #00ffff; }
-            50% { text-shadow: 0 0 20px #ff00ff, 0 0 40px #00ffff; }
-            100% { text-shadow: 0 0 10px #ff00ff, 0 0 20px #00ffff; }
+        .nav-buttons button:hover {
+            background-color: #777;
         }
 
         .chat-box {
-            margin: 20px;
+            padding: 20px;
         }
 
         .chat-box input {
@@ -211,9 +206,7 @@
         }
 
         .messages {
-            max-height: 400px;
-            overflow-y: auto;
-            margin: 10px 0;
+            margin-top: 20px;
         }
 
         .messages .message {
@@ -233,40 +226,52 @@
             border: 3px solid white;
         }
 
-        /* Ensure buttons stay aligned and have the same appearance */
-        .nav-buttons {
-            display: flex;
-            justify-content: center;
-            padding: 10px;
-        }
-
-        .nav-buttons button {
-            background-color: #444;
+        /* Popup Styles */
+        .popup {
+            position: fixed;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
             color: white;
-            border: none;
-            padding: 10px 20px;
-            margin: 0 5px;
+            padding: 15px 20px;
             border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
+            transition: top 0.5s ease;
+            z-index: 1000;
         }
 
-        .nav-buttons button:hover {
-            background-color: #555;
+        /* Rainbow and Gradient Borders */
+        .rainbow-border {
+            animation: rainbow 3s linear infinite;
+        }
+
+        @keyframes rainbow {
+            0% { border-color: red; }
+            16.6% { border-color: orange; }
+            33.2% { border-color: yellow; }
+            49.8% { border-color: green; }
+            66.4% { border-color: blue; }
+            83% { border-color: indigo; }
+            100% { border-color: violet; }
+        }
+
+        .gradient-border {
+            border-image-slice: 1;
+            border-width: 3px;
+            border-style: solid;
         }
     </style>
 </head>
 <body>
 
+<div id="popup" class="popup" style="display: none;"></div>
+
 <div class="header">
     <div class="profile">
-        <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture">
-        <div class="username" id="username-display">Guest</div>
-
-        <!-- Badges -->
+        <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture" class="profile-picture">
+        <div class="username" id="username-display"></div>
         <div id="owner-badge" class="profile-owner-badge" style="display: none;">Owner</div>
         <div id="developer-badge" class="profile-developer-badge" style="display: none;">Developer</div>
-        <div id="contributor-badge" class="profile-contributor-badge" style="display: none;">Contributor</div>
     </div>
 </div>
 
@@ -285,5 +290,74 @@
     </div>
 </div>
 
+<script>
+    const usernameDisplay = document.getElementById('username-display');
+    const profilePic = document.getElementById('profile-pic');
+    const ownerBadge = document.getElementById('owner-badge');
+    const developerBadge = document.getElementById('developer-badge');
+    const messagesContainer = document.getElementById('messages-container');
+    const popup = document.getElementById('popup');
+
+    // Fetch username from localStorage
+    const username = localStorage.getItem('username') || 'Guest';
+    const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
+
+    // Display the username and profile picture
+    usernameDisplay.textContent = username;
+    profilePic.src = profilePictureUrl;
+
+    // Show the Owner badge if the username is 'zeptional'
+    if (username === 'zeptional') {
+        ownerBadge.style.display = 'inline-block';
+    }
+
+    // Show the Developer badge if the username is 'piggy' or 'Piggy'
+    if (username.toLowerCase() === 'piggy') {
+        developerBadge.style.display = 'inline-block';
+    }
+
+    // Function to display chat messages with the username, profile picture, and badges
+    function addMessageToChat(username, messageText, profilePicUrl) {
+        const message = document.createElement('div');
+        message.classList.add('message');
+
+        const profileImage = document.createElement('img');
+        profileImage.src = profilePicUrl || 'default-profile-pic.png'; // Display the sender's profile picture
+        profileImage.classList.add('gradient-border'); // Add the gradient border
+
+        const text = document.createElement('span');
+        let badgeText = '';
+
+        // Add badges in chat based on username
+        if (username === 'zeptional') {
+            badgeText = '<strong class="profile-owner-badge">Owner:</strong>';
+        } else if (username.toLowerCase() === 'piggy') {
+            badgeText = '<strong class="profile-developer-badge">Developer:</strong>';
+        }
+
+        text.innerHTML = `${badgeText} ${username}: ${messageText}`;
+        message.appendChild(profileImage);
+        message.appendChild(text);
+        messagesContainer.appendChild(message);
+    }
+
+    // Handle sending messages
+    document.getElementById('chat-input').addEventListener('keypress', function (event) {
+        if (event.key === 'Enter') {
+            const messageText = event.target.value;
+            if (messageText) {
+                sendMessage(username, messageText, profilePictureUrl); // Send message with profile picture URL
+                event.target.value = ''; // Clear the input field after sending
+            }
+        }
+    });
+
+    // Function to sign out user
+    function signOut() {
+        localStorage.removeItem('username');
+        localStorage.removeItem('profilePic');
+        window.location.href = 'login.html'; // Redirect to login page
+    }
+</script>
 </body>
-</html
+</html>
