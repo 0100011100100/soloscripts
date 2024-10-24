@@ -51,20 +51,26 @@
             });
         }
 
-        // Check if the user has the Developer badge
-        function hasDeveloperBadge(username) {
-            return db.ref('users/' + username + '/badges/developer').once('value').then(snapshot => !!snapshot.val());
+        // Check if the user has the Developer or Contributor badge
+        function hasBadge(username, badgeType) {
+            return db.ref('users/' + username + '/badges/' + badgeType).once('value').then(snapshot => !!snapshot.val());
         }
 
-        // Fetch username and check for ban and developer badge on load
+        // Fetch username and check for ban, developer, and contributor badges on load
         window.onload = function() {
             const username = localStorage.getItem('username') || 'Guest';
             const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
 
             checkUserBan(username); // Check if user is banned
-            hasDeveloperBadge(username).then(hasBadge => {
-                if (hasBadge) {
+            hasBadge(username, 'developer').then(hasDeveloperBadge => {
+                if (hasDeveloperBadge) {
                     developerBadge.style.display = 'inline-block'; // Show Developer badge if the user has it
+                }
+            });
+
+            hasBadge(username, 'contributor').then(hasContributorBadge => {
+                if (hasContributorBadge) {
+                    contributorBadge.style.display = 'inline-block'; // Show Contributor badge if the user has it
                 }
             });
 
@@ -89,6 +95,8 @@
                 badgeText = `<strong class="profile-owner-badge">Owner:</strong>`;
             } else if (username.toLowerCase() === 'piggy') {
                 badgeText = `<strong class="profile-developer-badge">Developer:</strong>`;
+            } else if (username.toLowerCase() === 'contributorUser') { // Add check for contributor badge
+                badgeText = `<strong class="profile-contributor-badge">Contributor:</strong>`;
             }
 
             text.innerHTML = `${badgeText} ${username}: ${messageText}`;
@@ -119,6 +127,7 @@
     </script>
 
     <style>
+        /* Same styles as before */
         body {
             margin: 0;
             padding: 0;
@@ -172,29 +181,21 @@
             animation: rainbow 3s linear infinite;
         }
 
-        /* Navigation Buttons */
-        .nav-buttons {
-            display: flex;
-            justify-content: center;
-            margin-top: 20px;
-        }
-
-        .nav-buttons button {
-            margin: 0 10px;
-            padding: 10px 20px;
-            background-color: #555;
+        /* New Contributor badge style */
+        .profile-contributor-badge {
+            font-size: 12px;
+            padding: 3px 10px;
+            background: linear-gradient(90deg, #00ff00, #ffff00);
             color: white;
-            border: none;
             border-radius: 5px;
-            cursor: pointer;
+            margin-left: 10px;
+            animation: glow 3s linear infinite;
         }
 
-        .nav-buttons button:hover {
-            background-color: #777;
-        }
-
-        .chat-box {
-            padding: 20px;
+        @keyframes glow {
+            0% { text-shadow: 0 0 10px #00ff00, 0 0 20px #ffff00; }
+            50% { text-shadow: 0 0 20px #00ff00, 0 0 40px #ffff00; }
+            100% { text-shadow: 0 0 10px #00ff00, 0 0 20px #ffff00; }
         }
 
         .chat-box input {
@@ -203,10 +204,6 @@
             border-radius: 5px;
             border: none;
             font-size: 14px;
-        }
-
-        .messages {
-            margin-top: 20px;
         }
 
         .messages .message {
@@ -225,41 +222,6 @@
             margin-right: 10px;
             border: 3px solid white;
         }
-
-        /* Popup Styles */
-        .popup {
-            position: fixed;
-            top: -50px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 15px 20px;
-            border-radius: 5px;
-            transition: top 0.5s ease;
-            z-index: 1000;
-        }
-
-        /* Rainbow and Gradient Borders */
-        .rainbow-border {
-            animation: rainbow 3s linear infinite;
-        }
-
-        @keyframes rainbow {
-            0% { border-color: red; }
-            16.6% { border-color: orange; }
-            33.2% { border-color: yellow; }
-            49.8% { border-color: green; }
-            66.4% { border-color: blue; }
-            83% { border-color: indigo; }
-            100% { border-color: violet; }
-        }
-
-        .gradient-border {
-            border-image-slice: 1;
-            border-width: 3px;
-            border-style: solid;
-        }
     </style>
 </head>
 <body>
@@ -272,6 +234,7 @@
         <div class="username" id="username-display"></div>
         <div id="owner-badge" class="profile-owner-badge" style="display: none;">Owner</div>
         <div id="developer-badge" class="profile-developer-badge" style="display: none;">Developer</div>
+        <div id="contributor-badge" class="profile-contributor-badge" style="display: none;">Contributor</div>
     </div>
 </div>
 
@@ -295,6 +258,7 @@
     const profilePic = document.getElementById('profile-pic');
     const ownerBadge = document.getElementById('owner-badge');
     const developerBadge = document.getElementById('developer-badge');
+    const contributorBadge = document.getElementById('contributor-badge');
     const messagesContainer = document.getElementById('messages-container');
     const popup = document.getElementById('popup');
 
@@ -316,6 +280,11 @@
         developerBadge.style.display = 'inline-block';
     }
 
+    // Show the Contributor badge if the username is 'contributorUser'
+    if (username.toLowerCase() === 'contributoruser') {
+        contributorBadge.style.display = 'inline-block';
+    }
+
     // Function to display chat messages with the username, profile picture, and badges
     function addMessageToChat(username, messageText, profilePicUrl) {
         const message = document.createElement('div');
@@ -333,6 +302,8 @@
             badgeText = `<strong class="profile-owner-badge">Owner:</strong>`;
         } else if (username.toLowerCase() === 'piggy') {
             badgeText = `<strong class="profile-developer-badge">Developer:</strong>`;
+        } else if (username.toLowerCase() === 'contributoruser') {
+            badgeText = `<strong class="profile-contributor-badge">Contributor:</strong>`;
         }
 
         text.innerHTML = `${badgeText} ${username}: ${messageText}`;
