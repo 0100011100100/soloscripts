@@ -51,20 +51,20 @@
             });
         }
 
-        // Check if the user has the Developer badge
-        function hasDeveloperBadge(username) {
-            return db.ref('users/' + username + '/badges/developer').once('value').then(snapshot => !!snapshot.val());
+        // Check if the user has the Contributor badge
+        function hasContributorBadge(username) {
+            return db.ref('users/' + username + '/badges/contributor').once('value').then(snapshot => !!snapshot.val());
         }
 
-        // Fetch username and check for ban and developer badge on load
+        // Fetch username and check for ban and contributor badge on load
         window.onload = function() {
             const username = localStorage.getItem('username') || 'Guest';
             const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
 
             checkUserBan(username); // Check if user is banned
-            hasDeveloperBadge(username).then(hasBadge => {
+            hasContributorBadge(username).then(hasBadge => {
                 if (hasBadge) {
-                    developerBadge.style.display = 'inline-block'; // Show Developer badge if the user has it
+                    contributorBadge.style.display = 'inline-block'; // Show Contributor badge if the user has it
                 }
             });
 
@@ -88,7 +88,7 @@
             if (username === 'zeptional') {
                 badgeText = '<strong class="profile-owner-badge">Owner:</strong>';
             } else if (username.toLowerCase() === 'piggy') {
-                badgeText = '<strong class="profile-developer-badge">Developer:</strong>';
+                badgeText = '<strong class="profile-contributor-badge">Contributor:</strong>';
             }
 
             text.innerHTML = `${badgeText} ${username}: ${messageText}`;
@@ -162,7 +162,7 @@
             margin-left: 10px;
         }
 
-        .profile-developer-badge {
+        .profile-contributor-badge {
             font-size: 12px;
             padding: 3px 10px;
             background: linear-gradient(90deg, #ff00ff, #00ffff);
@@ -260,23 +260,6 @@
             border-width: 3px;
             border-style: solid;
         }
-
-        /* Custom Contributor Badge */
-        .profile-contributor-badge {
-            font-size: 12px;
-            padding: 3px 10px;
-            background: linear-gradient(90deg, #4CAF50, #2196F3); /* Green to blue gradient */
-            color: white;
-            border-radius: 5px;
-            margin-left: 10px;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
     </style>
 </head>
 <body>
@@ -287,7 +270,6 @@
             <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture">
             <div class="username" id="username-display"></div>
             <div id="owner-badge" class="profile-owner-badge" style="display: none;">Owner</div>
-            <div id="developer-badge" class="profile-developer-badge" style="display: none;">Developer</div>
             <div id="contributor-badge" class="profile-contributor-badge" style="display: none;">Contributor</div>
         </div>
     </div>
