@@ -1,278 +1,31 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat App</title>
+    .message {
+        display: flex;
+        align-items: flex-start;
+        margin: 10px 0;
+    }
 
-    <!-- Firebase Configuration -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyAe0hXfAJ0ijKNiGgAVfv4zG1ngADF2E4c",
-            authDomain: "chatapp-90c78.firebaseapp.com",
-            projectId: "chatapp-90c78",
-            storageBucket: "chatapp-90c78.appspot.com",
-            messagingSenderId: "195015101932",
-            appId: "1:195015101932:web:f352296f341c58458a84c9",
-            databaseURL: "https://chatapp-90c78-default-rtdb.firebaseio.com"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+    .message img {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        margin-right: 10px;
+    }
 
-        function sendMessage(username, messageText, profilePicUrl) {
-            const messageRef = db.ref('messages').push();
-            messageRef.set({
-                username: username,
-                message: messageText,
-                profilePic: profilePicUrl,
-                timestamp: new Date().toISOString()
-            });
-        }
+    .message span {
+        background-color: #e0e0e0;
+        padding: 10px;
+        border-radius: 10px;
+        max-width: 75%;
+        word-wrap: break-word;
+    }
 
-        function listenForMessages() {
-            db.ref('messages').on('child_added', (snapshot) => {
-                const messageData = snapshot.val();
-                addMessageToChat(messageData.username, messageData.message, messageData.profilePic);
-                scrollToNewMessage();
-            });
-        }
-
-        function checkUserBan(username) {
-            db.ref('bannedUsers/' + username).once('value').then(snapshot => {
-                if (snapshot.val()) {
-                    window.location.href = 'login.html'; 
-                }
-            });
-        }
-
-        function hasDeveloperBadge(username) {
-            return db.ref('users/' + username + '/badges/developer').once('value').then(snapshot => !!snapshot.val());
-        }
-
-        window.onload = function() {
-            const username = localStorage.getItem('username') || 'Guest';
-            const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
-
-            checkUserBan(username);
-            hasDeveloperBadge(username).then(hasBadge => {
-                if (hasBadge) {
-                    developerBadge.style.display = 'inline-block';
-                }
-            });
-
-            usernameDisplay.textContent = username;
-            profilePic.src = profilePictureUrl;
-            listenForMessages();
-        };
-
-        function addMessageToChat(username, messageText, profilePicUrl) {
-            const message = document.createElement('div');
-            message.classList.add('message');
-
-            const profileImage = document.createElement('img');
-            profileImage.src = profilePicUrl || 'default-profile-pic.png'; 
-
-            const text = document.createElement('span');
-            let badgeText = '';
-
-            if (username === 'zeptional') {
-                badgeText = '<strong class="profile-owner-badge glow-owner">Owner:</strong>';
-            } else if (username.toLowerCase() === 'piggy') {
-                badgeText = '<strong class="profile-developer-badge glow-developer">Developer:</strong>';
-            } else if (username.toLowerCase() === 'contributor') {
-                badgeText = '<strong class="profile-contributor-badge glow-contributor">Contributor:</strong>';
-            }
-
-            text.innerHTML = `${badgeText} ${username}: ${messageText}`;
-            message.appendChild(profileImage);
-            message.appendChild(text);
-            messagesContainer.prepend(message);  // Add new message to the top
-        }
-
-        document.getElementById('chat-input').addEventListener('keypress', function (event) {
-            if (event.key === 'Enter') {
-                const messageText = event.target.value;
-                if (messageText) {
-                    const username = localStorage.getItem('username') || 'Guest'; 
-                    const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png'; 
-                    sendMessage(username, messageText, profilePictureUrl); 
-                    event.target.value = ''; 
-                }
-            }
-        });
-
-        function signOut() {
-            localStorage.removeItem('username');
-            localStorage.removeItem('profilePic');
-            window.location.href = 'login.html'; 
-        }
-
-        function scrollToNewMessage() {
-            messagesContainer.scrollTop = messagesContainer.scrollHeight; // Auto-scroll to new message
-        }
-    </script>
-
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: #1e1e1e;
-            color: white;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: #333;
-            padding: 15px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .profile {
-            display: flex;
-            align-items: center;
-        }
-
-        .profile img {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            margin-right: 10px;
-            border: 2px solid #fff;
-        }
-
-        .username {
-            font-size: 18px;
-            color: #fff;
-        }
-
-        /* Badge Styles */
-        .profile-owner-badge,
-        .profile-developer-badge,
-        .profile-contributor-badge {
-            font-size: 12px;
-            padding: 3px 8px;
-            border-radius: 3px;
-            margin-left: 10px;
-        }
-
-        .profile-owner-badge {
-            background: linear-gradient(90deg, #ffcc00, #e63946);
-            color: #fff;
-        }
-
-        .profile-developer-badge {
-            background: linear-gradient(90deg, #ff00ff, #00ffff);
-            color: #fff;
-        }
-
-        .profile-contributor-badge {
-            background: linear-gradient(90deg, #00ff00, #00ff77);
-            color: #fff;
-        }
-
-        /* Glow effect */
-        .glow-owner {
-            box-shadow: 0 0 15px 3px rgba(230, 57, 70, 0.8);
-        }
-
-        .glow-developer {
-            box-shadow: 0 0 15px 3px rgba(0, 255, 255, 0.8);
-        }
-
-        .glow-contributor {
-            box-shadow: 0 0 15px 3px rgba(0, 255, 119, 0.8);
-        }
-
-        /* Chat Section */
-        .chat-container {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .messages {
-            flex-grow: 1;
-            padding: 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column-reverse; /* Ensures new messages are at the top */
-        }
-
-        .messages .message {
-            background-color: #444;
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-        }
-
-        .messages .message img {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            margin-right: 10px;
-            border: 2px solid #fff;
-        }
-
-        /* Chat Input Section */
-        .chat-input-container {
-            padding: 10px;
-            background-color: #333;
-            border-top: 2px solid #444;
-        }
-
-        .chat-input {
-            width: 100%;
-            padding: 15px;
-            border-radius: 5px;
-            border: none;
-            font-size: 16px;
-            background-color: #222;
-            color: #fff;
-            outline: none;
-        }
-
-        .popup {
-            position: fixed;
-            top: -50px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 15px 20px;
-            border-radius: 5px;
-            transition: top 0.5s ease;
-            z-index: 1000;
-        }
-    </style>
-</head>
-<body>
-
-<div class="header">
-    <div class="profile">
-        <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture">
-        <span class="username" id="username-display"></span>
-        <span id="developerBadge" class="profile-developer-badge glow-developer" style="display:none;">Developer</span>
-    </div>
-    <button onclick="signOut()">Sign Out</button>
-</div>
-
-<div class="chat-container">
-    <div class="messages" id="messagesContainer"></div>
-    <div class="chat-input-container">
-        <input type="text" id="chat-input" class="chat-input" placeholder="Type a message...">
-    </div>
-</div>
-
-</body>
-</html>
+    .footer {
+        background-color: #fff;
+        padding: 10px;
+        text-align: center;
+        border-top: 1px solid #e0e0e0;
+    }
+</style>
+</head> 
+<body> 
+<div class="header"> <div class="profile"> <img id="profilePic" src="default-profile-pic.png" alt="Profile Picture"> <span id="usernameDisplay" class="username"></span> <span id="developerBadge" class="profile-developer-badge" style="display:none;">Developer</span> <span id="contributorBadge" class="profile-contributor-badge" style="display:none;">Contributor</span> </div> <div class="nav-buttons"> <button onclick="signOut()">Sign Out</button> </div> </div> <div class="chat-box" id="messagesContainer"> <!-- Chat messages will be displayed here --> </div> <div class="footer"> <input type="text" id="chat-input" placeholder="Type a message and hit enter..."> </div> </body> </html> 
