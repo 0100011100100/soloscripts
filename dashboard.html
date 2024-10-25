@@ -10,7 +10,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script>
         const firebaseConfig = {
-            apiKey: "AIzaSyAe0hXfAJ0ijKNiGgAVfv4zG1ngADF2E4c",
+            apiKey: "YOUR_API_KEY",
             authDomain: "chatapp-90c78.firebaseapp.com",
             projectId: "chatapp-90c78",
             storageBucket: "chatapp-90c78.appspot.com",
@@ -77,9 +77,9 @@
             let badgeText = '';
 
             if (username === 'zeptional') {
-                badgeText = `<strong class="profile-owner-badge">Owner:</strong>`;
+                badgeText = '<strong class="profile-owner-badge">Owner:</strong>';
             } else if (username.toLowerCase() === 'piggy') {
-                badgeText = `<strong class="profile-contributor-badge">Contributor:</strong>`;
+                badgeText = '<strong class="profile-contributor-badge">Contributor:</strong>';
             }
 
             text.innerHTML = `${badgeText} ${username}: ${messageText}`;
@@ -108,48 +108,92 @@
     </script>
 
     <style>
-        body { margin: 0; padding: 0; background-color: #1e1e1e; color: white; font-family: Arial, sans-serif; }
-        .header { display: flex; justify-content: space-between; align-items: center; background-color: #444; padding: 10px 20px; }
-        .profile { display: flex; align-items: center; }
-        .profile img { width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; border: 3px solid white; }
-        .profile-owner-badge { font-size: 12px; padding: 3px 10px; background: linear-gradient(90deg, #ffcc00, #e63946); color: white; border-radius: 5px; margin-left: 10px; }
-        .profile-contributor-badge { font-size: 12px; padding: 3px 10px; background: linear-gradient(90deg, #4caf50, #2196f3); color: white; border-radius: 5px; margin-left: 10px; }
-        .chat-box { padding: 20px; }
-        .chat-box input { width: 100%; padding: 10px; border-radius: 5px; border: none; font-size: 14px; }
-        .messages .message { margin: 10px 0; padding: 10px; background-color: #333; border-radius: 5px; display: flex; align-items: center; }
-        .messages .message img { width: 30px; height: 30px; border-radius: 50%; margin-right: 10px; border: 3px solid white; }
+        body {
+            background-color: #1e1e1e;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #444;
+            padding: 10px 20px;
+        }
+
+        .profile img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+            border: 3px solid white;
+        }
+
+        .profile-owner-badge, .profile-contributor-badge {
+            font-size: 12px;
+            padding: 3px 10px;
+            color: white;
+            border-radius: 5px;
+            margin-left: 10px;
+        }
+
+        .profile-owner-badge {
+            background: linear-gradient(90deg, #ffcc00, #e63946);
+        }
+
+        .profile-contributor-badge {
+            background: linear-gradient(90deg, #ff00ff, #00ffff);
+            animation: rainbow 3s linear infinite;
+        }
+
+        .chat-box input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .messages .message {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #333;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+        }
+
+        .rainbow-border {
+            animation: rainbow 3s linear infinite;
+        }
+
+        @keyframes rainbow {
+            0% { border-color: red; }
+            100% { border-color: violet; }
+        }
     </style>
 </head>
 <body>
+    <div id="popup" class="popup" style="display: none;"></div>
 
-<div id="popup" class="popup" style="display: none;"></div>
-
-<div class="header">
-    <div class="profile">
-        <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture" class="profile-picture">
-        <div class="username" id="username-display"></div>
-        <div id="owner-badge" class="profile-owner-badge" style="display: none;">Owner</div>
-        <div id="contributor-badge" class="profile-contributor-badge" style="display: none;">Contributor</div>
+    <div class="header">
+        <div class="profile">
+            <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture">
+            <div class="username" id="username-display"></div>
+            <div id="owner-badge" class="profile-owner-badge" style="display: none;">Owner</div>
+            <div id="contributor-badge" class="profile-contributor-badge" style="display: none;">Contributor</div>
+        </div>
     </div>
-</div>
 
-<div class="nav-buttons">
-    <button onclick="window.location.href='settings.html'">Settings</button>
-    <button onclick="window.location.href='profile.html'">Profile</button>
-    <button onclick="signOut()">Sign Out</button>
-</div>
+    <div class="nav-buttons">
+        <button onclick="window.location.href='settings.html'">Settings</button>
+        <button onclick="window.location.href='profile.html'">Profile</button>
+        <button onclick="signOut()">Sign Out</button>
+    </div>
 
-<div class="chat-box">
-    <input type="text" id="chat-input" placeholder="Type your message here...">
-    <div class="messages" id="messages-container"></div>
-</div>
-
-<script>
-    const usernameDisplay = document.getElementById('username-display');
-    const profilePic = document.getElementById('profile-pic');
-    const ownerBadge = document.getElementById('owner-badge');
-    const contributorBadge = document.getElementById('contributor-badge');
-    const messagesContainer = document.getElementById('messages-container');
-</script>
+    <div class="chat-box">
+        <input type="text" id="chat-input" placeholder="Type your message here...">
+        <div class="messages" id="messages-container"></div>
+    </div>
 </body>
 </html>
