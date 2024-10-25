@@ -165,7 +165,7 @@
         .profile-contributor-badge {
             font-size: 12px;
             padding: 3px 10px;
-            background: linear-gradient(90deg, #00ff00, #007bff); /* Changed to a green-blue gradient */
+            background: linear-gradient(90deg, #00ff00, #008000);
             color: white;
             border-radius: 5px;
             margin-left: 10px;
@@ -271,5 +271,23 @@
         <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture" class="profile-picture">
         <div class="username" id="username-display"></div>
         <div id="owner-badge" class="profile-owner-badge" style="display: none;">Owner</div>
-       
-<div id="contributor-badge" class="profile-contributor-badge" style="display: none;">Contributor</div> </div> <div class="nav-buttons"> <button onclick="signOut()">Sign Out</button> </div> </div> <div class="chat-box"> <div class="messages" id="messages-container"></div> <input type="text" id="chat-input" placeholder="Type your message here..."> </div> <script> const usernameDisplay = document.getElementById('username-display'); const profilePic = document.getElementById('profile-pic'); const messagesContainer = document.getElementById('messages-container'); const contributorBadge = document.getElementById('contributor-badge'); </script> </body> </html> 
+        <div id="contributor-badge" class="profile-contributor-badge" style="display: none;">Contributor</div>
+    </div>
+    <button onclick="signOut()">Sign Out</button>
+</div>
+
+<div class="chat-box">
+    <div class="messages" id="messages-container"></div>
+    <input type="text" id="chat-input" placeholder="Type a message...">
+</div>
+
+<script>
+    // Retrieve DOM elements
+    const usernameDisplay = document.getElementById('username-display');
+    const profilePic = document.getElementById('profile-pic');
+    const messagesContainer = document.getElementById('messages-container');
+    const contributorBadge = document.getElementById('contributor-badge');
+</script>
+
+</body>
+</html>
