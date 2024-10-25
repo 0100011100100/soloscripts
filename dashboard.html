@@ -165,7 +165,7 @@
         .profile-contributor-badge {
             font-size: 12px;
             padding: 3px 10px;
-            background: linear-gradient(90deg, #ff00ff, #00ffff);
+            background: linear-gradient(90deg, #00ff00, #00ccff);
             color: white;
             border-radius: 5px;
             margin-left: 10px;
@@ -263,26 +263,30 @@
     </style>
 </head>
 <body>
-    <div id="popup" class="popup" style="display: none;"></div>
 
-    <div class="header">
-        <div class="profile">
-            <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture">
-            <div class="username" id="username-display"></div>
-            <div id="owner-badge" class="profile-owner-badge" style="display: none;">Owner</div>
-            <div id="contributor-badge" class="profile-contributor-badge" style="display: none;">Contributor</div>
-        </div>
-    </div>
+<div id="popup" class="popup" style="display: none;"></div>
 
-    <div class="nav-buttons">
-        <button onclick="window.location.href='settings.html'">Settings</button>
-        <button onclick="window.location.href='profile.html'">Profile</button>
-        <button onclick="signOut()">Sign Out</button>
+<div class="header">
+    <div class="profile">
+        <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture" class="profile-picture">
+        <div class="username" id="username-display"></div>
+        <div id="owner-badge" class="profile-owner-badge" style="display: none;">Owner</div>
+        <div id="contributor-badge" class="profile-contributor-badge" style="display: none;">Contributor</div>
     </div>
+    <button onclick="signOut()">Sign Out</button>
+</div>
 
-    <div class="chat-box">
-        <input type="text" id="chat-input" placeholder="Type your message here...">
-        <div class="messages" id="messages-container"></div>
-    </div>
+<div class="chat-box">
+    <input type="text" id="chat-input" placeholder="Type a message..." />
+    <div class="messages" id="messages-container"></div>
+</div>
+
+<script>
+    const messagesContainer = document.getElementById('messages-container');
+    const usernameDisplay = document.getElementById('username-display');
+    const profilePic = document.getElementById('profile-pic');
+    const contributorBadge = document.getElementById('contributor-badge');
+</script>
+
 </body>
 </html>
