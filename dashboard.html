@@ -112,15 +112,20 @@
         // Handle sending messages
         document.getElementById('chat-input').addEventListener('keypress', function (event) {
             if (event.key === 'Enter') {
-                const messageText = event.target.value;
-                if (messageText) {
-                    const username = localStorage.getItem('username') || 'Guest'; // Get username from localStorage
-                    const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png'; // Get profile pic URL
-                    sendMessage(username, messageText, profilePictureUrl); // Send message
-                    event.target.value = ''; // Clear the input field after sending
-                }
+                sendChatMessage(); // Send message when Enter is pressed
             }
         });
+
+        // Function to send message on button click
+        function sendChatMessage() {
+            const messageText = document.getElementById('chat-input').value;
+            if (messageText) {
+                const username = localStorage.getItem('username') || 'Guest'; // Get username from localStorage
+                const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png'; // Get profile pic URL
+                sendMessage(username, messageText, profilePictureUrl); // Send message
+                document.getElementById('chat-input').value = ''; // Clear the input field after sending
+            }
+        }
 
         // Function to sign out user
         function signOut() {
@@ -177,22 +182,19 @@
             margin-left: 10px;
             color: white;
             display: inline-block;
-            position: relative; /* For positioning glow */
+            background: linear-gradient(90deg, #007aff, #00c6ff); /* Gradient effect */
         }
 
         .owner-badge {
-            background: #ffcc00;
-            box-shadow: 0 0 5px #ffcc00, 0 0 10px #ffcc00; /* Glow effect */
+            background: linear-gradient(90deg, #ffcc00, #ffd700); /* Gold gradient */
         }
 
         .developer-badge {
-            background: #ff00ff;
-            box-shadow: 0 0 5px #ff00ff, 0 0 10px #ff00ff; /* Glow effect */
+            background: linear-gradient(90deg, #ff00ff, #ff77ff); /* Purple gradient */
         }
 
         .contributor-badge {
-            background: #4caf50;
-            box-shadow: 0 0 5px #4caf50, 0 0 10px #4caf50; /* Glow effect */
+            background: linear-gradient(90deg, #4caf50, #81c784); /* Green gradient */
         }
 
         .nav-buttons {
@@ -311,21 +313,17 @@
         <div id="messagesContainer" class="messages-container"></div>
         <div class="chat-input">
             <input type="text" id="chat-input" placeholder="Type your message here..." autofocus>
-            <button type="button" onclick="sendMessage()">Send</button>
+            <button type="button" onclick="sendChatMessage()">Send</button>
         </div>
     </div>
 
     <script>
-        // Ensure to call sendMessage when the button is clicked
-        function sendMessage() {
-            const messageText = document.getElementById('chat-input').value;
-            if (messageText) {
-                const username = localStorage.getItem('username') || 'Guest'; // Get username from localStorage
-                const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png'; // Get profile pic URL
-                sendMessage(username, messageText, profilePictureUrl); // Send message
-                document.getElementById('chat-input').value = ''; // Clear the input field after sending
+        // Ensure to call sendChatMessage when the button is clicked
+        document.getElementById('chat-input').addEventListener('keypress', function (event) {
+            if (event.key === 'Enter') {
+                sendChatMessage(); // Send message when Enter is pressed
             }
-        }
+        });
     </script>
 </body>
 </html>
