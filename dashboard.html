@@ -86,12 +86,12 @@
 
             // Add badges based on username
             if (username === 'zeptional') {
-                badgeText = <strong class="profile-owner-badge">Owner:</strong>;
+                badgeText = `<strong class="profile-owner-badge">Owner:</strong>`;
             } else if (username.toLowerCase() === 'piggy') {
-                badgeText = <strong class="profile-developer-badge">Developer:</strong>;
+                badgeText = `<strong class="profile-developer-badge">Developer:</strong>`;
             }
 
-            text.innerHTML = ${badgeText} ${username}: ${messageText};
+            text.innerHTML = `${badgeText} ${username}: ${messageText}`;
             message.appendChild(profileImage);
             message.appendChild(text);
             messagesContainer.appendChild(message);
@@ -330,12 +330,12 @@
 
         // Add badges in chat based on username
         if (username === 'zeptional') {
-            badgeText = <strong class="profile-owner-badge">Owner:</strong>;
+            badgeText = `<strong class="profile-owner-badge">Owner:</strong>`;
         } else if (username.toLowerCase() === 'zeptional') {
-            badgeText = <strong class="profile-developer-badge">Developer:</strong>;
+            badgeText = `<strong class="profile-developer-badge">Developer:</strong>`;
         }
 
-        text.innerHTML = ${badgeText} ${username}: ${messageText};
+        text.innerHTML = `${badgeText} ${username}: ${messageText}`;
         message.appendChild(profileImage);
         message.appendChild(text);
         messagesContainer.appendChild(message);
