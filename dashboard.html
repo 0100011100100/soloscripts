@@ -235,19 +235,55 @@
             margin-right: 10px;
             border: 3px solid white;
         }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        button {
+            background-color: #333;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-size: 16px;
+            margin: 5px;
+        }
+
+        button:hover {
+            background-color: #555;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .chat-box {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
 
 <div class="header">
     <div class="profile">
-        <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture">
+        <img id="profilePic" src="default-profile-pic.png" alt="Profile Picture">
         <span class="username" id="username-display"></span>
-        <strong class="profile-owner-badge" id="developer-badge" style="display: none;">Owner</strong>
+        <strong class="profile-owner-badge" id="owner-badge" style="display: none;">Owner</strong>
         <strong class="profile-developer-badge" id="developer-badge" style="display: none;">Developer</strong>
         <strong class="profile-contributor-badge" id="contributor-badge" style="display: none;">Contributor</strong>
     </div>
-    <button onclick="signOut()">Sign Out</button>
+    <div class="button-container">
+        <button onclick="signOut()">Sign Out</button>
+    </div>
 </div>
 
 <div class="chat-box">
