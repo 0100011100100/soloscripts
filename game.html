@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Game UI</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f7f9fc;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        #container {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 600px;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 {
+            color: #4a4a4a;
+        }
+        #quiz-area {
+            margin: 20px 0;
+        }
+        .question {
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+        .options {
+            list-style-type: none;
+            padding: 0;
+        }
+        .option {
+            background: #e2e2e2;
+            border: none;
+            border-radius: 6px;
+            padding: 10px;
+            margin: 5px 0;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .option:hover {
+            background: #d1d1d1;
+        }
+        .timer {
+            font-size: 20px;
+            color: #ff4757;
+        }
+        .score {
+            margin-top: 20px;
+            font-size: 22px;
+            color: #2f3542;
+        }
+        button {
+            background: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <h1>Quiz Game</h1>
+        <div id="quiz-area">
+            <div class="timer" id="timer">Time Left: <span id="time">30</span>s</div>
+            <div class="question" id="question">What is the capital of France?</div>
+            <ul class="options">
+                <li class="option" onclick="checkAnswer('A')">A) Berlin</li>
+                <li class="option" onclick="checkAnswer('B')">B) Madrid</li>
+                <li class="option" onclick="checkAnswer('C')">C) Paris</li>
+                <li class="option" onclick="checkAnswer('D')">D) Rome</li>
+            </ul>
+            <div class="score" id="score">Score: 0</div>
+        </div>
+        <button onclick="nextQuestion()">Next Question</button>
+    </div>
+    <script>
+        let score = 0;
+        let timeLeft = 30;
+
+        function checkAnswer(option) {
+            if (option === 'C') {
+                score++;
+                document.getElementById('score').innerText = `Score: ${score}`;
+                alert("Correct!");
+            } else {
+                alert("Wrong answer!");
+            }
+            clearInterval(timerInterval);
+            nextQuestion();
+        }
+
+        function nextQuestion() {
+            // Logic for loading the next question (not implemented here)
+            document.getElementById('question').innerText = "What is the largest ocean on Earth?";
+            // Reset timer
+            timeLeft = 30;
+            document.getElementById('time').innerText = timeLeft;
+            startTimer();
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('time').innerText = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    alert("Time's up!");
+                    nextQuestion();
+                }
+            }, 1000);
+        }
+
+        // Start the timer for the first question
+        startTimer();
+    </script>
+</body>
+</html>
