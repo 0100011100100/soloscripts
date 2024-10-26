@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IP Address Sound Player</title>
+</head>
+<body>
+    <h1>IP Sound Player</h1>
+    <label for="ipInput">Enter IP Address:</label>
+    <input type="text" id="ipInput" placeholder="e.g., 192.168.1.1">
+    <button id="playButton">Play Sound</button>
+    <button id="pauseButton">Pause Sound</button>
+
+    <audio id="audio" src="your-sound-file.mp3"></audio>
+
+    <script>
+        const ipInput = document.getElementById('ipInput');
+        const audio = document.getElementById('audio');
+        const playButton = document.getElementById('playButton');
+        const pauseButton = document.getElementById('pauseButton');
+
+        playButton.addEventListener('click', () => {
+            const ipAddress = ipInput.value;
+            console.log('Playing sound for IP:', ipAddress); // Logs the IP address
+            audio.currentTime = 0; // Reset audio to the start
+            audio.play();
+            setTimeout(() => {
+                audio.pause();
+            }, 1000); // Pause after 1 second
+        });
+
+        pauseButton.addEventListener('click', () => {
+            audio.pause();
+        });
+    </script>
+</body>
+</html>
