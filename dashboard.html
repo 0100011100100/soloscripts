@@ -131,6 +131,7 @@
     </script>
 
     <style>
+        /* Basic Styles */
         body {
             margin: 0;
             padding: 0;
@@ -269,21 +270,40 @@
         @keyframes rainbow {
             0% { border-color: red; }
             16.6% { border-color: orange; }
-            33.2% { border-color: yellow; } 49.8% { border-color: green; } 66.4% { border-color: blue; } 83.1% { border-color: indigo; } 100% { border-color: violet; } } </style>
+            33.3% { border-color: yellow; }
+            49.8% { border-color: green; }
+            66.4% { border-color: blue; }
+            83.1% { border-color: indigo; }
+            100% { border-color: violet; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header and Profile Information -->
+    <div class="header">
+        <div class="profile">
+            <img id="profilePic" src="default-profile-pic.png" alt="Profile Picture">
+            <span id="usernameDisplay" class="username">Username</span>
+            <span id="developerBadge" class="profile-developer-badge" style="display:none;">Developer</span>
+            <span id="contributorBadge" class="profile-contributor-badge" style="display:none;">Contributor</span>
+        </div>
+        <button onclick="signOut()">Sign Out</button>
+    </div>
 
-</head> <body> <!-- Header and Profile Information --> <div class="header"> <div class="profile"> <img id="profilePic" src="default-profile-pic.png" alt="Profile Picture"> <span id="usernameDisplay" class="username">Username</span> <span id="developerBadge" class="profile-developer-badge" style="display:none;">Developer</span> <span id="contributorBadge" class="profile-contributor-badge" style="display:none;">Contributor</span> </div> <button onclick="signOut()">Sign Out</button> </div>
-<!-- Navigation Buttons -->
-<div class="nav-buttons">
-    <button>Home</button>
-    <button>Settings</button>
-    <button>Messages</button>
-</div>
+    <!-- Navigation Buttons -->
+    <div class="nav-buttons">
+        <button>Home</button>
+        <button>Settings</button>
+        <button>Messages</button>
+    </div>
 
-<!-- Chat Box -->
-<div class="chat-box">
-    <input type="text" id="chat-input" placeholder="Type a message...">
-</div>
+    <!-- Chat Box -->
+    <div class="chat-box">
+        <input type="text" id="chat-input" placeholder="Type a message...">
+    </div>
 
-<!-- Message Display -->
-<div id="messagesContainer" class="messages"></div>
-</body> </html> 
+    <!-- Message Display -->
+    <div id="messagesContainer" class="messages"></div>
+
+</body>
+</html>
