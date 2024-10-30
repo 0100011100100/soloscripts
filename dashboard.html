@@ -64,12 +64,12 @@
             checkUserBan(username); // Check if user is banned
             hasDeveloperBadge(username).then(hasBadge => {
                 if (hasBadge) {
-                    document.getElementById('developer-badge').style.display = 'inline-block'; // Show Developer badge if the user has it
+                    developerBadge.style.display = 'inline-block'; // Show Developer badge if the user has it
                 }
             });
 
-            document.getElementById('username-display').textContent = username;
-            document.getElementById('profile-pic').src = profilePictureUrl;
+            usernameDisplay.textContent = username;
+            profilePic.src = profilePictureUrl;
             listenForMessages(); // Start listening for messages
         };
 
@@ -86,15 +86,15 @@
 
             // Add badges based on username
             if (username === 'zeptional') {
-                badgeText = '<strong class="profile-owner-badge">Owner:</strong>';
+                badgeText = <strong class="profile-owner-badge">Owner:</strong>;
             } else if (username.toLowerCase() === 'piggy') {
-                badgeText = '<strong class="profile-developer-badge">Developer:</strong>';
+                badgeText = <strong class="profile-developer-badge">Developer:</strong>;
             }
 
-            text.innerHTML = `${badgeText} ${username}: ${messageText}`;
+            text.innerHTML = ${badgeText} ${username}: ${messageText};
             message.appendChild(profileImage);
             message.appendChild(text);
-            document.getElementById('messages-container').appendChild(message);
+            messagesContainer.appendChild(message);
         }
 
         // Handle sending messages
@@ -269,19 +269,95 @@
 <div class="header">
     <div class="profile">
         <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture" class="profile-picture">
-        <div class="username" id="username-display">Guest</div>
-        <span id="developer-badge" style="display:none;">Developer</span>
-    </div>
-    <div class="nav-buttons">
-        <button onclick="signOut()">Sign Out</button>
-        <button onclick="alert('This feature is coming soon!')">Settings</button>
+        <div class="username" id="username-display"></div>
+        <div id="owner-badge" class="profile-owner-badge" style="display: none;">Owner</div>
+        <div id="developer-badge" class="profile-developer-badge" style="display: none;">Developer</div>
     </div>
 </div>
 
+<!-- Navigation buttons -->
+<div class="nav-buttons">
+    <button onclick="window.location.href='settings.html'">Settings</button>
+    <button onclick="window.location.href='profile.html'">Profile</button>
+    <button onclick="signOut()">Sign Out</button> <!-- Sign Out button -->
+</div>
+
+<!-- Chat section -->
 <div class="chat-box">
-    <div id="messages-container" class="messages"></div>
-    <input type="text" id="chat-input" placeholder="Type your message...">
+    <input type="text" id="chat-input" placeholder="Type your message here...">
+    <div class="messages" id="messages-container">
+        <!-- Chat messages will appear here -->
+    </div>
 </div>
 
+<script>
+    const usernameDisplay = document.getElementById('username-display');
+    const profilePic = document.getElementById('profile-pic');
+    const ownerBadge = document.getElementById('owner-badge');
+    const developerBadge = document.getElementById('developer-badge');
+    const messagesContainer = document.getElementById('messages-container');
+    const popup = document.getElementById('popup');
+
+    // Fetch username from localStorage
+    const username = localStorage.getItem('username') || 'Guest';
+    const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
+
+    // Display the username and profile picture
+    usernameDisplay.textContent = username;
+    profilePic.src = profilePictureUrl;
+
+    // Show the Owner badge if the username is 'zeptional'
+    if (username === 'zeptional') {
+        ownerBadge.style.display = 'inline-block';
+    }
+
+    // Show the Developer badge if the username is 'zeptional'
+    if (username.toLowerCase() === 'zeptional') {
+        developerBadge.style.display = 'inline-block';
+    }
+
+    // Function to display chat messages with the username, profile picture, and badges
+    function addMessageToChat(username, messageText, profilePicUrl) {
+        const message = document.createElement('div');
+        message.classList.add('message');
+
+        const profileImage = document.createElement('img');
+        profileImage.src = profilePicUrl || 'default-profile-pic.png'; // Display the sender's profile picture
+        profileImage.classList.add('gradient-border'); // Add the gradient border
+
+        const text = document.createElement('span');
+        let badgeText = '';
+
+        // Add badges in chat based on username
+        if (username === 'zeptional') {
+            badgeText = <strong class="profile-owner-badge">Owner:</strong>;
+        } else if (username.toLowerCase() === 'zeptional') {
+            badgeText = <strong class="profile-developer-badge">Developer:</strong>;
+        }
+
+        text.innerHTML = ${badgeText} ${username}: ${messageText};
+        message.appendChild(profileImage);
+        message.appendChild(text);
+        messagesContainer.appendChild(message);
+    }
+
+    // Handle sending messages
+    document.getElementById('chat-input').addEventListener('keypress', function (event) {
+        if (event.key === 'Enter') {
+            const messageText = event.target.value;
+            if (messageText) {
+                sendMessage(username, messageText, profilePictureUrl); // Send message with profile picture URL
+                event.target.value = ''; // Clear the input field after sending
+            }
+        }
+    });
+
+    // Function to sign out user
+    function signOut() {
+        localStorage.removeItem('username');
+        localStorage.removeItem('profilePic');
+        window.location.href = 'login.html'; // Redirect to login page
+    }
+</script>
 </body>
 </html>
