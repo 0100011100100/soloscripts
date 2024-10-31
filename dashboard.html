@@ -86,12 +86,12 @@
 
             // Add badges based on username
             if (username === 'zeptional') {
-                badgeText = `<strong class="profile-owner-badge">Owner:</strong>`;
+                badgeText = <strong class="profile-owner-badge">Owner:</strong>;
             } else if (username.toLowerCase() === 'piggy') {
-                badgeText = `<strong class="profile-developer-badge">Developer:</strong>`;
+                badgeText = <strong class="profile-developer-badge">Developer:</strong>;
             }
 
-            text.innerHTML = `${badgeText} ${username}: ${messageText}`;
+            text.innerHTML = ${badgeText} ${username}: ${messageText};
             message.appendChild(profileImage);
             message.appendChild(text);
             messagesContainer.appendChild(message);
@@ -273,19 +273,91 @@
         <div id="owner-badge" class="profile-owner-badge" style="display: none;">Owner</div>
         <div id="developer-badge" class="profile-developer-badge" style="display: none;">Developer</div>
     </div>
-    <button onclick="signOut()">Sign Out</button>
 </div>
 
+<!-- Navigation buttons -->
 <div class="nav-buttons">
-    <button>Chat</button>
-    <button>Profile</button>
-    <button>Settings</button>
+    <button onclick="window.location.href='settings.html'">Settings</button>
+    <button onclick="window.location.href='profile.html'">Profile</button>
+    <button onclick="signOut()">Sign Out</button> <!-- Sign Out button -->
 </div>
 
+<!-- Chat section -->
 <div class="chat-box">
-    <div class="messages" id="messages-container"></div>
-    <input type="text" id="chat-input" placeholder="Type a message and hit Enter...">
+    <input type="text" id="chat-input" placeholder="Type your message here...">
+    <div class="messages" id="messages-container">
+        <!-- Chat messages will appear here -->
+    </div>
 </div>
 
+<script>
+    const usernameDisplay = document.getElementById('username-display');
+    const profilePic = document.getElementById('profile-pic');
+    const ownerBadge = document.getElementById('owner-badge');
+    const developerBadge = document.getElementById('developer-badge');
+    const messagesContainer = document.getElementById('messages-container');
+    const popup = document.getElementById('popup');
+
+    // Fetch username from localStorage
+    const username = localStorage.getItem('username') || 'Guest';
+    const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
+
+    // Display the username and profile picture
+    usernameDisplay.textContent = username;
+    profilePic.src = profilePictureUrl;
+
+    // Show the Owner badge if the username is 'zeptional'
+    if (username === 'zeptional') {
+        ownerBadge.style.display = 'inline-block';
+    }
+
+    // Show the Developer badge if the username is 'zeptional'
+    if (username.toLowerCase() === 'zeptional') {
+        developerBadge.style.display = 'inline-block';
+    }
+
+    // Function to display chat messages with the username, profile picture, and badges
+    function addMessageToChat(username, messageText, profilePicUrl) {
+        const message = document.createElement('div');
+        message.classList.add('message');
+
+        const profileImage = document.createElement('img');
+        profileImage.src = profilePicUrl || 'default-profile-pic.png'; // Display the sender's profile picture
+        profileImage.classList.add('gradient-border'); // Add the gradient border
+
+        const text = document.createElement('span');
+        let badgeText = '';
+
+        // Add badges in chat based on username
+        if (username === 'zeptional') {
+            badgeText = <strong class="profile-owner-badge">Owner:</strong>;
+        } else if (username.toLowerCase() === 'zeptional') {
+            badgeText = <strong class="profile-developer-badge">Developer:</strong>;
+        }
+
+        text.innerHTML = ${badgeText} ${username}: ${messageText};
+        message.appendChild(profileImage);
+        message.appendChild(text);
+        messagesContainer.appendChild(message);
+    }
+
+    // Handle sending messages
+    document.getElementById('chat-input').addEventListener('keypress', function (event) {
+        if (event.key === 'Enter') {
+            const messageText = event.target.value;
+            if (messageText) {
+                sendMessage(username, messageText, profilePictureUrl); // Send message with profile picture URL
+                event.target.value = ''; // Clear the input field after sending
+            }
+        }
+    });
+
+    // Function to sign out user
+    function signOut() {
+        localStorage.removeItem('username');
+        localStorage.removeItem('profilePic');
+        window.location.href = 'login.html'; // Redirect to login page
+    }
+</script>
 </body>
 </html>
