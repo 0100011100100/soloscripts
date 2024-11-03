@@ -72,6 +72,10 @@
 
             const profileImage = document.createElement('img');
             profileImage.src = profilePicUrl || 'default-profile-pic.png';
+            profileImage.classList.add('profile-pic');
+            profileImage.onclick = function() {
+                openProfileModal(username, profilePicUrl);
+            };
 
             const text = document.createElement('span');
             let badgeText = '';
@@ -88,6 +92,16 @@
             document.getElementById('messages-container').appendChild(message);
         }
 
+        function openProfileModal(username, profilePicUrl) {
+            document.getElementById('modal-username').textContent = username;
+            document.getElementById('modal-profile-pic').src = profilePicUrl || 'default-profile-pic.png';
+            document.getElementById('profile-modal').style.display = 'flex';
+        }
+
+        function closeProfileModal() {
+            document.getElementById('profile-modal').style.display = 'none';
+        }
+
         function signOut() {
             localStorage.removeItem('username');
             localStorage.removeItem('profilePic');
@@ -96,16 +110,159 @@
     </script>
 
     <style>
-        /* Styles here... */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #36393f;
+            color: #dcddde;
+            font-family: "Helvetica", Arial, sans-serif;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #2f3136;
+            padding: 10px 20px;
+            box-shadow: 0px 4px 2px -2px rgba(0,0,0,0.5);
+        }
+
+        .profile {
+            display: flex;
+            align-items: center;
+        }
+
+        .profile img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+            border: 3px solid #7289da;
+        }
+
+        .profile-owner-badge, .profile-developer-badge {
+            font-size: 12px;
+            padding: 3px 10px;
+            color: #fff;
+            border-radius: 5px;
+            margin-left: 10px;
+        }
+
+        .profile-owner-badge {
+            background: linear-gradient(90deg, #ffcc00, #e63946);
+        }
+
+        .profile-developer-badge {
+            background: linear-gradient(90deg, #ff00ff, #00ffff);
+            animation: rainbow 3s linear infinite;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .nav-buttons button {
+            margin: 0 10px;
+            padding: 10px 20px;
+            background-color: #4f545c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .nav-buttons button:hover {
+            background-color: #72767d;
+        }
+
+        .chat-box {
+            padding: 20px;
+        }
+
+        .chat-box input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            font-size: 14px;
+            background-color: #40444b;
+            color: #dcddde;
+        }
+
+        .messages {
+            margin-top: 20px;
+        }
+
+        .messages .message {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #2f3136;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+        }
+
+        .profile-pic {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin-right: 10px;
+            border: 3px solid #7289da;
+            cursor: pointer;
+        }
+
+        /* Profile Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: #36393f;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            color: white;
+            width: 300px;
+        }
+
+        .modal-content img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin-bottom: 10px;
+        }
+
+        .close-btn {
+            margin-top: 10px;
+            padding: 5px 15px;
+            background-color: #7289da;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .close-btn:hover {
+            background-color: #5b6eae;
+        }
     </style>
 </head>
 <body>
 
-<div id="popup" class="popup" style="display: none;"></div>
-
 <div class="header">
     <div class="profile">
-        <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture" class="profile-picture">
+        <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture">
         <div class="username" id="username-display"></div>
         <div id="owner-badge" class="profile-owner-badge" style="display: none;">Owner</div>
         <div id="developer-badge" class="profile-developer-badge" style="display: none;">Developer</div>
@@ -121,6 +278,14 @@
 <div class="chat-box">
     <input type="text" id="chat-input" placeholder="Type your message here...">
     <div class="messages" id="messages-container"></div>
+</div>
+
+<div id="profile-modal" class="modal" onclick="closeProfileModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <img id="modal-profile-pic" src="default-profile-pic.png" alt="Profile Picture">
+        <h2 id="modal-username">Username</h2>
+        <button class="close-btn" onclick="closeProfileModal()">Close</button>
+    </div>
 </div>
 
 <script>
