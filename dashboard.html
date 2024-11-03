@@ -64,12 +64,12 @@
             checkUserBan(username); // Check if user is banned
             hasDeveloperBadge(username).then(hasBadge => {
                 if (hasBadge) {
-                    developerBadge.style.display = 'inline-block'; // Show Developer badge if the user has it
+                    document.getElementById('developer-badge').style.display = 'inline-block'; // Show Developer badge if the user has it
                 }
             });
 
-            usernameDisplay.textContent = username;
-            profilePic.src = profilePictureUrl;
+            document.getElementById('username-display').textContent = username;
+            document.getElementById('profile-pic').src = profilePictureUrl;
             listenForMessages(); // Start listening for messages
         };
 
@@ -79,22 +79,22 @@
             message.classList.add('message');
 
             const profileImage = document.createElement('img');
-            profileImage.src = profilePicUrl || 'default-profile-pic.png'; // Display the sender's profile picture
+            profileImage.src = profilePicUrl || 'default-profile-pic.png';
 
             const text = document.createElement('span');
             let badgeText = '';
 
             // Add badges based on username
             if (username === 'zeptional') {
-                badgeText = <strong class="profile-owner-badge">Owner:</strong>;
+                badgeText = `<strong class="profile-owner-badge">Owner:</strong>`;
             } else if (username.toLowerCase() === 'piggy') {
-                badgeText = <strong class="profile-developer-badge">Developer:</strong>;
+                badgeText = `<strong class="profile-developer-badge">Developer:</strong>`;
             }
 
-            text.innerHTML = ${badgeText} ${username}: ${messageText};
+            text.innerHTML = `${badgeText} ${username}: ${messageText}`;
             message.appendChild(profileImage);
             message.appendChild(text);
-            messagesContainer.appendChild(message);
+            document.getElementById('messages-container').appendChild(message);
         }
 
         // Handle sending messages
@@ -102,10 +102,10 @@
             if (event.key === 'Enter') {
                 const messageText = event.target.value;
                 if (messageText) {
-                    const username = localStorage.getItem('username') || 'Guest'; // Get username from localStorage
-                    const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png'; // Get profile pic URL
-                    sendMessage(username, messageText, profilePictureUrl); // Send message
-                    event.target.value = ''; // Clear the input field after sending
+                    const username = localStorage.getItem('username') || 'Guest'; 
+                    const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
+                    sendMessage(username, messageText, profilePictureUrl);
+                    event.target.value = '';
                 }
             }
         });
@@ -114,7 +114,7 @@
         function signOut() {
             localStorage.removeItem('username');
             localStorage.removeItem('profilePic');
-            window.location.href = 'login.html'; // Redirect to login page
+            window.location.href = 'login.html'; 
         }
     </script>
 
@@ -153,30 +153,21 @@
             font-size: 18px;
         }
 
-        .profile-owner-badge {
+        .profile-owner-badge, .profile-developer-badge {
             font-size: 12px;
             padding: 3px 10px;
-            background: linear-gradient(90deg, #ffcc00, #e63946);
             color: white;
             border-radius: 5px;
             margin-left: 10px;
+        }
+
+        .profile-owner-badge {
+            background: linear-gradient(90deg, #ffcc00, #e63946);
         }
 
         .profile-developer-badge {
-            font-size: 12px;
-            padding: 3px 10px;
             background: linear-gradient(90deg, #ff00ff, #00ffff);
-            color: white;
-            border-radius: 5px;
-            margin-left: 10px;
             animation: rainbow 3s linear infinite;
-        }
-
-        /* Navigation Buttons */
-        .nav-buttons {
-            display: flex;
-            justify-content: center;
-            margin-top: 20px;
         }
 
         .nav-buttons button {
@@ -189,10 +180,6 @@
             cursor: pointer;
         }
 
-        .nav-buttons button:hover {
-            background-color: #777;
-        }
-
         .chat-box {
             padding: 20px;
         }
@@ -203,10 +190,6 @@
             border-radius: 5px;
             border: none;
             font-size: 14px;
-        }
-
-        .messages {
-            margin-top: 20px;
         }
 
         .messages .message {
@@ -226,21 +209,6 @@
             border: 3px solid white;
         }
 
-        /* Popup Styles */
-        .popup {
-            position: fixed;
-            top: -50px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 15px 20px;
-            border-radius: 5px;
-            transition: top 0.5s ease;
-            z-index: 1000;
-        }
-
-        /* Rainbow and Gradient Borders */
         .rainbow-border {
             animation: rainbow 3s linear infinite;
         }
@@ -254,17 +222,9 @@
             83% { border-color: indigo; }
             100% { border-color: violet; }
         }
-
-        .gradient-border {
-            border-image-slice: 1;
-            border-width: 3px;
-            border-style: solid;
-        }
     </style>
 </head>
 <body>
-
-<div id="popup" class="popup" style="display: none;"></div>
 
 <div class="header">
     <div class="profile">
@@ -279,85 +239,14 @@
 <div class="nav-buttons">
     <button onclick="window.location.href='settings.html'">Settings</button>
     <button onclick="window.location.href='profile.html'">Profile</button>
-    <button onclick="signOut()">Sign Out</button> <!-- Sign Out button -->
+    <button onclick="signOut()">Sign Out</button>
 </div>
 
 <!-- Chat section -->
 <div class="chat-box">
     <input type="text" id="chat-input" placeholder="Type your message here...">
-    <div class="messages" id="messages-container">
-        <!-- Chat messages will appear here -->
-    </div>
+    <div class="messages" id="messages-container"></div>
 </div>
 
-<script>
-    const usernameDisplay = document.getElementById('username-display');
-    const profilePic = document.getElementById('profile-pic');
-    const ownerBadge = document.getElementById('owner-badge');
-    const developerBadge = document.getElementById('developer-badge');
-    const messagesContainer = document.getElementById('messages-container');
-    const popup = document.getElementById('popup');
-
-    // Fetch username from localStorage
-    const username = localStorage.getItem('username') || 'Guest';
-    const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
-
-    // Display the username and profile picture
-    usernameDisplay.textContent = username;
-    profilePic.src = profilePictureUrl;
-
-    // Show the Owner badge if the username is 'zeptional'
-    if (username === 'zeptional') {
-        ownerBadge.style.display = 'inline-block';
-    }
-
-    // Show the Developer badge if the username is 'zeptional'
-    if (username.toLowerCase() === 'zeptional') {
-        developerBadge.style.display = 'inline-block';
-    }
-
-    // Function to display chat messages with the username, profile picture, and badges
-    function addMessageToChat(username, messageText, profilePicUrl) {
-        const message = document.createElement('div');
-        message.classList.add('message');
-
-        const profileImage = document.createElement('img');
-        profileImage.src = profilePicUrl || 'default-profile-pic.png'; // Display the sender's profile picture
-        profileImage.classList.add('gradient-border'); // Add the gradient border
-
-        const text = document.createElement('span');
-        let badgeText = '';
-
-        // Add badges in chat based on username
-        if (username === 'zeptional') {
-            badgeText = <strong class="profile-owner-badge">Owner:</strong>;
-        } else if (username.toLowerCase() === 'zeptional') {
-            badgeText = <strong class="profile-developer-badge">Developer:</strong>;
-        }
-
-        text.innerHTML = ${badgeText} ${username}: ${messageText};
-        message.appendChild(profileImage);
-        message.appendChild(text);
-        messagesContainer.appendChild(message);
-    }
-
-    // Handle sending messages
-    document.getElementById('chat-input').addEventListener('keypress', function (event) {
-        if (event.key === 'Enter') {
-            const messageText = event.target.value;
-            if (messageText) {
-                sendMessage(username, messageText, profilePictureUrl); // Send message with profile picture URL
-                event.target.value = ''; // Clear the input field after sending
-            }
-        }
-    });
-
-    // Function to sign out user
-    function signOut() {
-        localStorage.removeItem('username');
-        localStorage.removeItem('profilePic');
-        window.location.href = 'login.html'; // Redirect to login page
-    }
-</script>
 </body>
 </html>
