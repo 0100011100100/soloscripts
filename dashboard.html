@@ -50,6 +50,10 @@
             return db.ref('users/' + username + '/badges/developer').once('value').then(snapshot => !!snapshot.val());
         }
 
+        function getUserInfo(username) {
+            return db.ref('users/' + username).once('value').then(snapshot => snapshot.val());
+        }
+
         window.onload = function() {
             const username = localStorage.getItem('username') || 'Guest';
             const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
@@ -74,7 +78,7 @@
             profileImage.src = profilePicUrl || 'default-profile-pic.png';
             profileImage.classList.add('profile-pic');
             profileImage.onclick = function() {
-                openProfileModal(username, profilePicUrl);
+                openProfileModal(username);
             };
 
             const text = document.createElement('span');
@@ -92,10 +96,29 @@
             document.getElementById('messages-container').appendChild(message);
         }
 
-        function openProfileModal(username, profilePicUrl) {
-            document.getElementById('modal-username').textContent = username;
-            document.getElementById('modal-profile-pic').src = profilePicUrl || 'default-profile-pic.png';
-            document.getElementById('profile-modal').style.display = 'flex';
+        function openProfileModal(username) {
+            getUserInfo(username).then(userInfo => {
+                document.getElementById('modal-username').textContent = username;
+                document.getElementById('modal-profile-pic').src = userInfo.profilePic || 'default-profile-pic.png';
+                document.getElementById('modal-bio').textContent = userInfo.bio || 'No bio available';
+                
+                // Show badges based on user data
+                const badgeContainer = document.getElementById('modal-badges');
+                badgeContainer.innerHTML = '';
+                if (userInfo.badges) {
+                    if (userInfo.badges.owner) {
+                        badgeContainer.innerHTML += '<span class="profile-owner-badge">Owner</span>';
+                    }
+                    if (userInfo.badges.developer) {
+                        badgeContainer.innerHTML += '<span class="profile-developer-badge">Developer</span>';
+                    }
+                    if (userInfo.badges.contributor) {
+                        badgeContainer.innerHTML += '<span class="profile-contributor-badge">Contributor</span>';
+                    }
+                }
+
+                document.getElementById('profile-modal').style.display = 'flex';
+            });
         }
 
         function closeProfileModal() {
@@ -140,7 +163,7 @@
             border: 3px solid #7289da;
         }
 
-        .profile-owner-badge, .profile-developer-badge {
+        .profile-owner-badge, .profile-developer-badge, .profile-contributor-badge {
             font-size: 12px;
             padding: 3px 10px;
             color: #fff;
@@ -155,6 +178,10 @@
         .profile-developer-badge {
             background: linear-gradient(90deg, #ff00ff, #00ffff);
             animation: rainbow 3s linear infinite;
+        }
+
+        .profile-contributor-badge {
+            background: linear-gradient(90deg, #00ff00, #ffcc00);
         }
 
         .nav-buttons {
@@ -243,18 +270,23 @@
             margin-bottom: 10px;
         }
 
-        .close-btn {
+        .modal-bio {
             margin-top: 10px;
-            padding: 5px 15px;
-            background-color: #7289da;
-            color: white;
+            font-size: 14px;
+            color: #b9bbbe;
+        }
+
+        .close-btn {
+            background-color: #4f545c;
             border: none;
+            color: white;
+            padding: 5px 10px;
             border-radius: 5px;
             cursor: pointer;
         }
 
         .close-btn:hover {
-            background-color: #5b6eae;
+            background-color: #72767d;
         }
     </style>
 </head>
@@ -263,20 +295,14 @@
 <div class="header">
     <div class="profile">
         <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture">
-        <div class="username" id="username-display"></div>
-        <div id="owner-badge" class="profile-owner-badge" style="display: none;">Owner</div>
-        <div id="developer-badge" class="profile-developer-badge" style="display: none;">Developer</div>
+        <span id="username-display"></span>
+        <span id="developer-badge" class="profile-developer-badge" style="display: none;">Developer</span>
     </div>
-</div>
-
-<div class="nav-buttons">
-    <button onclick="window.location.href='settings.html'">Settings</button>
-    <button onclick="window.location.href='profile.html'">Profile</button>
     <button onclick="signOut()">Sign Out</button>
 </div>
 
 <div class="chat-box">
-    <input type="text" id="chat-input" placeholder="Type your message here...">
+    <input id="chat-input" type="text" placeholder="Type a message...">
     <div class="messages" id="messages-container"></div>
 </div>
 
@@ -284,6 +310,8 @@
     <div class="modal-content" onclick="event.stopPropagation()">
         <img id="modal-profile-pic" src="default-profile-pic.png" alt="Profile Picture">
         <h2 id="modal-username">Username</h2>
+        <div id="modal-badges" class="modal-badges"></div>
+        <p id="modal-bio" class="modal-bio">No bio available</p>
         <button class="close-btn" onclick="closeProfileModal()">Close</button>
     </div>
 </div>
