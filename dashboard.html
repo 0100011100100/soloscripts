@@ -9,7 +9,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script>
-        // Your web app's Firebase configuration
+        // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAe0hXfAJ0ijKNiGgAVfv4zG1ngADF2E4c",
             authDomain: "chatapp-90c78.firebaseapp.com",
@@ -19,11 +19,10 @@
             appId: "1:195015101932:web:f352296f341c58458a84c9",
             databaseURL: "https://chatapp-90c78-default-rtdb.firebaseio.com"
         };
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // Function to send message to Firebase
+        // Function to send a message to Firebase
         function sendMessage(username, messageText, profilePicUrl) {
             const messageRef = db.ref('messages').push();
             messageRef.set({
@@ -34,7 +33,7 @@
             });
         }
 
-        // Listen for new messages in Firebase
+        // Function to listen for new messages from Firebase
         function listenForMessages() {
             db.ref('messages').on('child_added', (snapshot) => {
                 const messageData = snapshot.val();
@@ -46,34 +45,35 @@
         function checkUserBan(username) {
             db.ref('bannedUsers/' + username).once('value').then(snapshot => {
                 if (snapshot.val()) {
-                    window.location.href = 'login.html'; // Redirect banned user to login page
+                    window.location.href = 'login.html';
                 }
             });
         }
 
-        // Check if the user has the Developer badge
+        // Fetch the developer badge status
         function hasDeveloperBadge(username) {
             return db.ref('users/' + username + '/badges/developer').once('value').then(snapshot => !!snapshot.val());
         }
 
-        // Fetch username and check for ban and developer badge on load
+        // Initialize user data on load
         window.onload = function() {
             const username = localStorage.getItem('username') || 'Guest';
             const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
 
-            checkUserBan(username); // Check if user is banned
+            checkUserBan(username);
+
             hasDeveloperBadge(username).then(hasBadge => {
                 if (hasBadge) {
-                    document.getElementById('developer-badge').style.display = 'inline-block'; // Show Developer badge if the user has it
+                    developerBadge.style.display = 'inline-block';
                 }
             });
 
-            document.getElementById('username-display').textContent = username;
-            document.getElementById('profile-pic').src = profilePictureUrl;
-            listenForMessages(); // Start listening for messages
+            usernameDisplay.textContent = username;
+            profilePic.src = profilePictureUrl;
+            listenForMessages();
         };
 
-        // Function to display chat messages with badges
+        // Display chat messages with username and profile picture
         function addMessageToChat(username, messageText, profilePicUrl) {
             const message = document.createElement('div');
             message.classList.add('message');
@@ -84,25 +84,24 @@
             const text = document.createElement('span');
             let badgeText = '';
 
-            // Add badges based on username
             if (username === 'zeptional') {
-                badgeText = `<strong class="profile-owner-badge">Owner:</strong>`;
+                badgeText = '<strong class="profile-owner-badge">Owner:</strong>';
             } else if (username.toLowerCase() === 'piggy') {
-                badgeText = `<strong class="profile-developer-badge">Developer:</strong>`;
+                badgeText = '<strong class="profile-developer-badge">Developer:</strong>';
             }
 
             text.innerHTML = `${badgeText} ${username}: ${messageText}`;
             message.appendChild(profileImage);
             message.appendChild(text);
-            document.getElementById('messages-container').appendChild(message);
+            messagesContainer.appendChild(message);
         }
 
         // Handle sending messages
-        document.getElementById('chat-input').addEventListener('keypress', function (event) {
+        document.getElementById('chat-input').addEventListener('keypress', function(event) {
             if (event.key === 'Enter') {
                 const messageText = event.target.value;
                 if (messageText) {
-                    const username = localStorage.getItem('username') || 'Guest'; 
+                    const username = localStorage.getItem('username') || 'Guest';
                     const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
                     sendMessage(username, messageText, profilePictureUrl);
                     event.target.value = '';
@@ -110,143 +109,147 @@
             }
         });
 
-        // Function to sign out user
-        function signOut() {
-            localStorage.removeItem('username');
-            localStorage.removeItem('profilePic');
-            window.location.href = 'login.html'; 
+        // Show the user profile modal
+        function showProfileModal(username, profilePicUrl) {
+            db.ref('users/' + username).once('value').then(snapshot => {
+                const userData = snapshot.val();
+                document.getElementById('modal-username').textContent = userData.username;
+                document.getElementById('modal-bio').textContent = userData.bio || 'No bio available';
+                document.getElementById('modal-status').textContent = userData.status || 'No status';
+                document.getElementById('modal-profile-pic').src = profilePicUrl || 'default-profile-pic.png';
+
+                // Display badge if applicable
+                if (userData.badges && userData.badges.developer) {
+                    document.getElementById('modal-badge').textContent = 'Developer';
+                    document.getElementById('modal-badge').style.display = 'inline-block';
+                } else {
+                    document.getElementById('modal-badge').style.display = 'none';
+                }
+
+                profileModal.style.display = 'block';
+            });
+        }
+
+        // Hide the user profile modal
+        function hideProfileModal() {
+            profileModal.style.display = 'none';
+        }
+
+        // Close modal if clicked outside
+        window.onclick = function(event) {
+            if (event.target == profileModal) {
+                hideProfileModal();
+            }
         }
     </script>
 
     <style>
+        /* General styles */
         body {
-            margin: 0;
-            padding: 0;
             background-color: #1e1e1e;
             color: white;
             font-family: Arial, sans-serif;
         }
 
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: #444;
-            padding: 10px 20px;
+        .header, .chat-box, .nav-buttons {
+            margin: 20px;
         }
 
-        .profile {
-            display: flex;
-            align-items: center;
-        }
-
-        .profile img {
-            width: 40px;
-            height: 40px;
+        .profile img, .messages .message img {
             border-radius: 50%;
-            margin-right: 10px;
-            border: 3px solid white;
-            transition: border 0.3s ease;
-        }
-
-        .profile .username {
-            font-size: 18px;
         }
 
         .profile-owner-badge, .profile-developer-badge {
-            font-size: 12px;
             padding: 3px 10px;
-            color: white;
             border-radius: 5px;
-            margin-left: 10px;
+            font-size: 12px;
         }
 
-        .profile-owner-badge {
-            background: linear-gradient(90deg, #ffcc00, #e63946);
-        }
+        .profile-owner-badge { background: linear-gradient(90deg, #ffcc00, #e63946); }
+        .profile-developer-badge { background: linear-gradient(90deg, #ff00ff, #00ffff); }
 
-        .profile-developer-badge {
-            background: linear-gradient(90deg, #ff00ff, #00ffff);
-            animation: rainbow 3s linear infinite;
-        }
-
-        .nav-buttons button {
-            margin: 0 10px;
-            padding: 10px 20px;
-            background-color: #555;
+        /* Profile Modal */
+        .profile-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #2f3136;
             color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .chat-box {
             padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            width: 300px;
+            text-align: center;
         }
 
-        .chat-box input {
-            width: 100%;
-            padding: 10px;
-            border-radius: 5px;
-            border: none;
-            font-size: 14px;
-        }
-
-        .messages .message {
-            margin: 10px 0;
-            padding: 10px;
-            background-color: #333;
-            border-radius: 5px;
-            display: flex;
-            align-items: center;
-        }
-
-        .messages .message img {
-            width: 30px;
-            height: 30px;
+        .profile-modal img {
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
-            margin-right: 10px;
-            border: 3px solid white;
+            margin-bottom: 10px;
         }
 
-        .rainbow-border {
-            animation: rainbow 3s linear infinite;
+        .modal-badge {
+            display: none;
+            margin-top: 10px;
+            background-color: #ff00ff;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
         }
 
-        @keyframes rainbow {
-            0% { border-color: red; }
-            16.6% { border-color: orange; }
-            33.2% { border-color: yellow; }
-            49.8% { border-color: green; }
-            66.4% { border-color: blue; }
-            83% { border-color: indigo; }
-            100% { border-color: violet; }
+        .modal-close {
+            cursor: pointer;
+            color: #888;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 18px;
         }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <div class="profile">
-        <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture" class="profile-picture">
-        <div class="username" id="username-display"></div>
-        <div id="owner-badge" class="profile-owner-badge" style="display: none;">Owner</div>
-        <div id="developer-badge" class="profile-developer-badge" style="display: none;">Developer</div>
+    <div class="profile" onclick="showProfileModal(localStorage.getItem('username'), localStorage.getItem('profilePic'))">
+        <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture">
+        <div id="username-display"></div>
     </div>
 </div>
 
-<!-- Navigation buttons -->
 <div class="nav-buttons">
     <button onclick="window.location.href='settings.html'">Settings</button>
     <button onclick="window.location.href='profile.html'">Profile</button>
     <button onclick="signOut()">Sign Out</button>
 </div>
 
-<!-- Chat section -->
 <div class="chat-box">
     <input type="text" id="chat-input" placeholder="Type your message here...">
     <div class="messages" id="messages-container"></div>
 </div>
+
+<div id="profileModal" class="profile-modal">
+    <span class="modal-close" onclick="hideProfileModal()">&times;</span>
+    <img id="modal-profile-pic" src="default-profile-pic.png" alt="Profile Picture">
+    <h3 id="modal-username">Username</h3>
+    <p id="modal-status">Status</p>
+    <p id="modal-bio">Bio</p>
+    <div id="modal-badge" class="modal-badge">Developer</div>
+</div>
+
+<script>
+    const profileModal = document.getElementById('profileModal');
+    const messagesContainer = document.getElementById('messages-container');
+
+    function signOut() {
+        localStorage.removeItem('username');
+        localStorage.removeItem('profilePic');
+        window.location.href = 'login.html';
+    }
+</script>
 
 </body>
 </html>
