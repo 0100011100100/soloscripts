@@ -23,22 +23,32 @@
             border-radius: 10px;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
             text-align: center;
+            width: 300px;
         }
-        input[type="file"] {
+        input[type="file"], input[type="text"] {
             margin: 20px 0;
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
         }
         button {
             background-color: #e63946;
             color: white;
             border: none;
-            padding: 15px;
+            padding: 10px;
             font-size: 16px;
             border-radius: 5px;
             cursor: pointer;
             transition: background-color 0.3s;
+            margin-top: 10px;
+            width: 100%;
         }
         button:hover {
             background-color: #d62839;
+        }
+        .developer-toggle {
+            display: none;
         }
     </style>
 </head>
@@ -48,12 +58,21 @@
     <h2>Settings</h2>
     <input type="file" id="profilePicInput" accept="image/*">
     <button onclick="changeProfilePic()">Change Profile Picture</button>
+
+    <input type="text" id="bioInput" placeholder="Update your bio">
+    <button onclick="updateBio()">Update Bio</button>
+
+    <div id="developerToggleContainer">
+        <button id="toggleDeveloperBadge" onclick="toggleDeveloperBadge()">Toggle Developer Badge</button>
+    </div>
+
     <button onclick="goBack()">Back to Dashboard</button>
 </div>
 
 <script>
     const params = new URLSearchParams(window.location.search);
     const username = params.get('username');
+    const isDeveloper = localStorage.getItem('isDeveloper') === 'true';
 
     function changeProfilePic() {
         const input = document.getElementById('profilePicInput');
@@ -68,9 +87,31 @@
         }
     }
 
+    function updateBio() {
+        const bio = document.getElementById('bioInput').value;
+        if (bio) {
+            localStorage.setItem('bio', bio);
+            alert('Bio updated!');
+        }
+    }
+
+    function toggleDeveloperBadge() {
+        if (isDeveloper) {
+            const currentStatus = localStorage.getItem('showDeveloperBadge') === 'true';
+            localStorage.setItem('showDeveloperBadge', !currentStatus);
+            alert(`Developer badge ${!currentStatus ? 'shown' : 'hidden'}!`);
+        }
+    }
+
     function goBack() {
         window.location.href = 'dashboard.html?username=' + encodeURIComponent(username);
     }
+
+    window.onload = function() {
+        if (isDeveloper) {
+            document.getElementById('developerToggleContainer').style.display = 'block';
+        }
+    };
 </script>
 
 </body>
