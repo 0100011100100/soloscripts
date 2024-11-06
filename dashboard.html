@@ -239,6 +239,28 @@
         .modal-content h2 {
             color: #dcddde;
         }
+
+        /* Badge Styles */
+        .badge {
+            display: none;
+            padding: 5px 10px;
+            margin: 5px;
+            border-radius: 3px;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .badge.owner {
+            background: linear-gradient(45deg, #f1c40f, #e67e22);
+        }
+
+        .badge.developer {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+        }
+
+        .badge.contributor {
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+        }
     </style>
 </head>
 
@@ -266,9 +288,9 @@
         <div class="modal-content">
             <img id="modal-profile-pic" src="default-profile-pic.png" alt="Profile Picture">
             <h2 id="modal-username">Username</h2>
-            <div id="modal-owner-badge" class="badge" style="background-color: gold;">Owner</div>
-            <div id="modal-developer-badge" class="badge" style="background-color: blue;">Developer</div>
-            <div id="modal-contributor-badge" class="badge" style="background-color: green;">Contributor</div>
+            <div id="modal-owner-badge" class="badge owner">Owner</div>
+            <div id="modal-developer-badge" class="badge developer">Developer</div>
+            <div id="modal-contributor-badge" class="badge contributor">Contributor</div>
             <button onclick="closeProfileModal()">Close</button>
         </div>
     </div>
