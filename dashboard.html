@@ -251,25 +251,46 @@
         }
 
         .badge.owner {
-            background: linear-gradient(45deg, #f1c40f, #e67e22);
+            background: linear-gradient(45deg, #ff2e63, #ff6a00);
         }
 
         .badge.developer {
-            background: linear-gradient(45deg, #3498db, #2980b9);
+            background: linear-gradient(45deg, #7289da, #99aab5);
         }
 
         .badge.contributor {
-            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            background: linear-gradient(45deg, #00b8d4, #02c4d7);
+        }
+
+        /* Modal Badge Styles */
+        .profile-owner-badge, .profile-developer-badge, .profile-contributor-badge {
+            display: none;
+            font-size: 14px;
+            padding: 5px;
+            margin-top: 10px;
+            color: white;
+            background-color: #7289da;
+        }
+
+        .profile-owner-badge {
+            background-color: #ff2e63;
+        }
+
+        .profile-developer-badge {
+            background-color: #99aab5;
+        }
+
+        .profile-contributor-badge {
+            background-color: #00b8d4;
         }
     </style>
 </head>
 
 <body>
-
     <div class="header">
         <div class="profile">
             <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture">
-            <span id="username-display">Guest</span>
+            <span id="username-display">Username</span>
         </div>
         <div class="nav-buttons">
             <a href="profile.html">Profile</a>
@@ -279,22 +300,25 @@
     </div>
 
     <div class="chat-box">
-        <div id="messages-container" class="messages"></div>
-        <input id="message-input" type="text" placeholder="Type a message" onkeydown="if (event.key === 'Enter') sendMessage()">
+        <div class="messages" id="messages-container"></div>
+        <input id="message-input" type="text" placeholder="Type a message" onkeydown="if(event.key === 'Enter'){sendMessage();}">
     </div>
 
-    <!-- Profile Modal -->
-    <div id="profile-modal" class="modal">
+    <div id="profile-modal" class="modal" onclick="closeProfileModal()">
         <div class="modal-content">
             <img id="modal-profile-pic" src="default-profile-pic.png" alt="Profile Picture">
             <h2 id="modal-username">Username</h2>
             <div id="modal-owner-badge" class="badge owner">Owner</div>
             <div id="modal-developer-badge" class="badge developer">Developer</div>
             <div id="modal-contributor-badge" class="badge contributor">Contributor</div>
-            <button onclick="closeProfileModal()">Close</button>
         </div>
     </div>
 
+    <script>
+        document.getElementById('profile-pic').onclick = function () {
+            openProfileModal(localStorage.getItem('username'), localStorage.getItem('profilePic') || 'default-profile-pic.png');
+        };
+    </script>
 </body>
 
 </html>
