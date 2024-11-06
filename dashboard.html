@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -51,7 +52,7 @@
             return db.ref('users/' + username + '/badges').once('value').then(snapshot => snapshot.val() || {});
         }
 
-        window.onload = function() {
+        window.onload = function () {
             const username = localStorage.getItem('username') || 'Guest';
             const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
 
@@ -60,9 +61,9 @@
 
             // Display badges on profile
             getUserBadges(username).then(badges => {
-                if (badges.owner) document.getElementById('owner-badge').style.display = 'inline-block';
-                if (badges.developer) document.getElementById('developer-badge').style.display = 'inline-block';
-                if (badges.contributor) document.getElementById('contributor-badge').style.display = 'inline-block';
+                if (username === "zeptional" || badges.owner) document.getElementById('owner-badge').style.display = 'inline-block';
+                if (username === "zeptional" || badges.developer) document.getElementById('developer-badge').style.display = 'inline-block';
+                if (username === "zeptional" || badges.contributor) document.getElementById('contributor-badge').style.display = 'inline-block';
             });
 
             // Display username and profile picture
@@ -77,7 +78,7 @@
             const profileImage = document.createElement('img');
             profileImage.src = profilePicUrl || 'default-profile-pic.png';
             profileImage.classList.add('profile-pic');
-            profileImage.onclick = function() {
+            profileImage.onclick = function () {
                 openProfileModal(username, profilePicUrl);
             };
 
@@ -85,10 +86,10 @@
             let badgeText = '';
 
             getUserBadges(username).then(badges => {
-                if (badges.owner) badgeText += '<strong class="profile-owner-badge">Owner:</strong> ';
-                if (badges.developer) badgeText += '<strong class="profile-developer-badge">Developer:</strong> ';
-                if (badges.contributor) badgeText += '<strong class="profile-contributor-badge">Contributor:</strong> ';
-                
+                if (username === "zeptional" || badges.owner) badgeText += '<strong class="profile-owner-badge">Owner:</strong> ';
+                if (username === "zeptional" || badges.developer) badgeText += '<strong class="profile-developer-badge">Developer:</strong> ';
+                if (username === "zeptional" || badges.contributor) badgeText += '<strong class="profile-contributor-badge">Contributor:</strong> ';
+
                 text.innerHTML = `${badgeText} ${username}: ${messageText}`;
                 message.appendChild(profileImage);
                 message.appendChild(text);
@@ -101,9 +102,9 @@
             document.getElementById('modal-profile-pic').src = profilePicUrl || 'default-profile-pic.png';
 
             getUserBadges(username).then(badges => {
-                document.getElementById('modal-owner-badge').style.display = badges.owner ? 'block' : 'none';
-                document.getElementById('modal-developer-badge').style.display = badges.developer ? 'block' : 'none';
-                document.getElementById('modal-contributor-badge').style.display = badges.contributor ? 'block' : 'none';
+                document.getElementById('modal-owner-badge').style.display = (username === "zeptional" || badges.owner) ? 'block' : 'none';
+                document.getElementById('modal-developer-badge').style.display = (username === "zeptional" || badges.developer) ? 'block' : 'none';
+                document.getElementById('modal-contributor-badge').style.display = (username === "zeptional" || badges.contributor) ? 'block' : 'none';
             });
 
             document.getElementById('profile-modal').style.display = 'flex';
@@ -147,7 +148,8 @@
         #modal-owner-badge { background: linear-gradient(90deg, #ffcc00, #e63946); }
         #modal-developer-badge { background: linear-gradient(90deg, #ff00ff, #00ffff); }
         #modal-contributor-badge { background: linear-gradient(90deg, #f39c12, #16a085); }
-               body {
+
+        body {
             margin: 0;
             padding: 0;
             background-color: #36393f;
@@ -164,6 +166,26 @@
             box-shadow: 0px 4px 2px -2px rgba(0,0,0,0.5);
         }
 
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .nav-buttons a {
+            padding: 10px 20px;
+            background-color: #4f545c;
+            color: white;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+
+        .nav-buttons a:hover {
+            background-color: #72767d;
+        }
+
         .profile {
             display: flex;
             align-items: center;
@@ -175,43 +197,6 @@
             border-radius: 50%;
             margin-right: 10px;
             border: 3px solid #7289da;
-        }
-
-        .profile-owner-badge, .profile-developer-badge {
-            font-size: 12px;
-            padding: 3px 10px;
-            color: #fff;
-            border-radius: 5px;
-            margin-left: 10px;
-        }
-
-        .profile-owner-badge {
-            background: linear-gradient(90deg, #ffcc00, #e63946);
-        }
-
-        .profile-developer-badge {
-            background: linear-gradient(90deg, #ff00ff, #00ffff);
-            animation: rainbow 3s linear infinite;
-        }
-
-        .nav-buttons {
-            display: flex;
-            justify-content: center;
-            margin-top: 20px;
-        }
-
-        .nav-buttons button {
-            margin: 0 10px;
-            padding: 10px 20px;
-            background-color: #4f545c;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .nav-buttons button:hover {
-            background-color: #72767d;
         }
 
         .chat-box {
@@ -226,10 +211,6 @@
             font-size: 14px;
             background-color: #40444b;
             color: #dcddde;
-        }
-
-        .messages {
-            margin-top: 20px;
         }
 
         .messages .message {
@@ -254,87 +235,64 @@
         .modal {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
-            justify-content: center;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
             align-items: center;
-            z-index: 1000;
+            justify-content: center;
         }
 
         .modal-content {
-            background-color: #36393f;
-            padding: 20px;
-            border-radius: 8px;
+            background-color: #2f3136;
+            padding: 30px;
+            border-radius: 10px;
             text-align: center;
-            color: white;
-            width: 300px;
+            max-width: 400px;
         }
 
         .modal-content img {
-            width: 80px;
-            height: 80px;
+            width: 100px;
+            height: 100px;
             border-radius: 50%;
-            margin-bottom: 10px;
+            margin-bottom: 20px;
         }
 
-        .close-btn {
-            margin-top: 10px;
-            padding: 5px 15px;
-            background-color: #7289da;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .close-btn:hover {
-            background-color: #5b6eae;
+        .modal-content h2 {
+            color: #dcddde;
         }
     </style>
 </head>
+
 <body>
-<div class="header">
-    <div class="profile">
-        <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture">
-        <div class="username" id="username-display"></div>
-        <div id="owner-badge" class="profile-owner-badge" style="display: none;">Owner</div>
-        <div id="developer-badge" class="profile-developer-badge" style="display: none;">Developer</div>
-        <div id="contributor-badge" class="profile-contributor-badge" style="display: none;">Contributor</div>
+
+    <div class="header">
+        <div class="nav-buttons">
+            <a href="profile.html">Profile</a>
+            <a href="settings.html">Settings</a>
+            <a href="login.html" onclick="signOut()">Logout</a>
+        </div>
+
+        <div class="profile">
+            <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture">
+            <span id="username-display">Guest</span>
+        </div>
     </div>
-</div>
 
-<div class="chat-box">
-    <input type="text" id="chat-input" placeholder="Type your message here...">
-    <div class="messages" id="messages-container"></div>
-</div>
-
-<div id="profile-modal" class="modal" onclick="closeProfileModal()">
-    <div class="modal-content" onclick="event.stopPropagation()">
-        <img id="modal-profile-pic" src="default-profile-pic.png" alt="Profile Picture">
-        <h2 id="modal-username">Username</h2>
-        <div id="modal-owner-badge" class="modal-badge">Owner</div>
-        <div id="modal-developer-badge" class="modal-badge">Developer</div>
-        <div id="modal-contributor-badge" class="modal-badge">Contributor</div>
-        <button class="close-btn" onclick="closeProfileModal()">Close</button>
+    <div class="chat-box">
+        <div id="messages-container" class="messages"></div>
+        <input type="text" id="message-input" placeholder="Type a message..." onkeydown="if(event.key === 'Enter') sendMessage()">
     </div>
-</div>
 
-<script>
-    document.getElementById('chat-input').addEventListener('keypress', function (event) {
-        if (event.key === 'Enter') {
-            const messageText = event.target.value;
-            if (messageText) {
-                const username = localStorage.getItem('username') || 'Guest';
-                const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
-                sendMessage(username, messageText, profilePictureUrl);
-                event.target.value = '';
-            }
-        }
-    });
-</script>
+    <!-- Modal -->
+    <div id="profile-modal" class="modal" onclick="closeProfileModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <img id="modal-profile-pic" src="default-profile-pic.png" alt="Profile Picture">
+            <h2 id="modal-username">Username</h2>
+            <div id="modal-owner-badge" class="modal-badge">Owner</div>
+            <div id="modal-developer-badge" class="modal-badge">Developer</div>
+            <div id="modal-contributor-badge" class="modal-badge">Contributor</div>
+        </div>
+    </div>
 
 </body>
+
 </html>
