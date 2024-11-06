@@ -9,22 +9,21 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script>
-        // Firebase configuration
+        // Your web app's Firebase configuration
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID",
-            databaseURL: "YOUR_DATABASE_URL"
+            apiKey: "AIzaSyAe0hXfAJ0ijKNiGgAVfv4zG1ngADF2E4c",
+            authDomain: "chatapp-90c78.firebaseapp.com",
+            projectId: "chatapp-90c78",
+            storageBucket: "chatapp-90c78.appspot.com",
+            messagingSenderId: "195015101932",
+            appId: "1:195015101932:web:f352296f341c58458a84c9",
+            databaseURL: "https://chatapp-90c78-default-rtdb.firebaseio.com"
         };
-
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // Function to send a message to Firebase
+        // Function to send message to Firebase
         function sendMessage(username, messageText, profilePicUrl) {
             const messageRef = db.ref('messages').push();
             messageRef.set({
@@ -40,7 +39,7 @@
             db.ref('users/' + username + '/badges/developer').set(true)
                 .then(() => {
                     showPopup(`${username} has been given the Developer badge!`, 'success');
-                    updateChatWithBadge(username);
+                    updateChatWithBadge(username, 'developer');
                 })
                 .catch(error => showPopup(`Error assigning Developer badge: ${error.message}`, 'error'));
         }
@@ -50,17 +49,17 @@
             db.ref('users/' + username + '/badges/contributor').set(true)
                 .then(() => {
                     showPopup(`${username} has been given the Contributor badge!`, 'success');
-                    updateChatWithBadge(username);
+                    updateChatWithBadge(username, 'contributor');
                 })
                 .catch(error => showPopup(`Error assigning Contributor badge: ${error.message}`, 'error'));
         }
 
-        // Function to update chat messages with badges
-        function updateChatWithBadge(username) {
+        // Function to update the chat to show badges
+        function updateChatWithBadge(username, badgeType) {
             db.ref('messages').orderByChild('username').equalTo(username).once('value', snapshot => {
                 snapshot.forEach(childSnapshot => {
                     const messageData = childSnapshot.val();
-                    addMessageToChat(childSnapshot.key, messageData.username, messageData.message, messageData.profilePic);
+                    addMessageToChat(childSnapshot.key, messageData.username, messageData.message, messageData.profilePic, badgeType);
                 });
             });
         }
@@ -74,92 +73,82 @@
             });
         }
 
-        // Function to check if the user has the Contributor badge
-        function hasContributorBadge(username) {
-            return db.ref('users/' + username + '/badges/contributor').once('value').then(snapshot => !!snapshot.val());
-        }
+        // On page load, check if the user has badges
+        window.onload = function() {
+            const username = localStorage.getItem('username') || 'Guest';
+            checkUserBadges(username);
+        };
 
-        // Function to add a message to the chat with badges
-        function addMessageToChat(messageKey, username, messageText, profilePicUrl) {
-            const message = document.createElement('div');
-            message.classList.add('message');
-            message.id = 'message-' + messageKey;
-
-            const profileImage = document.createElement('img');
-            profileImage.src = profilePicUrl || 'default-profile-pic.png';
-
-            const text = document.createElement('span');
-            text.textContent = `${username}: ${messageText}`;
-
-            // Show badges if the user has them
-            hasContributorBadge(username).then(isContributor => {
-                if (isContributor) {
-                    const contributorBadge = document.createElement('span');
-                    contributorBadge.classList.add('badge', 'contributor-badge');
-                    contributorBadge.textContent = 'Contributor';
-                    text.appendChild(contributorBadge);
-                }
+        // Function to check and display badges
+        function checkUserBadges(username) {
+            db.ref('users/' + username + '/badges').once('value').then(snapshot => {
+                const badges = snapshot.val() || {};
+                if (badges.developer) developerBadge.style.display = 'inline-block';
+                if (badges.contributor) contributorBadge.style.display = 'inline-block';
             });
-
-            const buttons = document.createElement('div');
-            buttons.classList.add('buttons');
-
-            // Delete Button
-            const deleteButton = document.createElement('button');
-            deleteButton.classList.add('button', 'delete-button');
-            deleteButton.textContent = 'Delete';
-            deleteButton.onclick = function() {
-                deleteMessage(messageKey);
-            };
-
-            // Ban Button
-            const banButton = document.createElement('button');
-            banButton.classList.add('button', 'ban-button');
-            banButton.textContent = 'Ban';
-            banButton.onclick = function() {
-                banUser(username);
-            };
-
-            // Assign Developer Badge Button
-            const assignDevBadgeButton = document.createElement('button');
-            assignDevBadgeButton.classList.add('button', 'dev-badge-button');
-            assignDevBadgeButton.textContent = 'Assign Developer Badge';
-            assignDevBadgeButton.onclick = function() {
-                assignDeveloperBadge(username);
-            };
-
-            // Assign Contributor Badge Button
-            const assignContributorBadgeButton = document.createElement('button');
-            assignContributorBadgeButton.classList.add('button', 'contrib-badge-button');
-            assignContributorBadgeButton.textContent = 'Assign Contributor Badge';
-            assignContributorBadgeButton.onclick = function() {
-                assignContributorBadge(username);
-            };
-
-            buttons.appendChild(deleteButton);
-            buttons.appendChild(banButton);
-            buttons.appendChild(assignDevBadgeButton);
-            buttons.appendChild(assignContributorBadgeButton);
-
-            message.appendChild(profileImage);
-            message.appendChild(text);
-            message.appendChild(buttons);
-
-            messagesContainer.appendChild(message);
         }
 
         listenForMessages();
     </script>
 
     <style>
-        /* CSS remains the same except for the contributor badge style */
-        .contributor-badge {
-            background: linear-gradient(90deg, #ff7f50, #ff4500);
+        /* Your CSS styles remain unchanged */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #1e1e1e;
             color: white;
-            padding: 5px;
+            font-family: Arial, sans-serif;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #444;
+            padding: 10px 20px;
+        }
+
+        .profile {
+            display: flex;
+            align-items: center;
+        }
+
+        .profile img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+            border: 3px solid white;
+        }
+
+        .username {
+            font-size: 18px;
+        }
+
+        .profile-badges {
+            margin-left: 10px;
+        }
+
+        .badge {
+            padding: 5px 10px;
             border-radius: 5px;
             font-size: 12px;
-            margin-left: 5px;
+            margin-left: 10px;
+        }
+
+        .owner-badge {
+            background: linear-gradient(90deg, #ffcc00, #e63946);
+        }
+
+        .developer-badge {
+            background: linear-gradient(90deg, #ff00ff, #00ffff);
+            animation: rainbow 3s linear infinite;
+        }
+
+        .contributor-badge {
+            background: linear-gradient(90deg, #ff7f50, #87ceeb);
+            animation: gradient 3s linear infinite;
         }
     </style>
 </head>
@@ -183,6 +172,85 @@
 </div>
 
 <div id="popup" class="popup"></div>
+
+<script>
+    const usernameDisplay = document.getElementById('username-display');
+    const profilePic = document.getElementById('profile-pic');
+    const ownerBadge = document.getElementById('owner-badge');
+    const developerBadge = document.getElementById('developer-badge');
+    const contributorBadge = document.getElementById('contributor-badge');
+    const messagesContainer = document.getElementById('messages-container');
+    const popup = document.getElementById('popup');
+
+    const username = localStorage.getItem('username') || 'Guest';
+    const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
+
+    usernameDisplay.textContent = username;
+    profilePic.src = profilePictureUrl;
+
+    // Show the Owner badge if the username is 'zeptional'
+    if (username === 'zeptional') {
+        ownerBadge.style.display = 'inline-block';
+    }
+
+    function addMessageToChat(messageKey, username, messageText, profilePicUrl, badgeType = null) {
+        const message = document.createElement('div');
+        message.classList.add('message');
+        message.id = 'message-' + messageKey;
+
+        const profileImage = document.createElement('img');
+        profileImage.src = profilePicUrl || 'default-profile-pic.png';
+
+        const text = document.createElement('span');
+        text.textContent = `${username}: ${messageText}`;
+
+        if (badgeType === 'developer') {
+            const devBadge = document.createElement('span');
+            devBadge.classList.add('badge', 'developer-badge');
+            devBadge.textContent = 'Developer';
+            text.appendChild(devBadge);
+        } else if (badgeType === 'contributor') {
+            const contrBadge = document.createElement('span');
+            contrBadge.classList.add('badge', 'contributor-badge');
+            contrBadge.textContent = 'Contributor';
+            text.appendChild(contrBadge);
+        }
+
+        const buttons = document.createElement('div');
+        buttons.classList.add('buttons');
+
+        const deleteButton = document.createElement('button');
+        deleteButton.classList.add('button', 'delete-button');
+        deleteButton.textContent = 'Delete';
+        deleteButton.onclick = function() {
+            deleteMessage(messageKey);
+        };
+
+        const assignDevBadgeButton = document.createElement('button');
+        assignDevBadgeButton.classList.add('button', 'dev-badge-button');
+        assignDevBadgeButton.textContent = 'Assign Developer Badge';
+        assignDevBadgeButton.onclick = function() {
+            assignDeveloperBadge(username);
+        };
+
+        const assignContrBadgeButton = document.createElement('button');
+        assignContrBadgeButton.classList.add('button', 'contributor-badge-button');
+        assignContrBadgeButton.textContent = 'Assign Contributor Badge';
+        assignContrBadgeButton.onclick = function() {
+            assignContributorBadge(username);
+        };
+
+        buttons.appendChild(deleteButton);
+        buttons.appendChild(assignDevBadgeButton);
+        buttons.appendChild(assignContrBadgeButton);
+
+        message.appendChild(profileImage);
+        message.appendChild(text);
+        message.appendChild(buttons);
+
+        messagesContainer.appendChild(message);
+    }
+</script>
 
 </body>
 </html>
