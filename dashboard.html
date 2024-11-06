@@ -143,21 +143,6 @@
             box-shadow: 0px 4px 2px -2px rgba(0,0,0,0.5);
         }
 
-        .profile {
-            position: absolute;
-            left: 20px;
-            display: flex;
-            align-items: center;
-        }
-
-        .profile img {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            margin-right: 10px;
-            border: 3px solid #7289da;
-        }
-
         .nav-buttons {
             display: flex;
             justify-content: center;
@@ -245,53 +230,40 @@
             display: none;
             padding: 5px 10px;
             margin: 5px;
-            border-radius: 3px;
-            font-weight: bold;
-            color: #fff;
-        }
-
-        .badge.owner {
-            background: linear-gradient(45deg, #ff2e63, #ff6a00);
-        }
-
-        .badge.developer {
-            background: linear-gradient(45deg, #7289da, #99aab5);
-        }
-
-        .badge.contributor {
-            background: linear-gradient(45deg, #00b8d4, #02c4d7);
-        }
-
-        /* Modal Badge Styles */
-        .profile-owner-badge, .profile-developer-badge, .profile-contributor-badge {
-            display: none;
-            font-size: 14px;
-            padding: 5px;
-            margin-top: 10px;
+            background-color: #7289da;
+            border-radius: 5px;
             color: white;
+            font-size: 12px;
+        }
+
+        .badge-owner {
+            background-color: #ff0000;
+        }
+
+        .badge-developer {
             background-color: #7289da;
         }
 
+        .badge-contributor {
+            background-color: #00ff00;
+        }
+
         .profile-owner-badge {
-            background-color: #ff2e63;
+            background-color: #ff0000;
         }
 
         .profile-developer-badge {
-            background-color: #99aab5;
+            background-color: #7289da;
         }
 
         .profile-contributor-badge {
-            background-color: #00b8d4;
+            background-color: #00ff00;
         }
     </style>
 </head>
 
 <body>
     <div class="header">
-        <div class="profile">
-            <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture">
-            <span id="username-display">Username</span>
-        </div>
         <div class="nav-buttons">
             <a href="profile.html">Profile</a>
             <a href="settings.html">Settings</a>
@@ -300,25 +272,21 @@
     </div>
 
     <div class="chat-box">
-        <div class="messages" id="messages-container"></div>
-        <input id="message-input" type="text" placeholder="Type a message" onkeydown="if(event.key === 'Enter'){sendMessage();}">
+        <input id="message-input" type="text" placeholder="Type a message...">
     </div>
 
-    <div id="profile-modal" class="modal" onclick="closeProfileModal()">
+    <div class="messages" id="messages-container"></div>
+
+    <div id="profile-modal" class="modal">
         <div class="modal-content">
-            <img id="modal-profile-pic" src="default-profile-pic.png" alt="Profile Picture">
-            <h2 id="modal-username">Username</h2>
-            <div id="modal-owner-badge" class="badge owner">Owner</div>
-            <div id="modal-developer-badge" class="badge developer">Developer</div>
-            <div id="modal-contributor-badge" class="badge contributor">Contributor</div>
+            <img id="modal-profile-pic" src="" alt="Profile Picture">
+            <h2 id="modal-username"></h2>
+            <div id="modal-owner-badge" class="badge badge-owner">Owner</div>
+            <div id="modal-developer-badge" class="badge badge-developer">Developer</div>
+            <div id="modal-contributor-badge" class="badge badge-contributor">Contributor</div>
+            <button onclick="closeProfileModal()">Close</button>
         </div>
     </div>
-
-    <script>
-        document.getElementById('profile-pic').onclick = function () {
-            openProfileModal(localStorage.getItem('username'), localStorage.getItem('profilePic') || 'default-profile-pic.png');
-        };
-    </script>
 </body>
 
 </html>
