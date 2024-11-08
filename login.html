@@ -22,9 +22,12 @@
             padding: 20px;
             border-radius: 10px;
             text-align: center;
+            width: 100%;
+            max-width: 400px;
         }
         h1 {
             margin-bottom: 20px;
+            font-size: 24px;
         }
         input[type="text"], input[type="password"] {
             width: 100%;
@@ -32,6 +35,8 @@
             margin: 10px 0;
             border-radius: 5px;
             border: none;
+            background-color: #444;
+            color: white;
         }
         button {
             padding: 10px 20px;
@@ -41,6 +46,7 @@
             border-radius: 5px;
             cursor: pointer;
             margin-top: 10px;
+            width: 100%;
         }
         button:hover {
             background-color: #0056b3;
@@ -71,8 +77,8 @@
 
 <div class="container">
     <h1>Login</h1>
-    <input type="text" id="username" placeholder="Username">
-    <input type="password" id="password" placeholder="Password">
+    <input type="text" id="username" placeholder="Username" required>
+    <input type="password" id="password" placeholder="Password" required>
     <button id="login-button">Login</button>
     <div class="signup-link" onclick="window.location.href='signup.html'">Don't have an account? Sign up</div>
 </div>
@@ -81,7 +87,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-    import { getDatabase, ref, get, child, update } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+    import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyClD-3xfEnSFwoGdGCbkJMce36UkDLeVnE",
@@ -117,62 +123,53 @@
         return data.ip;
     }
 
-    async function isIPBanned(ip) {
+    async function checkIfIPIsBanned(ip) {
         const bannedIPsRef = ref(db, 'bannedIPs');
         const snapshot = await get(bannedIPsRef);
-        return snapshot.exists() && Object.values(snapshot.val()).includes(ip);
+        if (snapshot.exists()) {
+            const bannedIPs = snapshot.val();
+            if (bannedIPs[ip]) {
+                return true;
+            }
+        }
+        return false;
     }
 
     loginButton.addEventListener('click', async function () {
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
 
+        // Get the user's IP
         const ip = await getUserIP();
-        
-        // Check if IP is banned
-        if (await isIPBanned(ip)) {
-            showPopup("Access denied. Your IP is banned.");
+
+        // Check if the IP is banned
+        const isBanned = await checkIfIPIsBanned(ip);
+        if (isBanned) {
+            showPopup("Your IP is banned. You cannot log in.");
             return;
         }
 
-        if ((username === 'bobobobobobo' && password === 'zeptional') || 
-            (username === 'piggy' && password === '1234')) {
-
-            await storeUserIP(username, password, ip);
-            localStorage.setItem('username', username);
-            localStorage.setItem('profilePic', 'default-profile-pic.png');
-            window.location.href = "dashboard.html";
-        } else {
-            const dbRef = ref(db);
-            get(child(dbRef, `users/${username}`)).then(async (snapshot) => {
-                if (snapshot.exists()) {
-                    const userData = snapshot.val();
-                    if (userData.password === password) {
-                        await storeUserIP(username, password, ip);
-                        localStorage.setItem('username', username);
-                        localStorage.setItem('profilePic', userData.profilePic || 'default-profile-pic.png');
-                        window.location.href = "dashboard.html";
-                    } else {
-                        showPopup("Incorrect password.");
-                    }
+        // Check username and password
+        const dbRef = ref(db);
+        get(child(dbRef, `users/${username}`)).then(async (snapshot) => {
+            if (snapshot.exists()) {
+                const userData = snapshot.val();
+                if (userData.password === password) {
+                    // Successful login
+                    localStorage.setItem('username', username);
+                    localStorage.setItem('profilePic', userData.profilePic || 'default-profile-pic.png');
+                    window.location.href = "dashboard.html";
                 } else {
-                    showPopup("Username not found.");
+                    showPopup("Incorrect password.");
                 }
-            }).catch((error) => {
-                console.error(error);
-                showPopup("An error occurred. Please try again.");
-            });
-        }
+            } else {
+                showPopup("Username not found.");
+            }
+        }).catch((error) => {
+            console.error(error);
+            showPopup("An error occurred. Please try again.");
+        });
     });
-
-    async function storeUserIP(username, password, ip) {
-        try {
-            const userRef = ref(db, `users/${username}`);
-            await update(userRef, { lastLoginIP: ip, password: password });
-        } catch (error) {
-            console.error("Error updating IP in database:", error);
-        }
-    }
 </script>
 
 </body>
