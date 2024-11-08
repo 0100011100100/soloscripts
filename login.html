@@ -22,7 +22,6 @@
             padding: 20px;
             border-radius: 10px;
             text-align: center;
-            width: 300px;
         }
         h1 {
             margin-bottom: 20px;
@@ -61,13 +60,6 @@
             z-index: 1000;
             display: none;
         }
-        .signup-button {
-            background-color: #28a745;
-            margin-top: 15px;
-        }
-        .signup-button:hover {
-            background-color: #218838;
-        }
     </style>
 </head>
 <body>
@@ -77,13 +69,12 @@
     <input type="text" id="username" placeholder="Username">
     <input type="password" id="password" placeholder="Password">
     <button id="login-button">Login</button>
-    <button class="signup-button" onclick="window.location.href='signup.html'">Sign Up</button>
     <div id="popup" class="popup"></div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-    import { getDatabase, ref, get, child, update } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+    import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyClD-3xfEnSFwoGdGCbkJMce36UkDLeVnE",
@@ -125,15 +116,6 @@
         }
     }
 
-    async function storeUserIP(username, password, ip) {
-        try {
-            const userRef = ref(db, `users/${username}`);
-            await update(userRef, { lastLoginIP: ip, password: password });
-        } catch (error) {
-            console.error("Error updating IP in database:", error);
-        }
-    }
-
     loginButton.addEventListener('click', async function () {
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
@@ -145,7 +127,7 @@
             return;
         }
 
-        // Check if IP is banned
+        // Check if IP is banned locally
         if (localStorage.getItem('bannedIP') === ip) {
             showPopup("Access denied: Your IP is banned.");
             return;
@@ -166,8 +148,6 @@
                 }
 
                 if (userData.password === password) {
-                    // Save user data to localStorage and redirect
-                    await storeUserIP(username, password, ip);
                     localStorage.setItem('username', username);
                     localStorage.setItem('profilePic', userData.profilePic || 'default-profile-pic.png');
                     window.location.href = "dashboard.html";
