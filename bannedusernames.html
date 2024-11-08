@@ -3,113 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel</title>
+    <title>Admin Page</title>
     <style>
-        body {
-            background-color: #1e1e1e;
-            color: white;
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-        }
-        table {
-            width: 80%;
-            margin: 20px 0;
-            border-collapse: collapse;
-        }
-        th, td {
-            padding: 10px;
-            border: 1px solid #333;
-            text-align: center;
-        }
-        button {
-            padding: 5px 10px;
-            background-color: red;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: darkred;
-        }
+        /* Add your admin page styles here */
     </style>
 </head>
 <body>
-    <h1>Admin Panel</h1>
-    <table>
-        <thead>
-            <tr>
-                <th>Username</th>
-                <th>Password</th>
-                <th>IP Address</th>
-                <th>Ban IP</th>
-            </tr>
-        </thead>
-        <tbody id="user-list"></tbody>
-    </table>
+    <h1>Admin Page</h1>
+    <div id="userTable"></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import { getDatabase, ref, get, child, update, set } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+        import { getDatabase, ref, get, child, update } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyClD-3xfEnSFwoGdGCbkJMce36UkDLeVnE",
-            authDomain: "realtimeaccountcreation.firebaseapp.com",
-            databaseURL: "https://realtimeaccountcreation-default-rtdb.firebaseio.com",
-            projectId: "realtimeaccountcreation",
-            storageBucket: "realtimeaccountcreation.appspot.com",
-            messagingSenderId: "658896933674",
-            appId: "1:658896933674:web:3275d0678c39b54e8f8453"
-        };
-
+        const firebaseConfig = { /* Your Firebase config */ };
         const app = initializeApp(firebaseConfig);
         const db = getDatabase();
 
         async function loadUsers() {
-            const dbRef = ref(db, 'users');
-            const snapshot = await get(dbRef);
-            if (snapshot.exists()) {
-                const users = snapshot.val();
-                const userList = document.getElementById('user-list');
-                userList.innerHTML = '';
-                for (const username in users) {
-                    const user = users[username];
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${username}</td>
-                        <td>${user.password}</td>
-                        <td>${user.lastLoginIP || 'N/A'}</td>
-                        <td><button onclick="banIP('${user.lastLoginIP}')">Ban IP</button></td>
-                    `;
-                    userList.appendChild(row);
+            const userTable = document.getElementById('userTable');
+            const usersRef = ref(db, 'users');
+
+            get(usersRef).then((snapshot) => {
+                if (snapshot.exists()) {
+                    snapshot.forEach((childSnapshot) => {
+                        const userData = childSnapshot.val();
+                        const userRow = document.createElement('div');
+                        userRow.innerHTML = `
+                            <p>${userData.username} - ${userData.password} - ${userData.lastLoginIP}</p>
+                            <button onclick="banIP('${userData.lastLoginIP}')">Ban IP</button>
+                        `;
+                        userTable.appendChild(userRow);
+                    });
                 }
-            }
+            });
         }
 
-        async function banIP(ip) {
-            if (!ip) {
-                alert('No IP found for this user.');
-                return;
-            }
-
-            const bannedIPsRef = ref(db, 'bannedIPs');
-            const snapshot = await get(bannedIPsRef);
-            const bannedIPs = snapshot.exists() ? snapshot.val() : {};
-
-            if (!bannedIPs[ip]) {
-                bannedIPs[ip] = true; // Ban the IP
-                await set(bannedIPsRef, bannedIPs); // Update the bannedIPs in the database
-                alert('IP has been banned!');
-            } else {
-                alert('IP is already banned.');
-            }
+        window.banIP = async function(ip) {
+            const bannedIpRef = ref(db, `bannedIps/${ip}`);
+            await update(bannedIpRef, { banned: true });
+            alert(`IP ${ip} has been banned`);
         }
 
-        loadUsers(); // Load the user list on page load
+        loadUsers();
     </script>
 </body>
 </html>
