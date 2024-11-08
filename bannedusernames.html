@@ -6,8 +6,6 @@
     <title>Admin Panel</title>
     <style>
         body {
-            margin: 0;
-            padding: 0;
             background-color: #1e1e1e;
             color: white;
             font-family: Arial, sans-serif;
@@ -16,166 +14,102 @@
             align-items: center;
             justify-content: center;
             height: 100vh;
-        }
-        .container {
-            background-color: #333;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            width: 80%;
-            max-width: 1000px;
-        }
-        h1 {
-            margin-bottom: 20px;
+            margin: 0;
         }
         table {
-            width: 100%;
-            margin-top: 20px;
+            width: 80%;
+            margin: 20px 0;
             border-collapse: collapse;
-        }
-        table, th, td {
-            border: 1px solid #fff;
         }
         th, td {
             padding: 10px;
-            text-align: left;
+            border: 1px solid #333;
+            text-align: center;
         }
         button {
-            padding: 10px 20px;
-            background-color: #007BFF;
+            padding: 5px 10px;
+            background-color: red;
             color: white;
             border: none;
-            border-radius: 5px;
             cursor: pointer;
-            margin-top: 10px;
         }
         button:hover {
-            background-color: #0056b3;
-        }
-        .popup {
-            position: fixed;
-            top: -50px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 15px 20px;
-            border-radius: 5px;
-            transition: top 0.5s ease;
-            z-index: 1000;
-            display: none;
+            background-color: darkred;
         }
     </style>
 </head>
 <body>
-
-<div class="container">
     <h1>Admin Panel</h1>
-    <table id="userTable">
+    <table>
         <thead>
             <tr>
                 <th>Username</th>
                 <th>Password</th>
-                <th>IP</th>
+                <th>IP Address</th>
                 <th>Ban IP</th>
-                <th>Unban IP</th>
-                <th>Edit Username/Password</th>
             </tr>
         </thead>
-        <tbody>
-            <!-- User data will populate here -->
-        </tbody>
+        <tbody id="user-list"></tbody>
     </table>
-    <div id="popup" class="popup"></div>
-</div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-    import { getDatabase, ref, get, child, update, set } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getDatabase, ref, get, child, update, set } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyClD-3xfEnSFwoGdGCbkJMce36UkDLeVnE",
-        authDomain: "realtimeaccountcreation.firebaseapp.com",
-        databaseURL: "https://realtimeaccountcreation-default-rtdb.firebaseio.com",
-        projectId: "realtimeaccountcreation",
-        storageBucket: "realtimeaccountcreation.appspot.com",
-        messagingSenderId: "658896933674",
-        appId: "1:658896933674:web:3275d0678c39b54e8f8453"
-    };
+        const firebaseConfig = {
+            apiKey: "AIzaSyClD-3xfEnSFwoGdGCbkJMce36UkDLeVnE",
+            authDomain: "realtimeaccountcreation.firebaseapp.com",
+            databaseURL: "https://realtimeaccountcreation-default-rtdb.firebaseio.com",
+            projectId: "realtimeaccountcreation",
+            storageBucket: "realtimeaccountcreation.appspot.com",
+            messagingSenderId: "658896933674",
+            appId: "1:658896933674:web:3275d0678c39b54e8f8453"
+        };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase();
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase();
 
-    const userTable = document.getElementById("userTable").getElementsByTagName('tbody')[0];
-    const popup = document.getElementById('popup');
-
-    function showPopup(message) {
-        popup.textContent = message;
-        popup.style.display = 'block';
-        popup.style.top = '10px';
-        setTimeout(() => {
-            popup.style.top = '-50px';
-            setTimeout(() => {
-                popup.style.display = 'none';
-            }, 500);
-        }, 2000);
-    }
-
-    function createRow(username, password, ip) {
-        const row = document.createElement("tr");
-
-        row.innerHTML = `
-            <td>${username}</td>
-            <td><input type="password" value="${password}" id="password-${username}"></td>
-            <td>${ip}</td>
-            <td><button onclick="banIP('${username}', '${ip}')">Ban IP</button></td>
-            <td><button onclick="unbanIP('${username}', '${ip}')">Unban IP</button></td>
-            <td><button onclick="editCredentials('${username}')">Edit</button></td>
-        `;
-
-        userTable.appendChild(row);
-    }
-
-    async function loadUserData() {
-        const dbRef = ref(db, 'users');
-        get(dbRef).then((snapshot) => {
+        async function loadUsers() {
+            const dbRef = ref(db, 'users');
+            const snapshot = await get(dbRef);
             if (snapshot.exists()) {
                 const users = snapshot.val();
-                for (let username in users) {
-                    const userData = users[username];
-                    createRow(username, userData.password, userData.lastLoginIP);
+                const userList = document.getElementById('user-list');
+                userList.innerHTML = '';
+                for (const username in users) {
+                    const user = users[username];
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${username}</td>
+                        <td>${user.password}</td>
+                        <td>${user.lastLoginIP || 'N/A'}</td>
+                        <td><button onclick="banIP('${user.lastLoginIP}')">Ban IP</button></td>
+                    `;
+                    userList.appendChild(row);
                 }
-            } else {
-                showPopup("No users found.");
             }
-        }).catch((error) => {
-            console.error(error);
-            showPopup("An error occurred while loading user data.");
-        });
-    }
+        }
 
-    async function banIP(username, ip) {
-        const bannedIpsRef = ref(db, 'bannedIPs');
-        await set(ref(db, `bannedIPs/${ip}`), { username: username });
-        showPopup(`IP ${ip} banned.`);
-    }
+        async function banIP(ip) {
+            if (!ip) {
+                alert('No IP found for this user.');
+                return;
+            }
 
-    async function unbanIP(username, ip) {
-        const bannedIpsRef = ref(db, `bannedIPs/${ip}`);
-        await update(bannedIpsRef, { banned: false });
-        showPopup(`IP ${ip} unbanned.`);
-    }
+            const bannedIPsRef = ref(db, 'bannedIPs');
+            const snapshot = await get(bannedIPsRef);
+            const bannedIPs = snapshot.exists() ? snapshot.val() : {};
 
-    async function editCredentials(username) {
-        const newPassword = document.getElementById(`password-${username}`).value;
-        const userRef = ref(db, `users/${username}`);
-        await update(userRef, { password: newPassword });
-        showPopup(`Password for ${username} updated.`);
-    }
+            if (!bannedIPs[ip]) {
+                bannedIPs[ip] = true; // Ban the IP
+                await set(bannedIPsRef, bannedIPs); // Update the bannedIPs in the database
+                alert('IP has been banned!');
+            } else {
+                alert('IP is already banned.');
+            }
+        }
 
-    // Load user data on page load
-    window.onload = loadUserData;
-</script>
-
+        loadUsers(); // Load the user list on page load
+    </script>
 </body>
 </html>
