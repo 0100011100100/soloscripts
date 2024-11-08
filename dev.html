@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delete Messages</title>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-database.js"></script>
+</head>
+<body>
+    <h1>Delete Messages</h1>
+    <button id="deleteButton">Delete All Messages</button>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAe0hXfAJ0ijKNiGgAVfv4zG1ngADF2E4c",
+            authDomain: "chatapp-90c78.firebaseapp.com",
+            projectId: "chatapp-90c78",
+            storageBucket: "chatapp-90c78.appspot.com",
+            messagingSenderId: "195015101932",
+            appId: "1:195015101932:web:f352296f341c58458a84c9",
+            databaseURL: "https://chatapp-90c78-default-rtdb.firebaseio.com"
+        };
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Function to delete all messages
+        function deleteMessages() {
+            database.ref('/messages').remove()
+                .then(() => {
+                    alert('All messages have been deleted successfully!');
+                })
+                .catch(error => {
+                    console.error('Error deleting messages:', error);
+                    alert('Failed to delete messages.');
+                });
+        }
+
+        // Add event listener to the delete button
+        document.getElementById('deleteButton').addEventListener('click', deleteMessages);
+    </script>
+</body>
+</html>
