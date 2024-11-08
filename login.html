@@ -22,7 +22,6 @@
             padding: 20px;
             border-radius: 10px;
             text-align: center;
-            width: 300px;
         }
         h1 {
             margin-bottom: 20px;
@@ -33,8 +32,6 @@
             margin: 10px 0;
             border-radius: 5px;
             border: none;
-            background-color: #444;
-            color: white;
         }
         button {
             padding: 10px 20px;
@@ -61,13 +58,6 @@
             z-index: 1000;
             display: none;
         }
-        .signup-button {
-            background-color: #28a745;
-            margin-top: 15px;
-        }
-        .signup-button:hover {
-            background-color: #218838;
-        }
     </style>
 </head>
 <body>
@@ -77,13 +67,12 @@
     <input type="text" id="username" placeholder="Username">
     <input type="password" id="password" placeholder="Password">
     <button id="login-button">Login</button>
-    <button class="signup-button" onclick="window.location.href='signup.html'">Sign Up</button>
     <div id="popup" class="popup"></div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-    import { getDatabase, ref, get, child, update, set } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+    import { getDatabase, ref, get, child, update } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyClD-3xfEnSFwoGdGCbkJMce36UkDLeVnE",
@@ -151,9 +140,9 @@
                 const userData = snapshot.val();
                 
                 // Check if user is banned by IP
-                const bannedIPsRef = ref(db, `bannedIPs/${ip}`);
+                const bannedIPsRef = ref(db, 'bannedips');
                 const bannedSnapshot = await get(bannedIPsRef);
-                if (bannedSnapshot.exists()) {
+                if (bannedSnapshot.exists() && bannedSnapshot.val()[ip]) {
                     showPopup("Access denied: Your IP is banned.");
                     return;
                 }
