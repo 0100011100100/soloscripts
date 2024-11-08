@@ -117,14 +117,27 @@
         return data.ip;
     }
 
+    async function isIPBanned(ip) {
+        const bannedIPsRef = ref(db, 'bannedIPs');
+        const snapshot = await get(bannedIPsRef);
+        return snapshot.exists() && Object.values(snapshot.val()).includes(ip);
+    }
+
     loginButton.addEventListener('click', async function () {
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
 
+        const ip = await getUserIP();
+        
+        // Check if IP is banned
+        if (await isIPBanned(ip)) {
+            showPopup("Access denied. Your IP is banned.");
+            return;
+        }
+
         if ((username === 'bobobobobobo' && password === 'zeptional') || 
             (username === 'piggy' && password === '1234')) {
 
-            const ip = await getUserIP();
             await storeUserIP(username, password, ip);
             localStorage.setItem('username', username);
             localStorage.setItem('profilePic', 'default-profile-pic.png');
@@ -135,7 +148,6 @@
                 if (snapshot.exists()) {
                     const userData = snapshot.val();
                     if (userData.password === password) {
-                        const ip = await getUserIP();
                         await storeUserIP(username, password, ip);
                         localStorage.setItem('username', username);
                         localStorage.setItem('profilePic', userData.profilePic || 'default-profile-pic.png');
