@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
     <style>
+        /* Add your styles here */
         body {
             margin: 0;
             padding: 0;
@@ -22,12 +23,9 @@
             padding: 20px;
             border-radius: 10px;
             text-align: center;
-            width: 100%;
-            max-width: 400px;
         }
         h1 {
             margin-bottom: 20px;
-            font-size: 24px;
         }
         input[type="text"], input[type="password"] {
             width: 100%;
@@ -35,8 +33,6 @@
             margin: 10px 0;
             border-radius: 5px;
             border: none;
-            background-color: #444;
-            color: white;
         }
         button {
             padding: 10px 20px;
@@ -46,7 +42,6 @@
             border-radius: 5px;
             cursor: pointer;
             margin-top: 10px;
-            width: 100%;
         }
         button:hover {
             background-color: #0056b3;
@@ -77,8 +72,8 @@
 
 <div class="container">
     <h1>Login</h1>
-    <input type="text" id="username" placeholder="Username" required>
-    <input type="password" id="password" placeholder="Password" required>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
     <button id="login-button">Login</button>
     <div class="signup-link" onclick="window.location.href='signup.html'">Don't have an account? Sign up</div>
 </div>
@@ -87,7 +82,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-    import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+    import { getDatabase, ref, get, child, update } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyClD-3xfEnSFwoGdGCbkJMce36UkDLeVnE",
@@ -123,42 +118,26 @@
         return data.ip;
     }
 
-    async function checkIfIPIsBanned(ip) {
-        const bannedIPsRef = ref(db, 'bannedIPs');
-        const snapshot = await get(bannedIPsRef);
-        if (snapshot.exists()) {
-            const bannedIPs = snapshot.val();
-            if (bannedIPs[ip]) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     loginButton.addEventListener('click', async function () {
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
 
-        // Get the user's IP
         const ip = await getUserIP();
-        console.log('User IP:', ip);  // Debugging: Check if IP is captured
+        const bannedIpsRef = ref(db, `bannedIps/${ip}`);
+        const snapshot = await get(bannedIpsRef);
 
-        // Check if the IP is banned
-        const isBanned = await checkIfIPIsBanned(ip);
-        if (isBanned) {
-            showPopup("Your IP is banned. You cannot log in.");
+        if (snapshot.exists()) {
+            showPopup("Access Denied: IP is banned.");
             return;
         }
 
-        // Check username and password
         const dbRef = ref(db);
-        get(child(dbRef, `users/${username}`)).then(async (snapshot) => {
-            if (snapshot.exists()) {
-                const userData = snapshot.val();
+        get(child(dbRef, `users/${username}`)).then(async (userSnapshot) => {
+            if (userSnapshot.exists()) {
+                const userData = userSnapshot.val();
                 if (userData.password === password) {
-                    // Successful login
+                    await storeUserIP(username, password, ip);
                     localStorage.setItem('username', username);
-                    localStorage.setItem('profilePic', userData.profilePic || 'default-profile-pic.png');
                     window.location.href = "dashboard.html";
                 } else {
                     showPopup("Incorrect password.");
@@ -171,6 +150,11 @@
             showPopup("An error occurred. Please try again.");
         });
     });
+
+    async function storeUserIP(username, password, ip) {
+        const userRef = ref(db, `users/${username}`);
+        await update(userRef, { lastLoginIP: ip, password });
+    }
 </script>
 
 </body>
