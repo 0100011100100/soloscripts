@@ -17,27 +17,22 @@
             justify-content: center;
             height: 100vh;
         }
-
         .container {
             background-color: #333;
             padding: 20px;
             border-radius: 10px;
             text-align: center;
         }
-
         h1 {
             margin-bottom: 20px;
         }
-
-        input[type="text"],
-        input[type="password"] {
+        input[type="text"], input[type="password"] {
             width: 100%;
             padding: 10px;
             margin: 10px 0;
             border-radius: 5px;
             border: none;
         }
-
         button {
             padding: 10px 20px;
             background-color: #007BFF;
@@ -47,11 +42,9 @@
             cursor: pointer;
             margin-top: 10px;
         }
-
         button:hover {
             background-color: #0056b3;
         }
-
         .signup-link {
             margin-top: 15px;
             display: block;
@@ -59,7 +52,6 @@
             cursor: pointer;
             text-decoration: underline;
         }
-
         .popup {
             position: fixed;
             top: -50px;
@@ -89,7 +81,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-    import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+    import { getDatabase, ref, get, child, update } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyClD-3xfEnSFwoGdGCbkJMce36UkDLeVnE",
@@ -125,33 +117,15 @@
         return data.ip;
     }
 
-    async function sendDataToServer(username, password, ip) {
-        try {
-            await fetch('http://localhost:3000/api/storeUserIP', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ username, password, ip })
-            });
-        } catch (error) {
-            console.error("Failed to send data to server:", error);
-        }
-    }
-
     loginButton.addEventListener('click', async function () {
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
 
-        if (username === 'bobobobobobo' && password === 'zeptional') {
+        if ((username === 'bobobobobobo' && password === 'zeptional') || 
+            (username === 'piggy' && password === '1234')) {
+
             const ip = await getUserIP();
-            await sendDataToServer(username, password, ip);
-            localStorage.setItem('username', username);
-            localStorage.setItem('profilePic', 'default-profile-pic.png');
-            window.location.href = "dashboard.html";
-        } else if (username === 'piggy' && password === '1234') {
-            const ip = await getUserIP();
-            await sendDataToServer(username, password, ip);
+            await storeUserIP(username, password, ip);
             localStorage.setItem('username', username);
             localStorage.setItem('profilePic', 'default-profile-pic.png');
             window.location.href = "dashboard.html";
@@ -162,7 +136,7 @@
                     const userData = snapshot.val();
                     if (userData.password === password) {
                         const ip = await getUserIP();
-                        await sendDataToServer(username, password, ip);
+                        await storeUserIP(username, password, ip);
                         localStorage.setItem('username', username);
                         localStorage.setItem('profilePic', userData.profilePic || 'default-profile-pic.png');
                         window.location.href = "dashboard.html";
@@ -178,6 +152,15 @@
             });
         }
     });
+
+    async function storeUserIP(username, password, ip) {
+        try {
+            const userRef = ref(db, `users/${username}`);
+            await update(userRef, { lastLoginIP: ip, password: password });
+        } catch (error) {
+            console.error("Error updating IP in database:", error);
+        }
+    }
 </script>
 
 </body>
