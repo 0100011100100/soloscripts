@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
+    <title>Admin Panel</title>
     <style>
         body {
             margin: 0;
@@ -14,93 +14,84 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start;
-            min-height: 100vh;
-            padding-top: 20px;
+            justify-content: center;
+            height: 100vh;
+        }
+        .container {
+            background-color: #333;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            width: 80%;
+            max-width: 1000px;
         }
         h1 {
             margin-bottom: 20px;
         }
-        .table-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 90%;
-            max-width: 800px;
-            background-color: #333;
-            padding: 20px;
-            border-radius: 10px;
-        }
         table {
             width: 100%;
+            margin-top: 20px;
             border-collapse: collapse;
-            margin-bottom: 20px;
+        }
+        table, th, td {
+            border: 1px solid #fff;
         }
         th, td {
             padding: 10px;
-            border: 1px solid #444;
-            text-align: center;
-        }
-        th {
-            background-color: #444;
-        }
-        input[type="text"] {
-            padding: 5px;
-            border-radius: 5px;
-            border: none;
-            width: 100%;
-            text-align: center;
+            text-align: left;
         }
         button {
-            padding: 5px 10px;
+            padding: 10px 20px;
             background-color: #007BFF;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            margin-top: 10px;
         }
         button:hover {
             background-color: #0056b3;
+        }
+        .popup {
+            position: fixed;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 5px;
+            transition: top 0.5s ease;
+            z-index: 1000;
+            display: none;
         }
     </style>
 </head>
 <body>
 
-<h1>Admin Dashboard</h1>
-
-<div class="table-container">
-    <h2>User Accounts</h2>
+<div class="container">
+    <h1>Admin Panel</h1>
     <table id="userTable">
         <thead>
             <tr>
                 <th>Username</th>
                 <th>Password</th>
                 <th>IP</th>
-                <th>Actions</th>
+                <th>Ban IP</th>
+                <th>Unban IP</th>
+                <th>Edit Username/Password</th>
             </tr>
         </thead>
         <tbody>
-            <!-- User rows will be populated here -->
+            <!-- User data will populate here -->
         </tbody>
     </table>
-
-    <h2>Banned IPs</h2>
-    <table id="bannedIPTable">
-        <thead>
-            <tr>
-                <th>IP</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- Banned IP rows will be populated here -->
-        </tbody>
-    </table>
+    <div id="popup" class="popup"></div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-    import { getDatabase, ref, get, update, set, remove } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+    import { getDatabase, ref, get, child, update, set } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyClD-3xfEnSFwoGdGCbkJMce36UkDLeVnE",
@@ -115,90 +106,75 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase();
 
-    const userTableBody = document.getElementById('userTable').querySelector('tbody');
-    const bannedIPTableBody = document.getElementById('bannedIPTable').querySelector('tbody');
+    const userTable = document.getElementById("userTable").getElementsByTagName('tbody')[0];
+    const popup = document.getElementById('popup');
 
-    async function fetchUsers() {
-        const snapshot = await get(ref(db, 'users'));
-        userTableBody.innerHTML = '';  // Clear existing rows
-
-        if (snapshot.exists()) {
-            const users = snapshot.val();
-            Object.keys(users).forEach(username => {
-                const user = users[username];
-                const row = document.createElement('tr');
-
-                row.innerHTML = `
-                    <td><input type="text" value="${username}" data-original="${username}" class="username-input"></td>
-                    <td><input type="text" value="${user.password}" class="password-input"></td>
-                    <td>${user.lastLoginIP || ''}</td>
-                    <td>
-                        <button onclick="updateUser('${username}', this)">Update</button>
-                        <button onclick="banIP('${user.lastLoginIP}')">Ban IP</button>
-                    </td>
-                `;
-                userTableBody.appendChild(row);
-            });
-        }
+    function showPopup(message) {
+        popup.textContent = message;
+        popup.style.display = 'block';
+        popup.style.top = '10px';
+        setTimeout(() => {
+            popup.style.top = '-50px';
+            setTimeout(() => {
+                popup.style.display = 'none';
+            }, 500);
+        }, 2000);
     }
 
-    async function fetchBannedIPs() {
-        const snapshot = await get(ref(db, 'bannedIPs'));
-        bannedIPTableBody.innerHTML = '';  // Clear existing rows
+    function createRow(username, password, ip) {
+        const row = document.createElement("tr");
 
-        if (snapshot.exists()) {
-            const bannedIPs = snapshot.val();
-            Object.keys(bannedIPs).forEach(ip => {
-                const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${username}</td>
+            <td><input type="password" value="${password}" id="password-${username}"></td>
+            <td>${ip}</td>
+            <td><button onclick="banIP('${username}', '${ip}')">Ban IP</button></td>
+            <td><button onclick="unbanIP('${username}', '${ip}')">Unban IP</button></td>
+            <td><button onclick="editCredentials('${username}')">Edit</button></td>
+        `;
 
-                row.innerHTML = `
-                    <td>${bannedIPs[ip]}</td>
-                    <td><button onclick="unbanIP('${bannedIPs[ip]}')">Unban</button></td>
-                `;
-                bannedIPTableBody.appendChild(row);
-            });
-        }
+        userTable.appendChild(row);
     }
 
-    async function updateUser(originalUsername, button) {
-        const row = button.parentNode.parentNode;
-        const usernameInput = row.querySelector('.username-input');
-        const passwordInput = row.querySelector('.password-input');
-        const newUsername = usernameInput.value;
-        const newPassword = passwordInput.value;
-
-        // Update user data
-        if (newUsername !== originalUsername) {
-            const originalRef = ref(db, `users/${originalUsername}`);
-            const newRef = ref(db, `users/${newUsername}`);
-            await set(newRef, { ...await get(originalRef).then(snapshot => snapshot.val()), password: newPassword });
-            await remove(originalRef);
-        } else {
-            const userRef = ref(db, `users/${newUsername}`);
-            await update(userRef, { password: newPassword });
-        }
-
-        alert("User updated successfully.");
-        fetchUsers();  // Refresh table
+    async function loadUserData() {
+        const dbRef = ref(db, 'users');
+        get(dbRef).then((snapshot) => {
+            if (snapshot.exists()) {
+                const users = snapshot.val();
+                for (let username in users) {
+                    const userData = users[username];
+                    createRow(username, userData.password, userData.lastLoginIP);
+                }
+            } else {
+                showPopup("No users found.");
+            }
+        }).catch((error) => {
+            console.error(error);
+            showPopup("An error occurred while loading user data.");
+        });
     }
 
-    async function banIP(ip) {
-        if (!ip) return alert("No IP found to ban.");
-        const bannedRef = ref(db, `bannedIPs/${ip}`);
-        await set(bannedRef, ip);
-        alert("IP banned successfully.");
-        fetchBannedIPs();
+    async function banIP(username, ip) {
+        const bannedIpsRef = ref(db, 'bannedIPs');
+        await set(ref(db, `bannedIPs/${ip}`), { username: username });
+        showPopup(`IP ${ip} banned.`);
     }
 
-    async function unbanIP(ip) {
-        const bannedRef = ref(db, `bannedIPs/${ip}`);
-        await remove(bannedRef);
-        alert("IP unbanned successfully.");
-        fetchBannedIPs();
+    async function unbanIP(username, ip) {
+        const bannedIpsRef = ref(db, `bannedIPs/${ip}`);
+        await update(bannedIpsRef, { banned: false });
+        showPopup(`IP ${ip} unbanned.`);
     }
 
-    fetchUsers();
-    fetchBannedIPs();
+    async function editCredentials(username) {
+        const newPassword = document.getElementById(`password-${username}`).value;
+        const userRef = ref(db, `users/${username}`);
+        await update(userRef, { password: newPassword });
+        showPopup(`Password for ${username} updated.`);
+    }
+
+    // Load user data on page load
+    window.onload = loadUserData;
 </script>
 
 </body>
