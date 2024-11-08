@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #1e1e1e;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            padding-top: 20px;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        .table-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 90%;
+            max-width: 800px;
+            background-color: #333;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #444;
+            text-align: center;
+        }
+        th {
+            background-color: #444;
+        }
+        input[type="text"] {
+            padding: 5px;
+            border-radius: 5px;
+            border: none;
+            width: 100%;
+            text-align: center;
+        }
+        button {
+            padding: 5px 10px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Admin Dashboard</h1>
+
+<div class="table-container">
+    <h2>User Accounts</h2>
+    <table id="userTable">
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Password</th>
+                <th>IP</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- User rows will be populated here -->
+        </tbody>
+    </table>
+
+    <h2>Banned IPs</h2>
+    <table id="bannedIPTable">
+        <thead>
+            <tr>
+                <th>IP</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Banned IP rows will be populated here -->
+        </tbody>
+    </table>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getDatabase, ref, get, update, set, remove } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyClD-3xfEnSFwoGdGCbkJMce36UkDLeVnE",
+        authDomain: "realtimeaccountcreation.firebaseapp.com",
+        databaseURL: "https://realtimeaccountcreation-default-rtdb.firebaseio.com",
+        projectId: "realtimeaccountcreation",
+        storageBucket: "realtimeaccountcreation.appspot.com",
+        messagingSenderId: "658896933674",
+        appId: "1:658896933674:web:3275d0678c39b54e8f8453"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase();
+
+    const userTableBody = document.getElementById('userTable').querySelector('tbody');
+    const bannedIPTableBody = document.getElementById('bannedIPTable').querySelector('tbody');
+
+    async function fetchUsers() {
+        const snapshot = await get(ref(db, 'users'));
+        userTableBody.innerHTML = '';  // Clear existing rows
+
+        if (snapshot.exists()) {
+            const users = snapshot.val();
+            Object.keys(users).forEach(username => {
+                const user = users[username];
+                const row = document.createElement('tr');
+
+                row.innerHTML = `
+                    <td><input type="text" value="${username}" data-original="${username}" class="username-input"></td>
+                    <td><input type="text" value="${user.password}" class="password-input"></td>
+                    <td>${user.lastLoginIP || ''}</td>
+                    <td>
+                        <button onclick="updateUser('${username}', this)">Update</button>
+                        <button onclick="banIP('${user.lastLoginIP}')">Ban IP</button>
+                    </td>
+                `;
+                userTableBody.appendChild(row);
+            });
+        }
+    }
+
+    async function fetchBannedIPs() {
+        const snapshot = await get(ref(db, 'bannedIPs'));
+        bannedIPTableBody.innerHTML = '';  // Clear existing rows
+
+        if (snapshot.exists()) {
+            const bannedIPs = snapshot.val();
+            Object.keys(bannedIPs).forEach(ip => {
+                const row = document.createElement('tr');
+
+                row.innerHTML = `
+                    <td>${bannedIPs[ip]}</td>
+                    <td><button onclick="unbanIP('${bannedIPs[ip]}')">Unban</button></td>
+                `;
+                bannedIPTableBody.appendChild(row);
+            });
+        }
+    }
+
+    async function updateUser(originalUsername, button) {
+        const row = button.parentNode.parentNode;
+        const usernameInput = row.querySelector('.username-input');
+        const passwordInput = row.querySelector('.password-input');
+        const newUsername = usernameInput.value;
+        const newPassword = passwordInput.value;
+
+        // Update user data
+        if (newUsername !== originalUsername) {
+            const originalRef = ref(db, `users/${originalUsername}`);
+            const newRef = ref(db, `users/${newUsername}`);
+            await set(newRef, { ...await get(originalRef).then(snapshot => snapshot.val()), password: newPassword });
+            await remove(originalRef);
+        } else {
+            const userRef = ref(db, `users/${newUsername}`);
+            await update(userRef, { password: newPassword });
+        }
+
+        alert("User updated successfully.");
+        fetchUsers();  // Refresh table
+    }
+
+    async function banIP(ip) {
+        if (!ip) return alert("No IP found to ban.");
+        const bannedRef = ref(db, `bannedIPs/${ip}`);
+        await set(bannedRef, ip);
+        alert("IP banned successfully.");
+        fetchBannedIPs();
+    }
+
+    async function unbanIP(ip) {
+        const bannedRef = ref(db, `bannedIPs/${ip}`);
+        await remove(bannedRef);
+        alert("IP unbanned successfully.");
+        fetchBannedIPs();
+    }
+
+    fetchUsers();
+    fetchBannedIPs();
+</script>
+
+</body>
+</html>
