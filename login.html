@@ -141,6 +141,7 @@
 
         // Get the user's IP
         const ip = await getUserIP();
+        console.log('User IP:', ip);  // Debugging: Check if IP is captured
 
         // Check if the IP is banned
         const isBanned = await checkIfIPIsBanned(ip);
