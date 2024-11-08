@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Management</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    button {
+      padding: 5px 10px;
+      background-color: red;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: darkred;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>User Management</h1>
+  <h3>Click on a username to ban them</h3>
+  <table id="userTable">
+    <thead>
+      <tr>
+        <th>Username</th>
+        <th>IP Address</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Users will be displayed here -->
+    </tbody>
+  </table>
+
+  <script>
+    // Firebase Configuration (Add your Firebase config here)
+    const firebaseConfig = {
+      apiKey: "your-api-key",
+      authDomain: "your-auth-domain",
+      databaseURL: "https://your-database-url.firebaseio.com",
+      projectId: "your-project-id",
+      storageBucket: "your-storage-bucket",
+      messagingSenderId: "your-messaging-sender-id",
+      appId: "your-app-id"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Get the users from Firebase and display them in the table
+    db.ref('users').once('value', function(snapshot) {
+      const users = snapshot.val();
+      const tableBody = document.getElementById('userTable').getElementsByTagName('tbody')[0];
+
+      for (let userId in users) {
+        const user = users[userId];
+        const row = tableBody.insertRow();
+
+        const usernameCell = row.insertCell(0);
+        usernameCell.textContent = user.username;
+
+        const ipCell = row.insertCell(1);
+        ipCell.textContent = user.ip;
+
+        const actionCell = row.insertCell(2);
+        const banButton = document.createElement('button');
+        banButton.textContent = "Ban IP";
+        banButton.onclick = function() {
+          banUserIp(user.ip);
+        };
+        actionCell.appendChild(banButton);
+      }
+    });
+
+    // Function to ban a user's IP (Store in the 'bannedIps' node)
+    function banUserIp(ip) {
+      const bannedIpsRef = db.ref('bannedIps');
+      bannedIpsRef.push({ ip: ip }, function(error) {
+        if (error) {
+          alert('Error banning IP');
+        } else {
+          alert('IP banned successfully!');
+        }
+      });
+    }
+  </script>
+
+  <!-- Include Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+
+</body>
+</html>
