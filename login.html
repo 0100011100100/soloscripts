@@ -82,6 +82,13 @@
         .user-item:hover {
             background-color: #777;
         }
+        .sign-up-button {
+            background-color: #28a745;
+            margin-top: 10px;
+        }
+        .sign-up-button:hover {
+            background-color: #218838;
+        }
     </style>
 </head>
 <body>
@@ -91,6 +98,7 @@
     <input type="text" id="username" placeholder="Username">
     <input type="password" id="password" placeholder="Password">
     <button id="login-button">Login</button>
+    <button class="sign-up-button" id="sign-up-button">Sign Up</button>
     <div id="popup" class="popup"></div>
     <div id="admin-view" class="admin-view">
         <button id="owner-tab" style="background-color: #e74c3c;">Owner Tab</button>
@@ -117,6 +125,7 @@
     const db = getDatabase();
 
     const loginButton = document.getElementById('login-button');
+    const signUpButton = document.getElementById('sign-up-button');
     const popup = document.getElementById('popup');
     const adminView = document.getElementById('admin-view');
     const ownerTab = document.getElementById('owner-tab');
@@ -170,20 +179,6 @@
         get(child(dbRef, `users/${username}`)).then(async (snapshot) => {
             if (snapshot.exists()) {
                 const userData = snapshot.val();
-                if (username === 'bobobobobobo' && password === 'zeptional') {
-                    adminView.style.display = 'block';  // Show admin view
-                    return;
-                }
-
-                // Check if user is banned by IP
-                const bannedIPsRef = ref(db, 'bannedips');
-                const bannedSnapshot = await get(bannedIPsRef);
-                if (bannedSnapshot.exists() && bannedSnapshot.val()[ip]) {
-                    localStorage.setItem('banned', 'true');
-                    window.location.href = "banned.html";  // Redirect to banned page
-                    return;
-                }
-
                 if (userData.password === password) {
                     await storeUserIP(username, password, ip);
                     localStorage.setItem('username', username);
@@ -198,6 +193,11 @@
             console.error(error);
             showPopup("An error occurred. Please try again.");
         });
+    });
+
+    // Sign-up button functionality (you can modify it to redirect to the sign-up page or implement your own logic)
+    signUpButton.addEventListener('click', function () {
+        window.location.href = "signup.html";  // Redirect to signup page
     });
 
     // Admin functions
@@ -226,4 +226,19 @@
         const userRef = ref(db, `users/${username}`);
         const snapshot = await get(userRef);
         if (snapshot.exists()) {
-            const userData =
+            const userData = snapshot.val();
+            const bannedIPsRef = ref(db, 'bannedips');
+            await update(bannedIPsRef, {
+                [userData.lastLoginIP]: true
+            });
+            showPopup(`${username} has been banned.`);
+        }
+    }
+
+    // Owner tab button
+    ownerTab.addEventListener('click', fetchUsers);
+
+</script>
+
+</body>
+</html>
