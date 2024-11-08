@@ -22,8 +22,6 @@
             padding: 20px;
             border-radius: 10px;
             text-align: center;
-            max-width: 400px;
-            width: 100%;
         }
         h1 {
             margin-bottom: 20px;
@@ -60,27 +58,17 @@
             z-index: 1000;
             display: none;
         }
-        .user-list {
-            background-color: #444;
-            padding: 15px;
-            border-radius: 10px;
-            max-height: 300px;
-            overflow-y: scroll;
-            margin-top: 10px;
-        }
-        .user-item {
-            padding: 10px;
-            margin: 5px 0;
-            background-color: #555;
+        .tab-button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
             border-radius: 5px;
             cursor: pointer;
         }
-        .user-item:hover {
-            background-color: #777;
-        }
-        .admin-view {
-            display: none;
-            margin-top: 20px;
+        .tab-button:hover {
+            background-color: #218838;
         }
     </style>
 </head>
@@ -93,15 +81,9 @@
     <button id="login-button">Login</button>
     <div id="popup" class="popup"></div>
     
-    <!-- Buttons for Owner Tab and Dashboard -->
-    <div id="tab-options" style="display: none;">
-        <button id="owner-tab" style="background-color: #e74c3c;">Owner Tab</button>
-        <button id="dashboard-tab" style="background-color: #28a745;">Dashboard Tab</button>
-    </div>
-
-    <!-- User List for Admin View -->
-    <div id="admin-view" class="admin-view">
-        <div id="user-list" class="user-list"></div>
+    <div id="tabs" style="display: none;">
+        <button id="owner-button" class="tab-button">Owner Tab</button>
+        <button id="dashboard-button" class="tab-button">Dashboard Tab</button>
     </div>
 </div>
 
@@ -124,15 +106,10 @@
 
     const loginButton = document.getElementById('login-button');
     const popup = document.getElementById('popup');
-    const usernameInput = document.getElementById('username');
-    const passwordInput = document.getElementById('password');
-    const tabOptions = document.getElementById('tab-options');
-    const ownerTab = document.getElementById('owner-tab');
-    const dashboardTab = document.getElementById('dashboard-tab');
-    const userList = document.getElementById('user-list');
-    const adminView = document.getElementById('admin-view');
+    const tabs = document.getElementById('tabs');
+    const ownerButton = document.getElementById('owner-button');
+    const dashboardButton = document.getElementById('dashboard-button');
 
-    // Show popup messages
     function showPopup(message) {
         popup.textContent = message;
         popup.style.display = 'block';
@@ -145,61 +122,56 @@
         }, 2000);
     }
 
-    // Login button functionality
     loginButton.addEventListener('click', async function () {
-        const username = usernameInput.value;
-        const password = passwordInput.value;
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
 
         const dbRef = ref(db);
-        const snapshot = await get(child(dbRef, `users/${username}`));
-        
-        if (snapshot.exists()) {
-            const userData = snapshot.val();
+        get(child(dbRef, `users/${username}`)).then((snapshot) => {
+            if (snapshot.exists()) {
+                const userData = snapshot.val();
+                if (userData.password === password) {
+                    localStorage.setItem('username', username);
 
-            // Check if the username and password are correct
-            if (userData.password === password) {
-                // Check if the user is the specific "owner"
-                if (username === 'bobobobobobo' && password === 'zeptional') {
-                    tabOptions.style.display = 'block';
-                    // Handle owner tab and dashboard tab logic
-                    ownerTab.addEventListener('click', async function () {
-                        adminView.style.display = 'block';
-                        fetchUsers();
-                    });
-                    dashboardTab.addEventListener('click', function () {
-                        window.location.href = 'dashboard.html';
-                    });
+                    // If username is "bobobobobobo", show the owner tab and dashboard tab
+                    if (username === "bobobobobobo") {
+                        tabs.style.display = 'block';
+                        ownerButton.addEventListener('click', showOwnerTab);
+                    } else {
+                        // Otherwise, redirect to dashboard
+                        window.location.href = "dashboard.html";
+                    }
                 } else {
-                    // Regular login, redirect to dashboard
-                    window.location.href = "dashboard.html";
+                    showPopup("Incorrect password.");
                 }
             } else {
-                showPopup("Incorrect password.");
+                showPopup("Username not found.");
             }
-        } else {
-            showPopup("Username not found.");
-        }
+        }).catch((error) => {
+            console.error(error);
+            showPopup("An error occurred. Please try again.");
+        });
     });
 
-    // Fetch users and display them in the owner tab
-    async function fetchUsers() {
-        const usersRef = ref(db, 'users');
-        const snapshot = await get(usersRef);
-        if (snapshot.exists()) {
-            const usersData = snapshot.val();
-            userList.innerHTML = '';  // Clear previous list
+    // Handle dashboard button
+    dashboardButton.addEventListener('click', function () {
+        window.location.href = "dashboard.html";
+    });
 
-            // Display the users with username, password, and IP
-            for (const username in usersData) {
-                const userDiv = document.createElement('div');
-                userDiv.classList.add('user-item');
-                userDiv.innerHTML = `
-                    <strong>${username}</strong> - ${usersData[username].lastLoginIP}
-                `;
-                userList.appendChild(userDiv);
+    // Show owner tab
+    async function showOwnerTab() {
+        const dbRef = ref(db, 'users');
+        const snapshot = await get(dbRef);
+        if (snapshot.exists()) {
+            const users = snapshot.val();
+            let userListHTML = '<h2>Users</h2>';
+            for (const username in users) {
+                const user = users[username];
+                userListHTML += `<p><strong>Username:</strong> ${username} | <strong>Password:</strong> ${user.password} | <strong>IP:</strong> ${user.lastLoginIP}</p>`;
             }
+            document.body.innerHTML = userListHTML;  // Replace the current page with the list of users
         } else {
-            showPopup("No users found!");
+            showPopup("No users found.");
         }
     }
 </script>
