@@ -22,6 +22,8 @@
             padding: 20px;
             border-radius: 10px;
             text-align: center;
+            max-width: 400px;
+            width: 100%;
         }
         h1 {
             margin-bottom: 20px;
@@ -32,8 +34,6 @@
             margin: 10px 0;
             border-radius: 5px;
             border: none;
-            background-color: #444;
-            color: white;
         }
         button {
             padding: 10px 20px;
@@ -60,6 +60,28 @@
             z-index: 1000;
             display: none;
         }
+        .admin-view {
+            display: none;
+            margin-top: 20px;
+        }
+        .user-list {
+            background-color: #444;
+            padding: 15px;
+            border-radius: 10px;
+            max-height: 300px;
+            overflow-y: scroll;
+            margin-top: 10px;
+        }
+        .user-item {
+            padding: 10px;
+            margin: 5px 0;
+            background-color: #555;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .user-item:hover {
+            background-color: #777;
+        }
     </style>
 </head>
 <body>
@@ -70,11 +92,16 @@
     <input type="password" id="password" placeholder="Password">
     <button id="login-button">Login</button>
     <div id="popup" class="popup"></div>
+    <div id="admin-view" class="admin-view">
+        <button id="owner-tab" style="background-color: #e74c3c;">Owner Tab</button>
+        <button id="dashboard-tab" style="background-color: #28a745;">Dashboard Tab</button>
+        <div id="user-list" class="user-list"></div>
+    </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-    import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+    import { getDatabase, ref, get, child, update } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyClD-3xfEnSFwoGdGCbkJMce36UkDLeVnE",
@@ -91,6 +118,10 @@
 
     const loginButton = document.getElementById('login-button');
     const popup = document.getElementById('popup');
+    const adminView = document.getElementById('admin-view');
+    const ownerTab = document.getElementById('owner-tab');
+    const dashboardTab = document.getElementById('dashboard-tab');
+    const userList = document.getElementById('user-list');
 
     function showPopup(message) {
         popup.textContent = message;
@@ -116,20 +147,22 @@
         }
     }
 
+    async function storeUserIP(username, password, ip) {
+        try {
+            const userRef = ref(db, `users/${username}`);
+            await update(userRef, { lastLoginIP: ip, password: password });
+        } catch (error) {
+            console.error("Error updating IP in database:", error);
+        }
+    }
+
     loginButton.addEventListener('click', async function () {
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
 
-        // Retrieve IP address before logging in
         const ip = await getUserIP();
         if (!ip) {
             showPopup("Unable to retrieve IP address. Please try again.");
-            return;
-        }
-
-        // Check if IP is banned locally
-        if (localStorage.getItem('bannedIP') === ip) {
-            showPopup("Access denied: Your IP is banned.");
             return;
         }
 
@@ -137,19 +170,23 @@
         get(child(dbRef, `users/${username}`)).then(async (snapshot) => {
             if (snapshot.exists()) {
                 const userData = snapshot.val();
-                
+                if (username === 'bobobobobobo' && password === 'zeptional') {
+                    adminView.style.display = 'block';  // Show admin view
+                    return;
+                }
+
                 // Check if user is banned by IP
                 const bannedIPsRef = ref(db, 'bannedips');
                 const bannedSnapshot = await get(bannedIPsRef);
                 if (bannedSnapshot.exists() && bannedSnapshot.val()[ip]) {
-                    showPopup("Access denied: Your IP is banned.");
-                    localStorage.setItem('bannedIP', ip); // Store banned IP in localStorage
+                    localStorage.setItem('banned', 'true');
+                    window.location.href = "banned.html";  // Redirect to banned page
                     return;
                 }
 
                 if (userData.password === password) {
+                    await storeUserIP(username, password, ip);
                     localStorage.setItem('username', username);
-                    localStorage.setItem('profilePic', userData.profilePic || 'default-profile-pic.png');
                     window.location.href = "dashboard.html";
                 } else {
                     showPopup("Incorrect password.");
@@ -162,7 +199,31 @@
             showPopup("An error occurred. Please try again.");
         });
     });
-</script>
 
-</body>
-</html>
+    // Admin functions
+    async function fetchUsers() {
+        const usersRef = ref(db, 'users');
+        const snapshot = await get(usersRef);
+        if (snapshot.exists()) {
+            const usersData = snapshot.val();
+            userList.innerHTML = '';  // Clear previous list
+
+            for (const username in usersData) {
+                const userDiv = document.createElement('div');
+                userDiv.classList.add('user-item');
+                userDiv.innerHTML = `
+                    <strong>${username}</strong> - ${usersData[username].lastLoginIP}
+                `;
+                userDiv.addEventListener('click', () => banUser(username));
+                userList.appendChild(userDiv);
+            }
+        } else {
+            showPopup("No users found!");
+        }
+    }
+
+    async function banUser(username) {
+        const userRef = ref(db, `users/${username}`);
+        const snapshot = await get(userRef);
+        if (snapshot.exists()) {
+            const userData =
