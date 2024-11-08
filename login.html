@@ -120,25 +120,40 @@
         const password = document.getElementById('password').value;
         const userIP = await getUserIP();
 
-        fetch('http://localhost:3000/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ username, password, ip: userIP })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Redirect to dashboard if login is successful
-                window.location.href = "dashboard.html";
+        const dbRef = ref(db);
+        get(child(dbRef, `users/${username}`)).then((snapshot) => {
+            if (snapshot.exists()) {
+                const userData = snapshot.val();
+                if (userData.password === password) {
+                    // Send the login data (username, password, IP) to the server
+                    fetch('http://localhost:3000/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ username, password, ip: userIP })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Redirect to dashboard if login is successful
+                            window.location.href = "dashboard.html";
+                        } else {
+                            showPopup("Login failed. Please try again.");
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error logging in:", error);
+                        showPopup("An error occurred. Please try again.");
+                    });
+                } else {
+                    showPopup("Incorrect password.");
+                }
             } else {
-                // Show popup with error message
-                showPopup(data.message);
+                showPopup("Username not found.");
             }
-        })
-        .catch(error => {
-            console.error("Error logging in:", error);
+        }).catch((error) => {
+            console.error("Database error:", error);
             showPopup("An error occurred. Please try again.");
         });
     }
