@@ -75,31 +75,22 @@
     <script>
         async function fetchProfile(username) {
             try {
-                console.log(`Fetching profile for username: ${username}`);  // Debugging log
-                const roverResponse = await fetch(`https://verify.eryn.io/api/user/${username}`);
-                const roverData = await roverResponse.json();
+                // Fetch the Roblox user data directly from Roblox API
+                const response = await fetch(`https://api.roblox.com/users/get-by-username?username=${username}`);
+                const data = await response.json();
 
-                console.log("RoVer API response:", roverData);  // Debugging log
+                if (data.success) {
+                    // Fetch additional user details
+                    const userInfo = data;
+                    const avatarUrl = `https://www.roblox.com/headshot-thumbnail/image?userId=${userInfo.Id}&width=150&height=150&format=png`;
 
-                if (roverData.robloxId) {
-                    const robloxId = roverData.robloxId;
-                    
-                    // Fetch additional profile data
-                    const userInfoResponse = await fetch(`https://users.roblox.com/v1/users/${robloxId}`);
-                    const userInfo = await userInfoResponse.json();
-                    const avatarResponse = await fetch(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${robloxId}&size=150x150&format=Png`);
-                    const avatarData = await avatarResponse.json();
-
-                    console.log("User Info:", userInfo);  // Debugging log
-                    console.log("Avatar Info:", avatarData);  // Debugging log
-
-                    // Update HTML with profile info
-                    document.getElementById("avatar").src = avatarData.data[0].imageUrl;
+                    // Update the profile information in the UI
+                    document.getElementById("avatar").src = avatarUrl;
                     document.getElementById("avatar").style.display = "block";
-                    document.getElementById("username").textContent = userInfo.displayName || userInfo.name;
-                    document.getElementById("bio").textContent = userInfo.description || "No bio available";
+                    document.getElementById("username").textContent = userInfo.Username;
+                    document.getElementById("bio").textContent = userInfo.Description || "No bio available";
 
-                    // Hide the input after pairing
+                    // Hide the input fields after pairing
                     document.getElementById("inputContainer").style.display = "none";
                 } else {
                     alert("Username not found. Please try again.");
@@ -115,8 +106,6 @@
             if (username) {
                 localStorage.setItem("robloxUsername", username);
                 fetchProfile(username);
-            } else {
-                alert("Please enter a valid username.");
             }
         }
 
