@@ -75,8 +75,11 @@
     <script>
         async function fetchProfile(username) {
             try {
+                console.log(`Fetching profile for username: ${username}`);  // Debugging log
                 const roverResponse = await fetch(`https://verify.eryn.io/api/user/${username}`);
                 const roverData = await roverResponse.json();
+
+                console.log("RoVer API response:", roverData);  // Debugging log
 
                 if (roverData.robloxId) {
                     const robloxId = roverData.robloxId;
@@ -86,6 +89,9 @@
                     const userInfo = await userInfoResponse.json();
                     const avatarResponse = await fetch(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${robloxId}&size=150x150&format=Png`);
                     const avatarData = await avatarResponse.json();
+
+                    console.log("User Info:", userInfo);  // Debugging log
+                    console.log("Avatar Info:", avatarData);  // Debugging log
 
                     // Update HTML with profile info
                     document.getElementById("avatar").src = avatarData.data[0].imageUrl;
@@ -109,6 +115,8 @@
             if (username) {
                 localStorage.setItem("robloxUsername", username);
                 fetchProfile(username);
+            } else {
+                alert("Please enter a valid username.");
             }
         }
 
