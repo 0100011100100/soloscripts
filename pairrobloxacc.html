@@ -3,71 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roblox Account Pairing</title>
-    <style>
-        /* Add some basic styling */
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f0f0f0;
-        }
-        .container {
-            text-align: center;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-        .profile {
-            display: none;
-            margin-top: 20px;
-        }
-        .profile img {
-            width: 100px;
-            border-radius: 50%;
-        }
-    </style>
+    <title>Pair Roblox Account</title>
 </head>
 <body>
-    <div class="container">
-        <h1>Link Your Roblox Account</h1>
-        <button onclick="linkRobloxAccount()">Pair Roblox Account</button>
-
-        <div class="profile" id="profile">
-            <h2 id="username">Username: </h2>
-            <img id="avatar" alt="Avatar">
-            <p id="userId">User ID: </p>
-        </div>
-    </div>
+    <h1>Link Your Roblox Account</h1>
+    <input type="text" id="username" placeholder="Enter Roblox Username">
+    <button onclick="fetchRobloxProfile()">Pair Account</button>
+    <div id="profile"></div>
 
     <script>
-        // Simulated function for pairing the Roblox account
-        async function linkRobloxAccount() {
-            // Simulate API call to link Roblox account and fetch user data
-            // In a real app, this would likely be a server-side call
-            alert("Redirecting to Roblox authentication...");
-            
-            // Simulate a delay and "fetch" Roblox user info
-            setTimeout(() => {
-                const userData = {
-                    username: "SampleUser",
-                    userId: 123456789,
-                    avatarUrl: "https://www.roblox.com/Thumbs/Avatar.ashx?userId=123456789"
-                };
-                
-                displayUserData(userData);
-            }, 2000);
-        }
+        async function fetchRobloxProfile() {
+            const username = document.getElementById("username").value;
+            const profileDiv = document.getElementById("profile");
 
-        // Display the fetched user data
-        function displayUserData(data) {
-            document.getElementById("username").innerText = `Username: ${data.username}`;
-            document.getElementById("userId").innerText = `User ID: ${data.userId}`;
-            document.getElementById("avatar").src = data.avatarUrl;
-            document.getElementById("profile").style.display = "block";
+            try {
+                // Fetch Roblox ID using RoVer API
+                const response = await fetch(`https://verify.eryn.io/api/user/${username}`);
+                const data = await response.json();
+
+                if (data.robloxId) {
+                    const robloxId = data.robloxId;
+
+                    // Fetch additional Roblox profile data
+                    const userInfo = await fetch(`https://users.roblox.com/v1/users/${robloxId}`);
+                    const user = await userInfo.json();
+                    const avatarInfo = await fetch(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${robloxId}&size=150x150&format=Png`);
+                    const avatar = await avatarInfo.json();
+
+                    // Display the user's profile information
+                    profileDiv.innerHTML = `
+                        <h2>${user.displayName} (${user.name})</h2>
+                        <p>${user.description || "No description available"}</p>
+                        <img src="${avatar.data[0].imageUrl}" alt="Avatar">
+                    `;
+                } else {
+                    profileDiv.innerHTML = `<p>User not found</p>`;
+                }
+            } catch (error) {
+                console.error("Error fetching profile:", error);
+                profileDiv.innerHTML = `<p>Could not retrieve profile information.</p>`;
+            }
         }
     </script>
 </body>
