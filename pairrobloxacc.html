@@ -4,46 +4,125 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pair Roblox Account</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #1e1e2f;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+            background-color: #2b2b3d;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.3);
+            width: 300px;
+        }
+        .avatar {
+            border-radius: 50%;
+            width: 100px;
+            height: 100px;
+            margin-bottom: 15px;
+        }
+        .username, .bio {
+            margin: 10px 0;
+            font-size: 1.1em;
+        }
+        .bio {
+            color: #cfcfcf;
+        }
+        .input-container {
+            margin-top: 15px;
+        }
+        .input {
+            padding: 8px;
+            width: 80%;
+            border: none;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+        .button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            background-color: #4b72d4;
+            color: #ffffff;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #3b5cb8;
+        }
+    </style>
 </head>
 <body>
-    <h1>Link Your Roblox Account</h1>
-    <input type="text" id="username" placeholder="Enter Roblox Username">
-    <button onclick="fetchRobloxProfile()">Pair Account</button>
-    <div id="profile"></div>
+    <div class="container" id="profileContainer">
+        <h2>Link Your Roblox Account</h2>
+        <img src="" alt="Avatar" id="avatar" class="avatar" style="display: none;">
+        <div class="username" id="username"></div>
+        <div class="bio" id="bio"></div>
+        
+        <div class="input-container" id="inputContainer">
+            <input type="text" id="robloxUsername" class="input" placeholder="Enter Roblox Username">
+            <button class="button" onclick="saveUsername()">Pair Account</button>
+        </div>
+    </div>
 
     <script>
-        async function fetchRobloxProfile() {
-            const username = document.getElementById("username").value;
-            const profileDiv = document.getElementById("profile");
-
+        async function fetchProfile(username) {
             try {
-                // Fetch Roblox ID using RoVer API
-                const response = await fetch(`https://verify.eryn.io/api/user/${username}`);
-                const data = await response.json();
+                const roverResponse = await fetch(`https://verify.eryn.io/api/user/${username}`);
+                const roverData = await roverResponse.json();
 
-                if (data.robloxId) {
-                    const robloxId = data.robloxId;
+                if (roverData.robloxId) {
+                    const robloxId = roverData.robloxId;
+                    
+                    // Fetch additional profile data
+                    const userInfoResponse = await fetch(`https://users.roblox.com/v1/users/${robloxId}`);
+                    const userInfo = await userInfoResponse.json();
+                    const avatarResponse = await fetch(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${robloxId}&size=150x150&format=Png`);
+                    const avatarData = await avatarResponse.json();
 
-                    // Fetch additional Roblox profile data
-                    const userInfo = await fetch(`https://users.roblox.com/v1/users/${robloxId}`);
-                    const user = await userInfo.json();
-                    const avatarInfo = await fetch(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${robloxId}&size=150x150&format=Png`);
-                    const avatar = await avatarInfo.json();
+                    // Update HTML with profile info
+                    document.getElementById("avatar").src = avatarData.data[0].imageUrl;
+                    document.getElementById("avatar").style.display = "block";
+                    document.getElementById("username").textContent = userInfo.displayName || userInfo.name;
+                    document.getElementById("bio").textContent = userInfo.description || "No bio available";
 
-                    // Display the user's profile information
-                    profileDiv.innerHTML = `
-                        <h2>${user.displayName} (${user.name})</h2>
-                        <p>${user.description || "No description available"}</p>
-                        <img src="${avatar.data[0].imageUrl}" alt="Avatar">
-                    `;
+                    // Hide the input after pairing
+                    document.getElementById("inputContainer").style.display = "none";
                 } else {
-                    profileDiv.innerHTML = `<p>User not found</p>`;
+                    alert("Username not found. Please try again.");
                 }
             } catch (error) {
                 console.error("Error fetching profile:", error);
-                profileDiv.innerHTML = `<p>Could not retrieve profile information.</p>`;
+                alert("An error occurred. Please try again.");
             }
         }
+
+        function saveUsername() {
+            const username = document.getElementById("robloxUsername").value;
+            if (username) {
+                localStorage.setItem("robloxUsername", username);
+                fetchProfile(username);
+            }
+        }
+
+        function loadProfile() {
+            const storedUsername = localStorage.getItem("robloxUsername");
+            if (storedUsername) {
+                fetchProfile(storedUsername);
+            } else {
+                document.getElementById("inputContainer").style.display = "block";
+            }
+        }
+
+        // Load the profile if username is saved in localStorage
+        window.onload = loadProfile;
     </script>
 </body>
 </html>
