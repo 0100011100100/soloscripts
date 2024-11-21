@@ -50,6 +50,51 @@
             return db.ref('users/' + username + '/badges/developer').once('value').then(snapshot => !!snapshot.val());
         }
 
+        function addFriend(username) {
+            const currentUser = localStorage.getItem('username');
+            if (!currentUser) return;
+
+            db.ref(`friends/${currentUser}`).push().set({
+                friend: username
+            });
+        }
+
+        function loadFriends() {
+            const currentUser = localStorage.getItem('username');
+            if (!currentUser) return;
+
+            db.ref(`friends/${currentUser}`).on('value', (snapshot) => {
+                const friendsList = document.getElementById('friends-list');
+                friendsList.innerHTML = ''; // Clear previous list
+                snapshot.forEach((friendSnapshot) => {
+                    const friend = friendSnapshot.val().friend;
+                    const listItem = document.createElement('div');
+                    listItem.classList.add('friend-item');
+                    listItem.innerHTML = `
+                        <span>${friend}</span>
+                        <button onclick="openDM('${friend}')">DM</button>
+                    `;
+                    friendsList.appendChild(listItem);
+                });
+            });
+        }
+
+        function openDM(friend) {
+            document.getElementById('dm-modal').style.display = 'flex';
+            document.getElementById('dm-title').textContent = `DM with ${friend}`;
+        }
+
+        function sendDM(friend, message) {
+            const currentUser = localStorage.getItem('username');
+            if (!currentUser || !message) return;
+
+            db.ref(`dms/${currentUser}/${friend}`).push().set({
+                sender: currentUser,
+                message: message,
+                timestamp: new Date().toISOString()
+            });
+        }
+
         window.onload = function() {
             const username = localStorage.getItem('username') || 'Guest';
             const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
@@ -64,6 +109,7 @@
             document.getElementById('username-display').textContent = username;
             document.getElementById('profile-pic').src = profilePictureUrl;
             listenForMessages();
+            loadFriends();
         };
 
         function addMessageToChat(username, messageText, profilePicUrl) {
@@ -96,10 +142,24 @@
             document.getElementById('modal-username').textContent = username;
             document.getElementById('modal-profile-pic').src = profilePicUrl || 'default-profile-pic.png';
             document.getElementById('profile-modal').style.display = 'flex';
+
+            const addFriendButton = document.getElementById('add-friend-btn');
+            addFriendButton.onclick = function() {
+                addFriend(username);
+                alert(`${username} added as a friend!`);
+            };
         }
 
         function closeProfileModal() {
             document.getElementById('profile-modal').style.display = 'none';
+        }
+
+        function closeFriendsModal() {
+            document.getElementById('friends-modal').style.display = 'none';
+        }
+
+        function closeDMModal() {
+            document.getElementById('dm-modal').style.display = 'none';
         }
 
         function signOut() {
@@ -110,111 +170,8 @@
     </script>
 
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: #36393f;
-            color: #dcddde;
-            font-family: "Helvetica", Arial, sans-serif;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: #2f3136;
-            padding: 10px 20px;
-            box-shadow: 0px 4px 2px -2px rgba(0,0,0,0.5);
-        }
-
-        .profile {
-            display: flex;
-            align-items: center;
-        }
-
-        .profile img {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            margin-right: 10px;
-            border: 3px solid #7289da;
-        }
-
-        .profile-owner-badge, .profile-developer-badge {
-            font-size: 12px;
-            padding: 3px 10px;
-            color: #fff;
-            border-radius: 5px;
-            margin-left: 10px;
-        }
-
-        .profile-owner-badge {
-            background: linear-gradient(90deg, #ffcc00, #e63946);
-        }
-
-        .profile-developer-badge {
-            background: linear-gradient(90deg, #ff00ff, #00ffff);
-            animation: rainbow 3s linear infinite;
-        }
-
-        .nav-buttons {
-            display: flex;
-            justify-content: center;
-            margin-top: 20px;
-        }
-
-        .nav-buttons button {
-            margin: 0 10px;
-            padding: 10px 20px;
-            background-color: #4f545c;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .nav-buttons button:hover {
-            background-color: #72767d;
-        }
-
-        .chat-box {
-            padding: 20px;
-        }
-
-        .chat-box input {
-            width: 100%;
-            padding: 10px;
-            border-radius: 5px;
-            border: none;
-            font-size: 14px;
-            background-color: #40444b;
-            color: #dcddde;
-        }
-
-        .messages {
-            margin-top: 20px;
-        }
-
-        .messages .message {
-            margin: 10px 0;
-            padding: 10px;
-            background-color: #2f3136;
-            border-radius: 5px;
-            display: flex;
-            align-items: center;
-        }
-
-        .profile-pic {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            margin-right: 10px;
-            border: 3px solid #7289da;
-            cursor: pointer;
-        }
-
-        /* Profile Modal Styles */
-        .modal {
+        /* Add Friend and DM Modal Styles */
+        .modal, .friends-modal, .dm-modal {
             display: none;
             position: fixed;
             top: 0;
@@ -227,7 +184,7 @@
             z-index: 1000;
         }
 
-        .modal-content {
+        .modal-content, .friends-content, .dm-content {
             background-color: #36393f;
             padding: 20px;
             border-radius: 8px;
@@ -236,30 +193,22 @@
             width: 300px;
         }
 
-        .modal-content img {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
+        .friend-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background-color: #2f3136;
             margin-bottom: 10px;
-        }
-
-        .close-btn {
-            margin-top: 10px;
-            padding: 5px 15px;
-            background-color: #7289da;
-            color: white;
-            border: none;
             border-radius: 5px;
-            cursor: pointer;
         }
 
-        .close-btn:hover {
-            background-color: #5b6eae;
+        .dm-content {
+            width: 400px;
+            text-align: left;
         }
     </style>
 </head>
 <body>
-
 <div class="header">
     <div class="profile">
         <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture">
@@ -267,40 +216,42 @@
         <div id="owner-badge" class="profile-owner-badge" style="display: none;">Owner</div>
         <div id="developer-badge" class="profile-developer-badge" style="display: none;">Contributor</div>
     </div>
+    <div class="nav-buttons">
+        <button onclick="window.location.href='settings.html'">Settings</button>
+        <button onclick="window.location.href='profile.html'">Profile</button>
+        <button onclick="document.getElementById('friends-modal').style.display='flex'">Friends</button>
+        <button onclick="signOut()">Sign Out</button>
+    </div>
 </div>
 
-<div class="nav-buttons">
-    <button onclick="window.location.href='settings.html'">Settings</button>
-    <button onclick="window.location.href='profile.html'">Profile</button>
-    <button onclick="signOut()">Sign Out</button>
-</div>
-
-<div class="chat-box">
-    <input type="text" id="chat-input" placeholder="Type your message here...">
-    <div class="messages" id="messages-container"></div>
-</div>
-
+<!-- Modals -->
 <div id="profile-modal" class="modal" onclick="closeProfileModal()">
     <div class="modal-content" onclick="event.stopPropagation()">
         <img id="modal-profile-pic" src="default-profile-pic.png" alt="Profile Picture">
         <h2 id="modal-username">Username</h2>
+        <button id="add-friend-btn">Add Friend</button>
         <button class="close-btn" onclick="closeProfileModal()">Close</button>
     </div>
 </div>
 
-<script>
-    document.getElementById('chat-input').addEventListener('keypress', function (event) {
-        if (event.key === 'Enter') {
-            const messageText = event.target.value;
-            if (messageText) {
-                const username = localStorage.getItem('username') || 'Guest';
-                const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
-                sendMessage(username, messageText, profilePictureUrl);
-                event.target.value = '';
-            }
-        }
-    });
-</script>
+<div id="friends-modal" class="friends-modal" onclick="closeFriendsModal()">
+    <div class="friends-content" onclick="event.stopPropagation()">
+        <h3>Your Friends</h3>
+        <div id="friends-list"></div>
+        <button class="close-btn" onclick="closeFriendsModal()">Close</button>
+    </div>
+</div>
 
+<div id="dm-modal" class="dm-modal" onclick="closeDMModal()">
+    <div class="dm-content" onclick="event.stopPropagation()">
+        <h3 id="dm-title">DM Title</h3>
+        <div id="dm-messages"></div>
+        <textarea id="dm-input" placeholder="Type your message"></textarea>
+        <button onclick="sendDM()">Send</button>
+        <button class="close-btn" onclick="closeDMModal()">Close</button>
+    </div>
+</div>
+
+<div id="messages-container"></div>
 </body>
 </html>
