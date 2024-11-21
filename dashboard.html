@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
-
+    <title>Discord-Like Chat</title>
+    
     <!-- Firebase Configuration -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
@@ -22,236 +22,268 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        function sendMessage(username, messageText, profilePicUrl) {
-            db.ref('messages').push().set({
+        // Placeholder for Firebase message sending and listening logic
+        function sendMessage(channel, username, messageText) {
+            db.ref(`channels/${channel}/messages`).push().set({
                 username: username,
                 message: messageText,
-                profilePic: profilePicUrl,
                 timestamp: new Date().toISOString()
             });
         }
 
-        function listenForMessages() {
-            db.ref('messages').on('child_added', (snapshot) => {
+        function listenForMessages(channel) {
+            db.ref(`channels/${channel}/messages`).on('child_added', (snapshot) => {
                 const messageData = snapshot.val();
-                addMessageToChat(messageData.username, messageData.message, messageData.profilePic);
+                addMessageToChat(messageData.username, messageData.message);
             });
-        }
-
-        function checkUserBan(username) {
-            db.ref('bannedUsers/' + username).once('value').then(snapshot => {
-                if (snapshot.val()) {
-                    window.location.href = 'login.html';
-                }
-            });
-        }
-
-        function hasDeveloperBadge(username) {
-            return db.ref('users/' + username + '/badges/developer').once('value').then(snapshot => !!snapshot.val());
-        }
-
-        function addFriend(username) {
-            const currentUser = localStorage.getItem('username');
-            if (!currentUser) return;
-
-            db.ref(`friends/${currentUser}`).push().set({
-                friend: username
-            });
-        }
-
-        function loadFriends() {
-            const currentUser = localStorage.getItem('username');
-            if (!currentUser) return;
-
-            db.ref(`friends/${currentUser}`).on('value', (snapshot) => {
-                const friendsList = document.getElementById('friends-list');
-                friendsList.innerHTML = ''; // Clear previous list
-                snapshot.forEach((friendSnapshot) => {
-                    const friend = friendSnapshot.val().friend;
-                    const listItem = document.createElement('div');
-                    listItem.classList.add('friend-item');
-                    listItem.innerHTML = `
-                        <span>${friend}</span>
-                        <button onclick="openDM('${friend}')">DM</button>
-                    `;
-                    friendsList.appendChild(listItem);
-                });
-            });
-        }
-
-        function openDM(friend) {
-            document.getElementById('dm-modal').style.display = 'flex';
-            document.getElementById('dm-title').textContent = `DM with ${friend}`;
-        }
-
-        function sendDM(friend, message) {
-            const currentUser = localStorage.getItem('username');
-            if (!currentUser || !message) return;
-
-            db.ref(`dms/${currentUser}/${friend}`).push().set({
-                sender: currentUser,
-                message: message,
-                timestamp: new Date().toISOString()
-            });
-        }
-
-        window.onload = function() {
-            const username = localStorage.getItem('username') || 'Guest';
-            const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
-
-            checkUserBan(username);
-            hasDeveloperBadge(username).then(hasBadge => {
-                if (hasBadge) {
-                    document.getElementById('developer-badge').style.display = 'inline-block';
-                }
-            });
-
-            document.getElementById('username-display').textContent = username;
-            document.getElementById('profile-pic').src = profilePictureUrl;
-            listenForMessages();
-            loadFriends();
-        };
-
-        function addMessageToChat(username, messageText, profilePicUrl) {
-            const message = document.createElement('div');
-            message.classList.add('message');
-
-            const profileImage = document.createElement('img');
-            profileImage.src = profilePicUrl || 'default-profile-pic.png';
-            profileImage.classList.add('profile-pic');
-            profileImage.onclick = function() {
-                openProfileModal(username, profilePicUrl);
-            };
-
-            const text = document.createElement('span');
-            let badgeText = '';
-
-            if (username === 'Samir') {
-                badgeText = '<strong class="profile-owner-badge">Owner:</strong>';
-            } else if (username.toLowerCase() === 'piggy') {
-                badgeText = '<strong class="profile-developer-badge">Developer:</strong>';
-            }
-
-            text.innerHTML = `${badgeText} ${username}: ${messageText}`;
-            message.appendChild(profileImage);
-            message.appendChild(text);
-            document.getElementById('messages-container').appendChild(message);
-        }
-
-        function openProfileModal(username, profilePicUrl) {
-            document.getElementById('modal-username').textContent = username;
-            document.getElementById('modal-profile-pic').src = profilePicUrl || 'default-profile-pic.png';
-            document.getElementById('profile-modal').style.display = 'flex';
-
-            const addFriendButton = document.getElementById('add-friend-btn');
-            addFriendButton.onclick = function() {
-                addFriend(username);
-                alert(`${username} added as a friend!`);
-            };
-        }
-
-        function closeProfileModal() {
-            document.getElementById('profile-modal').style.display = 'none';
-        }
-
-        function closeFriendsModal() {
-            document.getElementById('friends-modal').style.display = 'none';
-        }
-
-        function closeDMModal() {
-            document.getElementById('dm-modal').style.display = 'none';
-        }
-
-        function signOut() {
-            localStorage.removeItem('username');
-            localStorage.removeItem('profilePic');
-            window.location.href = 'login.html';
         }
     </script>
 
     <style>
-        /* Add Friend and DM Modal Styles */
-        .modal, .friends-modal, .dm-modal {
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 20%;
+            background-color: #2f3136;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+            overflow-y: auto;
+        }
+
+        .sidebar h2 {
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+
+        .channel {
+            padding: 10px;
+            cursor: pointer;
+            background-color: #36393f;
+            margin-bottom: 5px;
+            border-radius: 5px;
+        }
+
+        .channel:hover {
+            background-color: #4f545c;
+        }
+
+        /* Main Chat Area */
+        .main-chat {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #36393f;
+            color: white;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            padding: 10px;
+            background-color: #2f3136;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .message img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .message-content {
+            background-color: #4f545c;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .chat-input {
+            padding: 10px;
+            background-color: #2f3136;
+            display: flex;
+            align-items: center;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 10px;
+            margin-right: 10px;
+            border: none;
+            border-radius: 5px;
+        }
+
+        .chat-input button {
+            padding: 10px;
+            background-color: #5865f2;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .chat-input button:hover {
+            background-color: #4752c4;
+        }
+
+        /* User List */
+        .user-list {
+            width: 20%;
+            background-color: #2f3136;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+            overflow-y: auto;
+        }
+
+        .user {
+            padding: 10px;
+            margin-bottom: 5px;
+            background-color: #36393f;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .user:hover {
+            background-color: #4f545c;
+        }
+
+        /* DM Modal */
+        .modal {
             display: none;
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
+            background-color: rgba(0, 0, 0, 0.8);
             justify-content: center;
             align-items: center;
-            z-index: 1000;
         }
 
-        .modal-content, .friends-content, .dm-content {
-            background-color: #36393f;
+        .modal-content {
+            background-color: #2f3136;
             padding: 20px;
-            border-radius: 8px;
-            text-align: center;
+            border-radius: 10px;
+            width: 50%;
             color: white;
-            width: 300px;
         }
 
-        .friend-item {
+        .modal-content .modal-header {
             display: flex;
             justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-content .modal-body {
+            margin-top: 20px;
+            height: 300px;
+            overflow-y: auto;
+        }
+
+        .modal-content .modal-footer {
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .modal-content textarea {
+            flex: 1;
             padding: 10px;
-            background-color: #2f3136;
-            margin-bottom: 10px;
+            margin-right: 10px;
+            border: none;
             border-radius: 5px;
         }
 
-        .dm-content {
-            width: 400px;
-            text-align: left;
+        .modal-content button {
+            padding: 10px;
+            background-color: #5865f2;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
-<div class="header">
-    <div class="profile">
-        <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture">
-        <div class="username" id="username-display"></div>
-        <div id="owner-badge" class="profile-owner-badge" style="display: none;">Owner</div>
-        <div id="developer-badge" class="profile-developer-badge" style="display: none;">Contributor</div>
+    <div class="sidebar">
+        <h2>Channels</h2>
+        <div class="channel" onclick="listenForMessages('general')"># General</div>
+        <div class="channel" onclick="listenForMessages('random')"># Random</div>
     </div>
-    <div class="nav-buttons">
-        <button onclick="window.location.href='settings.html'">Settings</button>
-        <button onclick="window.location.href='profile.html'">Profile</button>
-        <button onclick="document.getElementById('friends-modal').style.display='flex'">Friends</button>
-        <button onclick="signOut()">Sign Out</button>
+    <div class="main-chat">
+        <div class="chat-header">
+            <h2>Channel Name</h2>
+            <button onclick="openCall()">Start Call</button>
+        </div>
+        <div class="chat-messages" id="chat-messages"></div>
+        <div class="chat-input">
+            <input type="text" id="chat-input" placeholder="Type a message...">
+            <button onclick="sendMessage()">Send</button>
+        </div>
     </div>
-</div>
+    <div class="user-list">
+        <h2>Online Users</h2>
+        <div class="user" onclick="openDM('User1')">User1</div>
+        <div class="user" onclick="openDM('User2')">User2</div>
+    </div>
 
-<!-- Modals -->
-<div id="profile-modal" class="modal" onclick="closeProfileModal()">
-    <div class="modal-content" onclick="event.stopPropagation()">
-        <img id="modal-profile-pic" src="default-profile-pic.png" alt="Profile Picture">
-        <h2 id="modal-username">Username</h2>
-        <button id="add-friend-btn">Add Friend</button>
-        <button class="close-btn" onclick="closeProfileModal()">Close</button>
+    <!-- DM Modal -->
+    <div class="modal" id="dm-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>DM with User</h3>
+                <button onclick="closeDM()">Close</button>
+            </div>
+            <div class="modal-body" id="dm-messages"></div>
+            <div class="modal-footer">
+                <textarea id="dm-input" placeholder="Type a message..."></textarea>
+                <button onclick="sendDM()">Send</button>
+            </div>
+        </div>
     </div>
-</div>
 
-<div id="friends-modal" class="friends-modal" onclick="closeFriendsModal()">
-    <div class="friends-content" onclick="event.stopPropagation()">
-        <h3>Your Friends</h3>
-        <div id="friends-list"></div>
-        <button class="close-btn" onclick="closeFriendsModal()">Close</button>
-    </div>
-</div>
+    <script>
+        function openDM(user) {
+            document.getElementById('dm-modal').style.display = 'flex';
+        }
 
-<div id="dm-modal" class="dm-modal" onclick="closeDMModal()">
-    <div class="dm-content" onclick="event.stopPropagation()">
-        <h3 id="dm-title">DM Title</h3>
-        <div id="dm-messages"></div>
-        <textarea id="dm-input" placeholder="Type your message"></textarea>
-        <button onclick="sendDM()">Send</button>
-        <button class="close-btn" onclick="closeDMModal()">Close</button>
-    </div>
-</div>
+        function closeDM() {
+            document.getElementById('dm-modal').style.display = 'none';
+        }
 
-<div id="messages-container"></div>
+        function openCall() {
+            alert('Starting a call...'); // Placeholder for call functionality
+        }
+
+        function sendDM() {
+            const message = document.getElementById('dm-input').value;
+            if (message) {
+                // Logic for sending DM (Firebase integration here)
+                alert(`DM sent: ${message}`);
+            }
+        }
+    </script>
 </body>
 </html>
