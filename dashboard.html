@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Discord-Like Chat</title>
+    <title>Enhanced Chat App</title>
     
     <!-- Firebase Configuration -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyAe0hXfAJ0ijKNiGgAVfv4zG1ngADF2E4c",
@@ -22,17 +23,30 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // Placeholder for Firebase message sending and listening logic
-        function sendMessage(channel, username, messageText) {
-            db.ref(`channels/${channel}/messages`).push().set({
+        let currentUser = "User1"; // Replace with the actual logged-in user
+        let activeChannel = "general"; // Default channel
+        let activeDM = null; // Current DM user
+        let peerConnection;
+        let localStream;
+
+        // Send messages to a channel or DM
+        function sendMessage(target, username, messageText) {
+            const ref = target.startsWith("dm_")
+                ? `dms/${target}`
+                : `channels/${target}`;
+            db.ref(`${ref}/messages`).push().set({
                 username: username,
                 message: messageText,
                 timestamp: new Date().toISOString()
             });
         }
 
-        function listenForMessages(channel) {
-            db.ref(`channels/${channel}/messages`).on('child_added', (snapshot) => {
+        // Listen for messages in a channel or DM
+        function listenForMessages(target) {
+            const ref = target.startsWith("dm_")
+                ? `dms/${target}`
+                : `channels/${target}`;
+            db.ref(`${ref}/messages`).on("child_added", (snapshot) => {
                 const messageData = snapshot.val();
                 addMessageToChat(messageData.username, messageData.message);
             });
@@ -40,137 +54,9 @@
     </script>
 
     <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            display: flex;
-            height: 100vh;
-        }
-
-        /* Sidebar */
-        .sidebar {
-            width: 20%;
-            background-color: #2f3136;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            padding: 10px;
-            overflow-y: auto;
-        }
-
-        .sidebar h2 {
-            margin-top: 0;
-            margin-bottom: 10px;
-        }
-
-        .channel {
-            padding: 10px;
-            cursor: pointer;
-            background-color: #36393f;
-            margin-bottom: 5px;
-            border-radius: 5px;
-        }
-
-        .channel:hover {
-            background-color: #4f545c;
-        }
-
-        /* Main Chat Area */
-        .main-chat {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background-color: #36393f;
-            color: white;
-            overflow: hidden;
-        }
-
-        .chat-header {
-            padding: 10px;
-            background-color: #2f3136;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .chat-messages {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-        }
-
-        .message {
-            margin-bottom: 15px;
-            display: flex;
-            align-items: flex-start;
-        }
-
-        .message img {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            margin-right: 10px;
-        }
-
-        .message-content {
-            background-color: #4f545c;
-            padding: 10px;
-            border-radius: 8px;
-        }
-
-        .chat-input {
-            padding: 10px;
-            background-color: #2f3136;
-            display: flex;
-            align-items: center;
-        }
-
-        .chat-input input {
-            flex: 1;
-            padding: 10px;
-            margin-right: 10px;
-            border: none;
-            border-radius: 5px;
-        }
-
-        .chat-input button {
-            padding: 10px;
-            background-color: #5865f2;
-            border: none;
-            color: white;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .chat-input button:hover {
-            background-color: #4752c4;
-        }
-
-        /* User List */
-        .user-list {
-            width: 20%;
-            background-color: #2f3136;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            padding: 10px;
-            overflow-y: auto;
-        }
-
-        .user {
-            padding: 10px;
-            margin-bottom: 5px;
-            background-color: #36393f;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .user:hover {
-            background-color: #4f545c;
-        }
-
-        /* DM Modal */
-        .modal {
+        /* Reuse your original CSS and adjust the layout as necessary */
+        /* DM modal, friends list, and call UI added below */
+        .dm-modal, .call-modal {
             display: none;
             position: fixed;
             top: 0;
@@ -186,103 +72,139 @@
             background-color: #2f3136;
             padding: 20px;
             border-radius: 10px;
-            width: 50%;
             color: white;
+            width: 50%;
         }
 
-        .modal-content .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .modal-content .modal-body {
-            margin-top: 20px;
-            height: 300px;
+        .friends-list {
+            padding: 10px;
+            background-color: #2f3136;
+            color: white;
+            height: 100%;
             overflow-y: auto;
         }
 
-        .modal-content .modal-footer {
-            margin-top: 20px;
+        .friend {
+            padding: 10px;
+            margin: 5px 0;
+            background-color: #36393f;
+            border-radius: 5px;
             display: flex;
-            align-items: center;
-        }
-
-        .modal-content textarea {
-            flex: 1;
-            padding: 10px;
-            margin-right: 10px;
-            border: none;
-            border-radius: 5px;
-        }
-
-        .modal-content button {
-            padding: 10px;
-            background-color: #5865f2;
-            border: none;
-            color: white;
-            border-radius: 5px;
+            justify-content: space-between;
             cursor: pointer;
+        }
+
+        .friend:hover {
+            background-color: #4f545c;
         }
     </style>
 </head>
 <body>
+    <!-- Reuse your original body structure -->
     <div class="sidebar">
         <h2>Channels</h2>
-        <div class="channel" onclick="listenForMessages('general')"># General</div>
-        <div class="channel" onclick="listenForMessages('random')"># Random</div>
+        <div class="channel" onclick="setActiveChannel('general')"># General</div>
+        <div class="channel" onclick="setActiveChannel('random')"># Random</div>
+        <h2>Direct Messages</h2>
+        <div class="channel" onclick="openDM('User2')">@ User2</div>
+        <div class="channel" onclick="openDM('User3')">@ User3</div>
     </div>
     <div class="main-chat">
         <div class="chat-header">
-            <h2>Channel Name</h2>
-            <button onclick="openCall()">Start Call</button>
+            <h2 id="active-channel">General</h2>
+            <button onclick="startCall()">Start Call</button>
         </div>
         <div class="chat-messages" id="chat-messages"></div>
         <div class="chat-input">
             <input type="text" id="chat-input" placeholder="Type a message...">
-            <button onclick="sendMessage()">Send</button>
+            <button onclick="handleSend()">Send</button>
         </div>
     </div>
-    <div class="user-list">
-        <h2>Online Users</h2>
-        <div class="user" onclick="openDM('User1')">User1</div>
-        <div class="user" onclick="openDM('User2')">User2</div>
+    <div class="user-list friends-list">
+        <h2>Friends</h2>
+        <div class="friend" onclick="openDM('Friend1')">
+            <span>Friend1</span>
+            <button onclick="removeFriend('Friend1')">Remove</button>
+        </div>
+        <div class="friend" onclick="openDM('Friend2')">
+            <span>Friend2</span>
+            <button onclick="removeFriend('Friend2')">Remove</button>
+        </div>
     </div>
 
     <!-- DM Modal -->
-    <div class="modal" id="dm-modal">
+    <div class="dm-modal" id="dm-modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>DM with User</h3>
+                <h3>DM with <span id="dm-user"></span></h3>
                 <button onclick="closeDM()">Close</button>
             </div>
             <div class="modal-body" id="dm-messages"></div>
-            <div class="modal-footer">
-                <textarea id="dm-input" placeholder="Type a message..."></textarea>
-                <button onclick="sendDM()">Send</button>
-            </div>
+            <textarea id="dm-input" placeholder="Type a message..."></textarea>
+            <button onclick="sendDM()">Send</button>
+        </div>
+    </div>
+
+    <!-- Call Modal -->
+    <div class="call-modal" id="call-modal">
+        <div class="modal-content">
+            <h3>In Call</h3>
+            <video id="local-video" autoplay muted></video>
+            <video id="remote-video" autoplay></video>
+            <button onclick="endCall()">End Call</button>
         </div>
     </div>
 
     <script>
+        function setActiveChannel(channel) {
+            activeChannel = channel;
+            document.getElementById("active-channel").innerText = channel;
+            listenForMessages(channel);
+        }
+
         function openDM(user) {
-            document.getElementById('dm-modal').style.display = 'flex';
+            activeDM = user;
+            const dmChannel = `dm_${currentUser}_${user}`;
+            document.getElementById("dm-user").innerText = user;
+            document.getElementById("dm-modal").style.display = "flex";
+            listenForMessages(dmChannel);
         }
 
         function closeDM() {
-            document.getElementById('dm-modal').style.display = 'none';
+            document.getElementById("dm-modal").style.display = "none";
         }
 
-        function openCall() {
-            alert('Starting a call...'); // Placeholder for call functionality
+        function startCall() {
+            document.getElementById("call-modal").style.display = "flex";
+            // WebRTC setup logic
+        }
+
+        function endCall() {
+            document.getElementById("call-modal").style.display = "none";
+            // End WebRTC call logic
+        }
+
+        function handleSend() {
+            const input = document.getElementById("chat-input");
+            const message = input.value;
+            if (message) {
+                sendMessage(activeChannel, currentUser, message);
+                input.value = "";
+            }
         }
 
         function sendDM() {
-            const message = document.getElementById('dm-input').value;
+            const input = document.getElementById("dm-input");
+            const message = input.value;
             if (message) {
-                // Logic for sending DM (Firebase integration here)
-                alert(`DM sent: ${message}`);
+                const dmChannel = `dm_${currentUser}_${activeDM}`;
+                sendMessage(dmChannel, currentUser, message);
+                input.value = "";
             }
+        }
+
+        function removeFriend(friend) {
+            alert(`Friend ${friend} removed!`); // Replace with Firebase logic
         }
     </script>
 </body>
