@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>   </title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+            background-color: #f4f4f4;
+        }
+        #timer {
+            font-size: 2em;
+            color: #333;
+        }
+        #message {
+            font-size: 1.5em;
+            margin-top: 20px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div id="timer">0:00</div>
+    <div id="message">hi goguardian</div>
+
+    <script>
+        let seconds = 0;
+        let minutes = 0;
+
+        function updateTimer() {
+            seconds++;
+            if (seconds === 60) {
+                seconds = 0;
+                minutes++;
+            }
+            const formattedTime = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+            document.getElementById('timer').textContent = formattedTime;
+        }
+
+        // Update the timer every second
+        setInterval(updateTimer, 1000);
+    </script>
+</body>
+</html>
