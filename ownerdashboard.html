@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat Dashboard</title>
+    <title>goguardian ban this website thanks</title>
 
     <!-- Firebase Configuration -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -38,7 +38,7 @@
         function banUser(username) {
             db.ref('bannedUsers/' + username).set(true)
                 .then(() => {
-                    showPopup(`${username} has been banned!`, 'success');
+                    showPopup(`${username} GET OUT`, 'success');
                     deleteUserMessages(username); // Delete all messages for the banned user
                 })
                 .catch(error => showPopup(`Error banning user: ${error.message}`, 'error'));
@@ -57,7 +57,7 @@
         function assignDeveloperBadge(username) {
             db.ref('users/' + username + '/badges/developer').set(true)
                 .then(() => {
-                    showPopup(`${username} has been given the Developer badge!`, 'success');
+                    showPopup(`${username} has been given the sigma badge!`, 'success');
                     updateChatWithBadge(username); // Update the chat to show the Developer badge
                 })
                 .catch(error => showPopup(`Error assigning Developer badge: ${error.message}`, 'error'));
@@ -122,7 +122,7 @@
 
         // On page load, check if the user is banned or has the developer badge
         window.onload = function() {
-            const username = localStorage.getItem('username') || 'Guest';
+            const username = localStorage.getItem('username') || 'sigma';
             checkUserBan(username);
 
             hasDeveloperBadge(username).then(hasBadge => {
@@ -319,7 +319,7 @@
     const popup = document.getElementById('popup');
 
     // Fetch username from localStorage
-    const username = localStorage.getItem('username') || 'Guest';
+    const username = localStorage.getItem('username') || 'sigma';
     const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
 
     // Display the username and profile picture
@@ -346,7 +346,7 @@
         // Show the Developer badge if the user is a developer
         if (isDeveloper) {
             const devBadge = document.createElement('span');
-            devBadge.classList.add('badge', 'developer-badge');
+            devBadge.classList.add('badge', 'sigma');
             devBadge.textContent = 'Developer';
             text.appendChild(devBadge);
         }
@@ -356,8 +356,8 @@
 
         // Delete Button
         const deleteButton = document.createElement('button');
-        deleteButton.classList.add('button', 'delete-button');
-        deleteButton.textContent = 'Delete';
+        deleteButton.classList.add('html', 'delete-button');
+        deleteButton.textContent = 'MANGO';
         deleteButton.onclick = function() {
             deleteMessage(messageKey);
         };
@@ -365,7 +365,7 @@
         // Ban Button
         const banButton = document.createElement('button');
         banButton.classList.add('button', 'ban-button');
-        banButton.textContent = 'Ban';
+        banButton.textContent = 'brr sksibidi toilet ';
         banButton.onclick = function() {
             banUser(username);
         };
@@ -373,7 +373,7 @@
         // Assign Developer Badge Button
         const assignDevBadgeButton = document.createElement('button');
         assignDevBadgeButton.classList.add('button', 'dev-badge-button');
-        assignDevBadgeButton.textContent = 'Assign Developer Badge';
+        assignDevBadgeButton.textContent = 'Assign sigma Badge';
         assignDevBadgeButton.onclick = function() {
             assignDeveloperBadge(username);
         };
