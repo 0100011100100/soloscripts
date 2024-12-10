@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>sigmaaaa</title>
+    <title>Dashboard</title>
 
     <!-- Firebase Configuration -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -80,10 +80,10 @@
             const text = document.createElement('span');
             let badgeText = '';
 
-            if (username === 'foolzy') {
-                badgeText = '<strong class="profile-owner-badge">mango:</strong>';
+            if (username === 'Samir') {
+                badgeText = '<strong class="profile-owner-badge">Owner:</strong>';
             } else if (username.toLowerCase() === 'piggy') {
-                badgeText = '<strong class="profile-developer-badge">mew:</strong>';
+                badgeText = '<strong class="profile-developer-badge">Developer:</strong>';
             }
 
             text.innerHTML = `${badgeText} ${username}: ${messageText}`;
@@ -264,27 +264,27 @@
     <div class="profile">
         <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture">
         <div class="username" id="username-display"></div>
-        <div id="owner-badge" class="profile-owner-badge" style="display: none;">ronaldo</div>
-        <div id="developer-badge" class="profile-developer-badge" style="display: none;">sigma your him</div>
+        <div id="owner-badge" class="profile-owner-badge" style="display: none;">Owner</div>
+        <div id="developer-badge" class="profile-developer-badge" style="display: none;">Contributor</div>
     </div>
 </div>
 
 <div class="nav-buttons">
-    <button onclick="window.location.href='settings.html'">joke</button>
-    <button onclick="window.location.href='profile.html'">april fools</button>
-    <button onclick="signOut()">fart out</button>
+    <button onclick="window.location.href='settings.html'">Settings</button>
+    <button onclick="window.location.href='profile.html'">Profile</button>
+    <button onclick="signOut()">Sign Out</button>
 </div>
 
 <div class="chat-box">
-    <input type="text" id="chat-input" placeholder="type here if your gay">
+    <input type="text" id="chat-input" placeholder="Type your message here...">
     <div class="messages" id="messages-container"></div>
 </div>
 
 <div id="profile-modal" class="modal" onclick="closeProfileModal()">
     <div class="modal-content" onclick="event.stopPropagation()">
         <img id="modal-profile-pic" src="default-profile-pic.png" alt="Profile Picture">
-        <h2 id="modal-username">AAAJSHLDKJASHDKJHA</h2>
-        <button class="close-btn" onclick="closeProfileModal()">ok</button>
+        <h2 id="modal-username">Username</h2>
+        <button class="close-btn" onclick="closeProfileModal()">Close</button>
     </div>
 </div>
 
