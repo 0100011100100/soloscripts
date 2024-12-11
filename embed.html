@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+</head>
+<body>
+    <!-- Embedded website -->
+    <iframe 
+        src="https://miniature-waffle-r4ppg6x4wrjq3pqwx-8000.app.github.dev/" 
+        style="width: 100%; height: 100vh; border: none;">
+    </iframe>
+
+    <script>
+        // Function to auto-download the HTML
+        function autoDownloadHTML() {
+            // Get the page's HTML content
+            const htmlContent = document.documentElement.outerHTML;
+
+            // Create a Blob object containing the HTML content
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+
+            // Create a hidden link element
+            const link = document.createElement('a');
+
+            // Set the download attribute and file name
+            link.download = 'totallynotasuspiciousfile.html';
+
+            // Create a URL for the Blob and set it as the href
+            link.href = URL.createObjectURL(blob);
+
+            // Append the link to the body
+            document.body.appendChild(link);
+
+            // Trigger the download
+            link.click();
+
+            // Remove the link after triggering the download
+            document.body.removeChild(link);
+        }
+
+        // Trigger the download as soon as the page loads
+        window.onload = autoDownloadHTML;
+    </script>
+</body>
+</html>
