@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Chat Dashboard</title>
 
     <!-- Firebase Configuration -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -23,25 +23,69 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        // Global variables
+        let currentChatFriend = null;
+
         // Function to send a message
-        function sendMessage(username, messageText, profilePicUrl) {
-            db.ref('messages').push().set({
-                username: username,
+        function sendMessage(username, messageText, profilePicUrl, toUser) {
+            const messageData = {
+                from: username,
                 message: messageText,
                 profilePic: profilePicUrl,
                 timestamp: new Date().toISOString()
-            });
+            };
+            // Save message to both sender and receiver
+            db.ref('directMessages/' + username + '/' + toUser).push().set(messageData);
+            db.ref('directMessages/' + toUser + '/' + username).push().set(messageData);
         }
 
         // Function to listen for incoming messages
-        function listenForMessages() {
-            db.ref('messages').on('child_added', (snapshot) => {
-                const messageData = snapshot.val();
-                addMessageToChat(messageData.username, messageData.message, messageData.profilePic);
+        function listenForMessages(username) {
+            db.ref('directMessages/' + username).on('child_added', (snapshot) => {
+                const messages = snapshot.val();
+                for (let key in messages) {
+                    const messageData = messages[key];
+                    addMessageToChat(messageData.from, messageData.message, messageData.profilePic);
+                }
             });
         }
 
-        // Function to check if the user is banned
+        // Load friends into the sidebar
+        function loadFriends() {
+            const username = localStorage.getItem('username');
+            const friendsList = document.getElementById('friends-list');
+            friendsList.innerHTML = ''; // Clear existing friends
+            db.ref('friends/' + username).once('value', (snapshot) => {
+                snapshot.forEach((childSnapshot) => {
+                    const friendUsername = childSnapshot.key;
+                    const friendStatus = childSnapshot.val() ? 'Online' : 'Offline'; // Example status logic
+
+                    const friendItem = document.createElement('div');
+                    friendItem.className = 'friend-item';
+                    friendItem.onclick = function() {
+                        selectFriend(friendUsername); // Set selected friend to chat
+                    };
+
+                    const friendBadge = document.createElement('span');
+                    friendBadge.className = 'friend-badge';
+                    friendBadge.textContent = friendStatus;
+
+                    friendItem.textContent = friendUsername;
+                    friendItem.appendChild(friendBadge);
+                    friendsList.appendChild(friendItem);
+                });
+            });
+        }
+
+        // Function to select a friend
+        function selectFriend(friendUsername) {
+            currentChatFriend = friendUsername;
+            document.getElementById('chat-title').textContent = `Chatting with: ${friendUsername}`;
+            document.getElementById('messages-container').innerHTML = ''; // Clear previous messages
+            listenForMessages(friendUsername);
+        }
+
+        // Function to check if user is banned
         function checkUserBan(username) {
             db.ref('bannedUsers/' + username).once('value').then(snapshot => {
                 if (snapshot.val()) {
@@ -50,64 +94,35 @@
             });
         }
 
-        // Function to check if the user has the developer badge
-        function hasDeveloperBadge(username) {
-            return db.ref('users/' + username + '/badges/developer').once('value').then(snapshot => !!snapshot.val());
-        }
-
         // On window load
         window.onload = function() {
             const username = localStorage.getItem('username') || 'Guest';
             const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
 
             checkUserBan(username);
-            hasDeveloperBadge(username).then(hasBadge => {
-                if (hasBadge) {
-                    document.getElementById('developer-badge').style.display = 'inline-block';
-                }
-            });
-
             document.getElementById('username-display').textContent = username;
             document.getElementById('profile-pic').src = profilePictureUrl;
-            listenForMessages();
+            loadFriends();
+            listenForMessages(username); // Start listening for own messages
         };
 
         // Function to add a message to the chat
         function addMessageToChat(username, messageText, profilePicUrl) {
+            const messageContainer = document.getElementById('messages-container');
             const message = document.createElement('div');
             message.classList.add('message');
 
             const profileImage = document.createElement('img');
             profileImage.src = profilePicUrl || 'default-profile-pic.png';
             profileImage.classList.add('profile-pic');
-            profileImage.onclick = function() {
-                openProfileModal(username, profilePicUrl);
-            };
 
             const text = document.createElement('span');
-            let badgeText = '';
+            text.innerHTML = `<strong>${username}:</strong> ${messageText}`;
 
-            if (username === 'Samir') {
-                badgeText = '<strong class="profile-owner-badge">Owner:</strong>';
-            } else if (username.toLowerCase() === 'piggy') {
-                badgeText = '<strong class="profile-developer-badge">Developer:</strong>';
-            }
-
-            text.innerHTML = `${badgeText} ${username}: ${messageText}`;
             message.appendChild(profileImage);
             message.appendChild(text);
-            document.getElementById('messages-container').appendChild(message);
-        }
-
-        // Profile modal functions
-        function openProfileModal(username, profilePicUrl) {
-            document.getElementById('modal-username').textContent = username;
-            document.getElementById('modal-profile-pic').src = profilePicUrl || 'default-profile-pic.png';
-            document.getElementById('profile-modal').style.display = 'flex';
-        }
-
-        function closeProfileModal() {
-            document.getElementById('profile-modal').style.display = 'none';
+            messageContainer.appendChild(message);
+            messageContainer.scrollTop = messageContainer.scrollHeight; // Scroll to bottom
         }
 
         // Sign-out function
@@ -127,13 +142,56 @@
             font-family: "Helvetica", Arial, sans-serif;
         }
 
+        .sidebar {
+            width: 250px;
+            background-color: #2f3136;
+            height: 100vh;
+            float: left;
+            padding: 10px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
+        }
+
+        .friend-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .friend-item:hover {
+            background-color: #40444b;
+        }
+
+        .friend-badge {
+            font-size: 12px;
+            padding: 3px 5px;
+            border-radius: 5px;
+            color: white;
+        }
+
+        .online {
+            background-color: #43b581;
+        }
+
+        .offline {
+            background-color: #72767d;
+        }
+
+        .chat-container {
+            margin-left: 250px; /* Space for sidebar */
+            padding: 20px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
         .header {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            background-color: #2f3136;
-            padding: 10px 20px;
-            box-shadow: 0px 4px 2px -2px rgba(0,0,0,0.5);
+            justify-content: space-between;
+            padding-bottom: 20px;
         }
 
         .profile {
@@ -141,29 +199,36 @@
             align-items: center;
         }
 
-        .profile img {
+        .header img {
             width: 40px;
             height: 40px;
             border-radius: 50%;
             margin-right: 10px;
-            border: 3px solid #7289da;
         }
 
-        .profile-owner-badge, .profile-developer-badge {
-            font-size: 12px;
-            padding: 3px 10px;
-            color: #fff;
+        .messages {
+            flex-grow: 1;
+            border: 1px solid #2f3136;
+            background-color: #2f3136;
             border-radius: 5px;
-            margin-left: 10px;
+            padding: 10px;
+            overflow-y: auto;
         }
 
-        .profile-owner-badge {
-            background: linear-gradient(90deg, #ffcc00, #e63946);
+        .message {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 5px 0;
+            background-color: #292b2f;
+            display: flex;
+            align-items: center;
         }
 
-        .profile-developer-badge {
-            background: linear-gradient(90deg, #ff00ff, #00ffff);
-            animation: rainbow 3s linear infinite;
+        .profile-pic {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin-right: 10px;
         }
 
         .nav-buttons {
@@ -180,14 +245,11 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            transition: background-color 0.3s;
         }
 
         .nav-buttons button:hover {
             background-color: #72767d;
-        }
-
-        .chat-box {
-            padding: 20px;
         }
 
         .chat-box input {
@@ -198,113 +260,47 @@
             font-size: 14px;
             background-color: #40444b;
             color: #dcddde;
-        }
-
-        .messages {
-            margin-top: 20px;
-        }
-
-        .messages .message {
-            margin: 10px 0;
-            padding: 10px;
-            background-color: #2f3136;
-            border-radius: 5px;
-            display: flex;
-            align-items: center;
-        }
-
-        .profile-pic {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            margin-right: 10px;
-            border: 3px solid #7289da;
-            cursor: pointer;
-        }
-
-        /* Profile Modal Styles */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .modal-content {
-            background-color: #36393f;
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-            color: white;
-            width: 300px;
-        }
-
-        .modal-content img {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            margin-bottom: 10px;
-        }
-
-        .close-btn {
             margin-top: 10px;
-            padding: 5px 15px;
-            background-color: #7289da;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
         }
 
-        .close-btn:hover {
-            background-color: #5b6eae;
-        }
     </style>
 </head>
 <body>
 
-<div class="header">
-    <div class="profile">
-        <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture">
-        <div class="username" id="username-display"></div>
-        <div class="profile-owner-badge" id="owner-badge" style="display: none;">Owner</div>
-        <div class="profile-developer-badge" id="developer-badge" style="display: none;">Developer</div>
+<div class="sidebar">
+    <h3>Friends</h3>
+    <div id="friends-list"></div>
+</div>
+
+<div class="chat-container">
+    <div class="header">
+        <div class="profile">
+            <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture">
+            <div class="username" id="username-display"></div>
+        </div>
+        <div id="chat-title">Chatting with: <span id="current-friend">None</span></div>
     </div>
-</div>
 
-<div class="nav-buttons">
-    <button onclick="window.location.href='settings.html'">Settings</button>
-    <button onclick="window.location.href='profile.html'">Profile</button>
-    <button onclick="signOut()">Sign Out</button>
-</div>
-
-<div class="chat-box">
-    <input type="text" id="chat-input" placeholder="Type your message here...">
     <div class="messages" id="messages-container"></div>
-</div>
 
-<div id="profile-modal" class="modal" onclick="closeProfileModal()">
-    <div class="modal-content" onclick="event.stopPropagation()">
-        <img id="modal-profile-pic" src="default-profile-pic.png" alt="Profile Picture">
-        <h2 id="modal-username">Username</h2>
-        <button class="close-btn" onclick="closeProfileModal()">Close</button>
+    <input type="text" id="chat-input" placeholder="Type your message here...">
+    
+    <div class="nav-buttons">
+        <button onclick="window.location.href='settings.html'">Settings</button>
+        <button onclick="window.location.href='profile.html'">Profile</button>
+        <button onclick="signOut()">Sign Out</button>
     </div>
 </div>
 
 <script>
+    // Event listener for sending messages
     document.getElementById('chat-input').addEventListener('keypress', function (event) {
         if (event.key === 'Enter') {
             const messageText = event.target.value;
             const username = localStorage.getItem('username') || 'Guest';
             const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
-            if (messageText) {
-                sendMessage(username, messageText, profilePictureUrl);
+            if (currentChatFriend && messageText) {
+                sendMessage(username, messageText, profilePictureUrl, currentChatFriend); // Send message to the friend
                 event.target.value = ''; // Clear input field
             }
         }
