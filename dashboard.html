@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat Dashboard</title>
+    <title>Discord Clone</title>
 
-    <!-- Firebase Configuration -->
+    <!-- Firebase Configuration (Replace with your own) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script>
         const firebaseConfig = {
-            apiKey: "AIzaSyAe0hXfAJ0ijKNiGgAVfv4zG1ngADF2E4c",
-            authDomain: "chatapp-90c78.firebaseapp.com",
-            projectId: "chatapp-90c78",
-            storageBucket: "chatapp-90c78.appspot.com",
-            messagingSenderId: "195015101932",
-            appId: "1:195015101932:web:f352296f341c58458a84c9",
-            databaseURL: "https://chatapp-90c78-default-rtdb.firebaseio.com"
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
         };
 
         // Initialize Firebase
@@ -67,7 +67,7 @@
                     };
 
                     const friendBadge = document.createElement('span');
-                    friendBadge.className = 'friend-badge';
+                    friendBadge.className = 'friend-badge ' + (friendStatus.toLowerCase());
                     friendBadge.textContent = friendStatus;
 
                     friendItem.textContent = friendUsername;
@@ -85,21 +85,10 @@
             listenForMessages(friendUsername);
         }
 
-        // Function to check if user is banned
-        function checkUserBan(username) {
-            db.ref('bannedUsers/' + username).once('value').then(snapshot => {
-                if (snapshot.val()) {
-                    window.location.href = 'login.html';
-                }
-            });
-        }
-
         // On window load
         window.onload = function() {
             const username = localStorage.getItem('username') || 'Guest';
             const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
-
-            checkUserBan(username);
             document.getElementById('username-display').textContent = username;
             document.getElementById('profile-pic').src = profilePictureUrl;
             loadFriends();
@@ -140,15 +129,18 @@
             background-color: #36393f;
             color: #dcddde;
             font-family: "Helvetica", Arial, sans-serif;
+            display: flex;
+            height: 100vh;
         }
 
         .sidebar {
             width: 250px;
             background-color: #2f3136;
             height: 100vh;
-            float: left;
             padding: 10px;
             box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
         }
 
         .friend-item {
@@ -158,52 +150,44 @@
             padding: 10px;
             cursor: pointer;
             transition: background-color 0.3s;
+            color: #dcddde;
         }
-
         .friend-item:hover {
             background-color: #40444b;
         }
-
         .friend-badge {
             font-size: 12px;
             padding: 3px 5px;
             border-radius: 5px;
             color: white;
         }
-
         .online {
             background-color: #43b581;
         }
-
         .offline {
             background-color: #72767d;
         }
 
         .chat-container {
-            margin-left: 250px; /* Space for sidebar */
-            padding: 20px;
-            height: 100vh;
+            flex-grow: 1;
             display: flex;
             flex-direction: column;
+            padding: 15px;
+            background-color: #36393f;
         }
 
         .header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding-bottom: 20px;
+            padding: 10px;
+            border-bottom: 1px solid #42464d;
+            background-color: #2f3136;
         }
 
-        .profile {
-            display: flex;
-            align-items: center;
-        }
-
-        .header img {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            margin-right: 10px;
+        .header h2 {
+            margin: 0;
+            color: #dcddde;
         }
 
         .messages {
@@ -213,6 +197,7 @@
             border-radius: 5px;
             padding: 10px;
             overflow-y: auto;
+            margin-top: 10px;
         }
 
         .message {
@@ -229,6 +214,20 @@
             height: 30px;
             border-radius: 50%;
             margin-right: 10px;
+        }
+
+        .input-container {
+            display: flex;
+            margin-top: 10px;
+        }
+
+        .input-container input {
+            flex-grow: 1;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            background-color: #40444b;
+            color: #dcddde;
         }
 
         .nav-buttons {
@@ -252,17 +251,6 @@
             background-color: #72767d;
         }
 
-        .chat-box input {
-            width: 100%;
-            padding: 10px;
-            border-radius: 5px;
-            border: none;
-            font-size: 14px;
-            background-color: #40444b;
-            color: #dcddde;
-            margin-top: 10px;
-        }
-
     </style>
 </head>
 <body>
@@ -275,16 +263,18 @@
 <div class="chat-container">
     <div class="header">
         <div class="profile">
-            <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture">
+            <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture" width="40">
             <div class="username" id="username-display"></div>
         </div>
-        <div id="chat-title">Chatting with: <span id="current-friend">None</span></div>
+        <h2 id="chat-title">Select a friend to chat</h2>
     </div>
 
     <div class="messages" id="messages-container"></div>
 
-    <input type="text" id="chat-input" placeholder="Type your message here...">
-    
+    <div class="input-container">
+        <input type="text" id="chat-input" placeholder="Type your message here...">
+    </div>
+
     <div class="nav-buttons">
         <button onclick="window.location.href='settings.html'">Settings</button>
         <button onclick="window.location.href='profile.html'">Profile</button>
