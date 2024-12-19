@@ -1,1 +1,291 @@
-Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes Yes v
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+
+    <!-- Firebase Configuration -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script>
+        // Initialize Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAe0hXfAJ0ijKNiGgAVfv4zG1ngADF2E4c",
+            authDomain: "chatapp-90c78.firebaseapp.com",
+            projectId: "chatapp-90c78",
+            storageBucket: "chatapp-90c78.appspot.com",
+            messagingSenderId: "195015101932",
+            appId: "1:195015101932:web:f352296f341c58458a84c9",
+            databaseURL: "https://chatapp-90c78-default-rtdb.firebaseio.com"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // Function to send a direct message
+        function sendMessage(toUser, messageText, fromUser, fromProfilePicUrl) {
+            const messageData = {
+                from: fromUser,
+                message: messageText,
+                profilePic: fromProfilePicUrl,
+                timestamp: new Date().toISOString()
+            };
+            // Save message to the receiver's message list
+            db.ref('directMessages/' + toUser).push().set(messageData);
+            // Save message to the sender's message list
+            db.ref('directMessages/' + fromUser).push().set(messageData);
+        }
+
+        // Function to listen for messages
+        function listenForMessages(username) {
+            db.ref('directMessages/' + username).on('child_added', (snapshot) => {
+                const messageData = snapshot.val();
+                if (messageData) {
+                    addMessageToChat(messageData.from, messageData.message, messageData.profilePic);
+                }
+            });
+        }
+
+        // Function to send a friend request
+        function sendFriendRequest(toUser) {
+            const fromUser = localStorage.getItem('username');
+            db.ref('friendRequests/' + toUser).child(fromUser).set(true);
+        }
+
+        // Function to accept a friend request
+        function acceptFriendRequest(fromUser) {
+            const toUser = localStorage.getItem('username');
+            db.ref('friends/' + toUser).child(fromUser).set(true);
+            db.ref('friends/' + fromUser).child(toUser).set(true);
+            db.ref('friendRequests/' + toUser).child(fromUser).remove();
+            loadFriends(); // Refresh the friends list
+        }
+
+        // Function to listen for incoming friend requests
+        function listenForFriendRequests() {
+            const username = localStorage.getItem('username');
+            db.ref('friendRequests/' + username).on('child_added', (snapshot) => {
+                const fromUser = snapshot.key;
+                displayFriendRequest(fromUser);
+            });
+        }
+
+        // Function to display a friend request
+        function displayFriendRequest(username) {
+            const friendRequestArea = document.getElementById('friend-requests');
+            const requestItem = document.createElement('div');
+            requestItem.innerText = username;
+            requestItem.onclick = function () {
+                acceptFriendRequest(username);
+                friendRequestArea.removeChild(requestItem); // Remove from display after accepting
+            };
+            friendRequestArea.appendChild(requestItem);
+        }
+
+        // Function to handle window load
+        window.onload = function () {
+            const username = localStorage.getItem('username') || 'Guest';
+            const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
+
+            document.getElementById('username-display').textContent = username;
+            document.getElementById('profile-pic').src = profilePictureUrl;
+
+            listenForMessages(username); // Listen for direct messages
+            listenForFriendRequests(); // Listen for friend requests
+            loadFriends(); // Load friends on startup
+        };
+
+        // Function to add a message to the chat area
+        function addMessageToChat(username, messageText, profilePicUrl) {
+            const messageContainer = document.getElementById('messages-container');
+            const message = document.createElement('div');
+            message.classList.add('message');
+
+            const profileImage = document.createElement('img');
+            profileImage.src = profilePicUrl || 'default-profile-pic.png';
+            profileImage.classList.add('profile-pic');
+
+            const text = document.createElement('span');
+            text.innerHTML = `${username}: ${messageText}`;
+            message.appendChild(profileImage);
+            message.appendChild(text);
+            messageContainer.appendChild(message);
+            messageContainer.scrollTop = messageContainer.scrollHeight; // Scroll to the bottom
+        }
+
+        // Function to sign out the user
+        function signOut() {
+            localStorage.removeItem('username');
+            localStorage.removeItem('profilePic');
+            window.location.href = 'login.html';
+        }
+
+        // Event listener for sending messages
+        document.getElementById('chat-input').addEventListener('keypress', function (event) {
+            if (event.key === 'Enter') {
+                const messageText = event.target.value;
+                const friendUser = document.getElementById('friend-select').value; // Get selected friend
+                const username = localStorage.getItem('username') || 'Guest';
+                const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
+
+                if (messageText && friendUser) {
+                    sendMessage(friendUser, messageText, username, profilePictureUrl);
+                    event.target.value = ''; // Clear input field
+                } else {
+                    alert("Please select a friend and enter a message.");
+                }
+            }
+        });
+
+        // Function to load friends into the select box
+        function loadFriends() {
+            const username = localStorage.getItem('username');
+            db.ref('friends/' + username).once('value', (snapshot) => {
+                const friendSelect = document.getElementById('friend-select');
+                friendSelect.innerHTML = ''; // Clear existing options
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.text = 'Select a friend';
+                friendSelect.appendChild(defaultOption);
+
+                snapshot.forEach((childSnapshot) => {
+                    const friend = childSnapshot.key;
+                    const option = document.createElement('option');
+                    option.value = friend;
+                    option.textContent = friend;
+                    friendSelect.appendChild(option);
+                });
+            });
+        }
+    </script>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #36393f;
+            color: #dcddde;
+            font-family: "Helvetica", Arial, sans-serif;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #2f3136;
+            padding: 10px 20px;
+            box-shadow: 0px 4px 2px -2px rgba(0,0,0,0.5);
+        }
+
+        .profile {
+            display: flex;
+            align-items: center;
+        }
+
+        .profile img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+            border: 3px solid #7289da;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .nav-buttons button {
+            margin: 0 10px;
+            padding: 10px 20px;
+            background-color: #4f545c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .nav-buttons button:hover {
+            background-color: #72767d;
+        }
+
+        .chat-box {
+            padding: 20px;
+        }
+
+        .chat-box select,
+        .chat-box input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            font-size: 14px;
+            background-color: #40444b;
+            color: #dcddde;
+        }
+
+        .messages {
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #2f3136;
+            background-color: #2f3136;
+            border-radius: 5px;
+        }
+
+        .messages .message {
+            margin: 5px 0;
+            padding: 10px;
+            background-color: #292b2f;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+        }
+
+        .profile-pic {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        #friend-requests {
+            margin-top: 20px;
+            background-color: #2f3136;
+            padding: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="profile">
+        <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture">
+        <div class="username" id="username-display"></div>
+    </div>
+</div>
+
+<div class="nav-buttons">
+    <button onclick="window.location.href='settings.html'">Settings</button>
+    <button onclick="window.location.href='profile.html'">Profile</button>
+    <button onclick="signOut()">Sign Out</button>
+</div>
+
+<div class="chat-box">
+    <select id="friend-select">
+        <option value="">Select a friend</option>
+    </select>
+    <input type="text" id="chat-input" placeholder="Type your message here...">
+    <div class="messages" id="messages-container"></div>
+</div>
+
+<div id="friend-requests">
+    <h3>Friend Requests</h3>
+</div>
+
+</body>
+</html>
