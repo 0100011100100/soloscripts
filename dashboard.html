@@ -1,1 +1,146 @@
-under construction come back later
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Discord-like App</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Basic Styling */
+        body {
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            background-color: #36393f;
+            color: #dcddde;
+            display: flex;
+            height: 100vh;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: #2F3136;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #292b2f;
+            padding: 10px;
+        }
+        .sidebar h3 {
+            color: #ffffff;
+        }
+        .channel, .friend {
+            padding: 10px;
+            border-radius: 5px;
+            transition: background 0.2s;
+        }
+        .channel:hover, .friend:hover {
+            background: #202225;
+            cursor: pointer;
+        }
+        .chat-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            background-color: #2F3136;
+            border-bottom: 1px solid #292b2f;
+        }
+        .messages {
+            flex-grow: 1;
+            padding: 10px;
+            overflow-y: auto;
+            border: 1px solid #292b2f;
+            background-color: #40444b;
+        }
+        .input-container {
+            display: flex;
+            padding: 10px;
+        }
+        input[type="text"] {
+            flex-grow: 1;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            margin-right: 10px;
+            background-color: #202225;
+            color: #dcddde;
+        }
+        input[type="text"]:focus {
+            outline: none;
+            background-color: #2f3136;
+        }
+        .send-button {
+            background-color: #7289da;
+            color: #ffffff;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .message {
+            padding: 5px;
+            border-radius: 5px;
+            margin: 5px 0;
+            background-color: #40444b;
+        }
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            .sidebar {
+                width: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h3>Channels</h3>
+        <div class="channel">General</div>
+        <div class="channel">Technology</div>
+        <div class="channel">Gaming</div>
+        <div class="channel">Music</div>
+        <h3>Friends</h3>
+        <div class="friend">User 1</div>
+        <div class="friend">User 2</div>
+        <div class="friend">User 3</div>
+        <div class="friend">User 4</div>
+    </div>
+    <div class="chat-container">
+        <div class="header">
+            <h2>Chat</h2>
+            <button onclick="signOut()">Sign Out</button>
+        </div>
+        <div class="messages" id="messages-container">
+            <!-- Messages will be dynamically inserted here -->
+        </div>
+        <div class="input-container">
+            <input type="text" id="chat-input" placeholder="Type a message...">
+            <button class="send-button" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        function sendMessage() {
+            const inputField = document.getElementById('chat-input');
+            const messageText = inputField.value;
+            if (messageText === '') return; // Prevent sending empty messages
+
+            const messagesContainer = document.getElementById('messages-container');
+            const messageElement = document.createElement('div');
+            messageElement.className = 'message';
+            messageElement.textContent = messageText;
+
+            messagesContainer.appendChild(messageElement);
+            inputField.value = ''; // Clear the input
+            messagesContainer.scrollTop = messagesContainer.scrollHeight; // Auto-scroll
+        }
+
+        function signOut() {
+            alert('Sign Out functionality to be implemented.');
+            // In a real application, here you would handle signing out
+        }
+    </script>
+</body>
+</html>
