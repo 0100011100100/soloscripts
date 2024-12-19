@@ -70,14 +70,23 @@
             });
         }
 
+        function hasDeveloperBadge(username) {
+            return db.ref('users/' + username + '/badges/developer').once('value').then(snapshot => !!snapshot.val());
+        }
+
         window.onload = function() {
             const username = localStorage.getItem('username') || 'Guest';
             const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
 
             checkUserBan(username);
+            hasDeveloperBadge(username).then(hasBadge => {
+                if (hasBadge) {
+                    document.getElementById('developer-badge').style.display = 'inline-block';
+                }
+            });
+
             document.getElementById('username-display').textContent = username;
             document.getElementById('profile-pic').src = profilePictureUrl;
-
             listenForMessages(username); // Listen for direct messages
             listenForFriendRequests(); // Listen for friend requests
         };
@@ -89,12 +98,33 @@
             const profileImage = document.createElement('img');
             profileImage.src = profilePicUrl || 'default-profile-pic.png';
             profileImage.classList.add('profile-pic');
+            profileImage.onclick = function() {
+                openProfileModal(username, profilePicUrl);
+            };
 
             const text = document.createElement('span');
-            text.innerHTML = `${username}: ${messageText}`;
+            let badgeText = '';
+
+            if (username === 'Samir') {
+                badgeText = '<strong class="profile-owner-badge">Owner:</strong>';
+            } else if (username.toLowerCase() === 'piggy') {
+                badgeText = '<strong class="profile-developer-badge">Developer:</strong>';
+            }
+
+            text.innerHTML = `${badgeText} ${username}: ${messageText}`;
             message.appendChild(profileImage);
             message.appendChild(text);
             document.getElementById('messages-container').appendChild(message);
+        }
+
+        function openProfileModal(username, profilePicUrl) {
+            document.getElementById('modal-username').textContent = username;
+            document.getElementById('modal-profile-pic').src = profilePicUrl || 'default-profile-pic.png';
+            document.getElementById('profile-modal').style.display = 'flex';
+        }
+
+        function closeProfileModal() {
+            document.getElementById('profile-modal').style.display = 'none';
         }
 
         function signOut() {
@@ -122,6 +152,36 @@
             box-shadow: 0px 4px 2px -2px rgba(0,0,0,0.5);
         }
 
+        .profile {
+            display: flex;
+            align-items: center;
+        }
+
+        .profile img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+            border: 3px solid #7289da;
+        }
+
+        .profile-owner-badge, .profile-developer-badge {
+            font-size: 12px;
+            padding: 3px 10px;
+            color: #fff;
+            border-radius: 5px;
+            margin-left: 10px;
+        }
+
+        .profile-owner-badge {
+            background: linear-gradient(90deg, #ffcc00, #e63946);
+        }
+
+        .profile-developer-badge {
+            background: linear-gradient(90deg, #ff00ff, #00ffff);
+            animation: rainbow 3s linear infinite;
+        }
+
         .nav-buttons {
             display: flex;
             justify-content: center;
@@ -146,6 +206,16 @@
             padding: 20px;
         }
 
+        .chat-box input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            font-size: 14px;
+            background-color: #40444b;
+            color: #dcddde;
+        }
+
         .messages {
             margin-top: 20px;
         }
@@ -164,6 +234,52 @@
             height: 30px;
             border-radius: 50%;
             margin-right: 10px;
+            border: 3px solid #7289da;
+            cursor: pointer;
+        }
+
+        /* Profile Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: #36393f;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            color: white;
+            width: 300px;
+        }
+
+        .modal-content img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin-bottom: 10px;
+        }
+
+        .close-btn {
+            margin-top: 10px;
+            padding: 5px 15px;
+            background-color: #7289da;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .close-btn:hover {
+            background-color: #5b6eae;
         }
     </style>
 </head>
@@ -173,6 +289,8 @@
     <div class="profile">
         <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture">
         <div class="username" id="username-display"></div>
+        <div id="owner-badge" class="profile-owner-badge" style="display: none;">Owner</div>
+        <div id="developer-badge" class="profile-developer-badge" style="display: none;">Contributor</div>
     </div>
 </div>
 
@@ -187,6 +305,14 @@
     <div class="messages" id="messages-container"></div>
 </div>
 
+<div id="profile-modal" class="modal" onclick="closeProfileModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <img id="modal-profile-pic" src="default-profile-pic.png" alt="Profile Picture">
+        <h2 id="modal-username">Username</h2>
+        <button class="close-btn" onclick="closeProfileModal()">Close</button>
+    </div>
+</div>
+
 <script>
     document.getElementById('chat-input').addEventListener('keypress', function (event) {
         if (event.key === 'Enter') {
@@ -195,8 +321,8 @@
                 const username = localStorage.getItem('username') || 'Guest';
                 const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
 
-                // Send direct message - you would want to customize this logic
-                sendMessage("friend_user_here", messageText, username, profilePictureUrl); // Replace with actual target friend username
+                // Sending a message - replace "friend_user_here" with actual username of the friend
+                sendMessage("friend_user_here", messageText, username, profilePictureUrl); // You can change this logic later based on UI
                 event.target.value = '';
             }
         }
