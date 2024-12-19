@@ -9,7 +9,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script>
-        // Initialize Firebase
+        // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAe0hXfAJ0ijKNiGgAVfv4zG1ngADF2E4c",
             authDomain: "chatapp-90c78.firebaseapp.com",
@@ -20,10 +20,27 @@
             databaseURL: "https://chatapp-90c78-default-rtdb.firebaseio.com"
         };
 
+        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // Function to send a direct message
+        // Load friends into the select dropdown
+        function loadFriends() {
+            const username = localStorage.getItem('username');
+            const friendSelect = document.getElementById('friend-select');
+            db.ref('friends/' + username).once('value', (snapshot) => {
+                friendSelect.innerHTML = '<option value="">Select a friend</option>'; // Clear existing options
+                snapshot.forEach((childSnapshot) => {
+                    const friend = childSnapshot.key;
+                    const option = document.createElement('option');
+                    option.value = friend;
+                    option.textContent = friend;
+                    friendSelect.appendChild(option);
+                });
+            });
+        }
+
+        // Send a direct message
         function sendMessage(toUser, messageText, fromUser, fromProfilePicUrl) {
             const messageData = {
                 from: fromUser,
@@ -31,72 +48,23 @@
                 profilePic: fromProfilePicUrl,
                 timestamp: new Date().toISOString()
             };
-            // Save message to the receiver's message list
-            db.ref('directMessages/' + toUser).push().set(messageData);
-            // Save message to the sender's message list
-            db.ref('directMessages/' + fromUser).push().set(messageData);
+            // Save message to both sender and receiver
+            db.ref('directMessages/' + fromUser + '/' + toUser).push().set(messageData);
+            db.ref('directMessages/' + toUser + '/' + fromUser).push().set(messageData);
         }
 
-        // Function to listen for messages
+        // Listen for incoming messages
         function listenForMessages(username) {
             db.ref('directMessages/' + username).on('child_added', (snapshot) => {
-                const messageData = snapshot.val();
-                if (messageData) {
+                const messages = snapshot.val();
+                for (let key in messages) {
+                    const messageData = messages[key];
                     addMessageToChat(messageData.from, messageData.message, messageData.profilePic);
                 }
             });
         }
 
-        // Function to send a friend request
-        function sendFriendRequest(toUser) {
-            const fromUser = localStorage.getItem('username');
-            db.ref('friendRequests/' + toUser).child(fromUser).set(true);
-        }
-
-        // Function to accept a friend request
-        function acceptFriendRequest(fromUser) {
-            const toUser = localStorage.getItem('username');
-            db.ref('friends/' + toUser).child(fromUser).set(true);
-            db.ref('friends/' + fromUser).child(toUser).set(true);
-            db.ref('friendRequests/' + toUser).child(fromUser).remove();
-            loadFriends(); // Refresh the friends list
-        }
-
-        // Function to listen for incoming friend requests
-        function listenForFriendRequests() {
-            const username = localStorage.getItem('username');
-            db.ref('friendRequests/' + username).on('child_added', (snapshot) => {
-                const fromUser = snapshot.key;
-                displayFriendRequest(fromUser);
-            });
-        }
-
-        // Function to display a friend request
-        function displayFriendRequest(username) {
-            const friendRequestArea = document.getElementById('friend-requests');
-            const requestItem = document.createElement('div');
-            requestItem.innerText = username;
-            requestItem.onclick = function () {
-                acceptFriendRequest(username);
-                friendRequestArea.removeChild(requestItem); // Remove from display after accepting
-            };
-            friendRequestArea.appendChild(requestItem);
-        }
-
-        // Function to handle window load
-        window.onload = function () {
-            const username = localStorage.getItem('username') || 'Guest';
-            const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
-
-            document.getElementById('username-display').textContent = username;
-            document.getElementById('profile-pic').src = profilePictureUrl;
-
-            listenForMessages(username); // Listen for direct messages
-            listenForFriendRequests(); // Listen for friend requests
-            loadFriends(); // Load friends on startup
-        };
-
-        // Function to add a message to the chat area
+        // Add a message to the chat area
         function addMessageToChat(username, messageText, profilePicUrl) {
             const messageContainer = document.getElementById('messages-container');
             const message = document.createElement('div');
@@ -107,19 +75,62 @@
             profileImage.classList.add('profile-pic');
 
             const text = document.createElement('span');
-            text.innerHTML = `${username}: ${messageText}`;
+            text.innerHTML = `<strong>${username}:</strong> ${messageText}`;
             message.appendChild(profileImage);
             message.appendChild(text);
             messageContainer.appendChild(message);
             messageContainer.scrollTop = messageContainer.scrollHeight; // Scroll to the bottom
         }
 
-        // Function to sign out the user
+        // Function to listen for friend requests
+        function listenForFriendRequests() {
+            const username = localStorage.getItem('username');
+            db.ref('friendRequests/' + username).on('child_added', (snapshot) => {
+                const fromUser = snapshot.key;
+                displayFriendRequest(fromUser);
+            });
+        }
+
+        // Display a friend request
+        function displayFriendRequest(username) {
+            const friendRequestArea = document.getElementById('friend-requests');
+            const requestItem = document.createElement('div');
+            requestItem.innerText = `${username} sent you a friend request. Click to accept!`;
+            requestItem.onclick = function () {
+                acceptFriendRequest(username);
+                friendRequestArea.removeChild(requestItem); // Remove after accepting
+            };
+            friendRequestArea.appendChild(requestItem);
+        }
+
+        // Accept a friend request
+        function acceptFriendRequest(fromUser) {
+            const toUser = localStorage.getItem('username');
+            db.ref('friends/' + toUser).child(fromUser).set(true);
+            db.ref('friends/' + fromUser).child(toUser).set(true);
+            db.ref('friendRequests/' + toUser).child(fromUser).remove();
+            loadFriends(); // Refresh the friend list
+        }
+
+        // Sign out function
         function signOut() {
             localStorage.removeItem('username');
             localStorage.removeItem('profilePic');
             window.location.href = 'login.html';
         }
+
+        // On window load
+        window.onload = function () {
+            const username = localStorage.getItem('username') || 'Guest';
+            const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
+
+            document.getElementById('username-display').textContent = username;
+            document.getElementById('profile-pic').src = profilePictureUrl;
+
+            listenForMessages(username); // Start listening for messages
+            listenForFriendRequests(); // Start listening for friend requests
+            loadFriends(); // Load friends into the dropdown
+        };
 
         // Event listener for sending messages
         document.getElementById('chat-input').addEventListener('keypress', function (event) {
@@ -131,33 +142,12 @@
 
                 if (messageText && friendUser) {
                     sendMessage(friendUser, messageText, username, profilePictureUrl);
-                    event.target.value = ''; // Clear input field
+                    event.target.value = ''; // Clear the input field
                 } else {
                     alert("Please select a friend and enter a message.");
                 }
             }
         });
-
-        // Function to load friends into the select box
-        function loadFriends() {
-            const username = localStorage.getItem('username');
-            db.ref('friends/' + username).once('value', (snapshot) => {
-                const friendSelect = document.getElementById('friend-select');
-                friendSelect.innerHTML = ''; // Clear existing options
-                const defaultOption = document.createElement('option');
-                defaultOption.value = '';
-                defaultOption.text = 'Select a friend';
-                friendSelect.appendChild(defaultOption);
-
-                snapshot.forEach((childSnapshot) => {
-                    const friend = childSnapshot.key;
-                    const option = document.createElement('option');
-                    option.value = friend;
-                    option.textContent = friend;
-                    friendSelect.appendChild(option);
-                });
-            });
-        }
     </script>
 
     <style>
@@ -205,6 +195,7 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            transition: background-color 0.3s;
         }
 
         .nav-buttons button:hover {
@@ -224,6 +215,7 @@
             font-size: 14px;
             background-color: #40444b;
             color: #dcddde;
+            margin-bottom: 10px;
         }
 
         .messages {
@@ -257,6 +249,17 @@
             background-color: #2f3136;
             padding: 10px;
             border-radius: 5px;
+        }
+
+        #friend-requests div {
+            margin: 5px 0;
+            cursor: pointer;
+            color: #7289da;
+            transition: color 0.3s;
+        }
+
+        #friend-requests div:hover {
+            color: #99aab5;
         }
     </style>
 </head>
