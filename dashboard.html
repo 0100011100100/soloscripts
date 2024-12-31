@@ -22,13 +22,15 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        const userDatabase = {}; // This object will hold user data, including their points
+
         function sendMessage(username, messageText, profilePicUrl, isBot = false) {
             db.ref('messages').push().set({
                 username: username,
                 message: messageText,
                 profilePic: profilePicUrl,
                 timestamp: new Date().toISOString(),
-                isBot: isBot // Indicate if the message is from the bot
+                isBot: isBot
             });
         }
 
@@ -36,28 +38,34 @@
             db.ref('messages').on('child_added', (snapshot) => {
                 const messageData = snapshot.val();
                 addMessageToChat(messageData);
+                if (!messageData.isBot) {
+                    updateUserPoints(messageData.username);
+                }
             });
         }
 
-        function addMessageToChat(messageData) {
-            const message = document.createElement('div');
-            message.classList.add('message');
-
-            const profileImage = document.createElement('img');
-            profileImage.src = messageData.profilePic || 'default-profile-pic.png';
-            profileImage.classList.add('profile-pic');
-
-            const text = document.createElement('span');
-            let badgeText = '';
-
-            if (messageData.isBot) {
-                badgeText = '<strong class="bot-badge">Bot:</strong>'; // Updated to remove emoji
+        function updateUserPoints(username) {
+            if (!userDatabase[username]) {
+                userDatabase[username] = { points: 0 };
             }
+            userDatabase[username].points += 10; // Award 10 points for each message
+        }
 
-            text.innerHTML = `${badgeText} ${messageData.username}: ${messageData.message}`;
-            message.appendChild(profileImage);
-            message.appendChild(text);
-            document.getElementById('messages-container').appendChild(message);
+        function addMessageToChat(messageData) {
+            const messageContainer = document.createElement('div');
+            messageContainer.classList.add('embed-message');
+
+            const embedTitle = document.createElement('div');
+            embedTitle.classList.add('embed-title');
+            embedTitle.textContent = `${messageData.username} ${messageData.isBot ? '(Bot)' : ''}`;
+
+            const embedDescription = document.createElement('div');
+            embedDescription.classList.add('embed-description');
+            embedDescription.textContent = messageData.message;
+
+            messageContainer.appendChild(embedTitle);
+            messageContainer.appendChild(embedDescription);
+            document.getElementById('messages-container').appendChild(messageContainer);
         }
 
         function getRandomGoofyResponse() {
@@ -76,6 +84,29 @@
             return responses[Math.floor(Math.random() * responses.length)];
         }
 
+        function getRandomFact() {
+            const facts = [
+                "Honey never spoils.",
+                "A group of flamingos is called a 'flamboyance'.",
+                "Bananas are berries but strawberries aren't.",
+                "Wombat poop is cube-shaped.",
+                "Octopuses have three hearts."
+            ];
+            return facts[Math.floor(Math.random() * facts.length)];
+        }
+
+        function sendRandomBotMessage() {
+            const messageOptions = [
+                getRandomGoofyResponse,
+                getRandomFact,
+                () => "How's everyone doing today?",
+                () => "I'm here if you need me!",
+            ];
+
+            const randomMessageFunction = messageOptions[Math.floor(Math.random() * messageOptions.length)];
+            sendMessage("RandomBot", randomMessageFunction(), 'default-bot-pic.png', true);
+        }
+
         window.onload = function() {
             const username = localStorage.getItem('username') || 'Guest';
             const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
@@ -88,15 +119,13 @@
                     const messageText = event.target.value;
                     if (messageText) {
                         sendMessage(username, messageText, profilePictureUrl);
-
-                        // Randomly decide whether to use a goofy response or just an acknowledgment
-                        const botResponse = Math.random() > 0.5 ? getRandomGoofyResponse() : "That's interesting!";
-                        sendMessage("RandomBot", botResponse, 'default-bot-pic.png', true);
-                        
                         event.target.value = ''; // Clear the input
                     }
                 }
             });
+
+            // Randomly send messages from the bot at intervals
+            setInterval(sendRandomBotMessage, 10000); // Every 10 seconds
         };
     </script>
 
@@ -131,31 +160,28 @@
             border: 3px solid #7289da;
         }
 
-        .bot-badge {
-            color: #3ba55c; /* Color for the bot's badge */
-            font-weight: bold;
-        }
-
-        .messages {
-            margin-top: 20px;
-        }
-
-        .messages .message {
+        .embed-message {
             margin: 10px 0;
             padding: 10px;
             background-color: #2f3136;
             border-radius: 5px;
-            display: flex;
-            align-items: center;
+            box-shadow: 0 0 5px rgba(0,0,0,0.2);
         }
 
-        .profile-pic {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            margin-right: 10px;
-            border: 3px solid #7289da;
-            cursor: pointer;
+        .embed-title {
+            font-size: 14px;
+            color: #ffffff;
+            font-weight: bold;
+        }
+
+        .embed-description {
+            font-size: 12px;
+            color: #dcddde;
+        }
+
+        .bot-badge {
+            color: #3ba55c;
+            font-weight: bold;
         }
 
         .chat-box {
