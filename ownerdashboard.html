@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -57,7 +56,7 @@
             db.ref('users').once('value').then(snapshot => {
                 const totalUsers = snapshot.numChildren();
                 document.getElementById('total-users').innerText = `Total Users: ${totalUsers}`;
-                
+
                 // Count banned users
                 db.ref('bannedUsers').once('value').then(bannedSnapshot => {
                     const totalBanned = bannedSnapshot.numChildren();
@@ -113,19 +112,77 @@
             themeButton.textContent = body.classList.contains('light-theme') ? 'Switch to Dark Theme' : 'Switch to Light Theme';
         }
 
+        function loadUserList() {
+            db.ref('users').once('value').then(snapshot => {
+                const userList = document.getElementById('user-list');
+                userList.innerHTML = ''; // Clear existing list
+                snapshot.forEach(childSnapshot => {
+                    const username = childSnapshot.key;
+                    const userDiv = document.createElement('div');
+                    userDiv.className = 'user-entry';
+
+                    userDiv.innerHTML = `
+                        <span>${username}</span>
+                        <button class="action-button" onclick="banUser('${username}')">Ban</button>
+                        <button class="action-button" onclick="unbanUser('${username}')">Unban</button>
+                        <button class="action-button" onclick="deleteUser('${username}')">Delete</button>
+                        <button class="action-button" onclick="assignDeveloperBadge('${username}')">Dev Badge</button>
+                        <button class="action-button" onclick="editUser('${username}')">Edit</button>
+                    `;
+                    userList.appendChild(userDiv);
+                });
+            }).catch(error => {
+                showPopup(`Error loading user list: ${error.message}`, 'error');
+            });
+        }
+
+        function editUser(username) {
+            const newRole = prompt('Enter new role for ' + username);
+            if (newRole) {
+                updateUserPrivileges(username, newRole);
+            }
+        }
+
+        function banUser(username) {
+            if (!confirm(`Are you sure you want to ban ${username}?`)) return;
+
+            db.ref('bannedUsers/' + username).set(true)
+                .then(() => {
+                    showPopup(`${username} has been banned!`, 'success');
+                    deleteUserMessages(username);
+                    loadUserList();
+                })
+                .catch(error => showPopup(`Error banning user: ${error.message}`, 'error'));
+        }
+
+        function unbanUser(username) {
+            if (!confirm(`Are you sure you want to unban ${username}?`)) return;
+
+            db.ref('bannedUsers/' + username).remove()
+                .then(() => {
+                    showPopup(`${username} has been unbanned!`, 'success');
+                    loadUserList();
+                })
+                .catch(error => showPopup(`Error unbanning user: ${error.message}`, 'error'));
+        }
+
+        function deleteUser(username) {
+            if (!confirm(`Are you sure you want to delete ${username}? All their data will be lost.`)) return;
+
+            db.ref('users/' + username).remove()
+                .then(() => {
+                    showPopup(`${username} has been deleted!`, 'success');
+                    loadUserList();
+                })
+                .catch(error => showPopup(`Error deleting user: ${error.message}`, 'error'));
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('username-display').textContent = username;
             document.getElementById('profile-pic').src = profilePictureUrl;
 
             loadGlobalStats(); // Load statistics on page load
-
-            document.getElementById('notify-button').onclick = () => {
-                const message = document.getElementById('notify-message').value;
-                notifyAllUsers(message);
-            };
-
-            document.getElementById('download-button').onclick = downloadUserData;
-            document.getElementById('theme-toggle').onclick = toggleTheme;
+            loadUserList(); // Load user list on page load
 
             const chatInput = document.getElementById('chat-input');
             chatInput.addEventListener('keypress', function (event) {
@@ -137,6 +194,14 @@
                     }
                 }
             });
+
+            document.getElementById('notify-button').onclick = () => {
+                const message = document.getElementById('notify-message').value;
+                notifyAllUsers(message);
+            };
+
+            document.getElementById('download-button').onclick = downloadUserData;
+            document.getElementById('theme-toggle').onclick = toggleTheme;
         });
     </script>
 
