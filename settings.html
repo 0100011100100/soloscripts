@@ -20,29 +20,86 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        let username = 'exampleUser'; // Replace with actual logic to fetch the logged-in user's username
-        const twoFactorCode = '123456'; // This should be generated dynamically
+        let username = localStorage.getItem('username') || 'exampleUser'; // Fetch the logged-in user's username
+        const twoFactorCode = '123456'; // Placeholder for a dynamically generated 2FA code
 
         async function updatePassword() {
             const passwordInput = document.getElementById('passwordInput').value;
             const twofaInput = document.getElementById('twofaInput').value;
+
             if (passwordInput && twofaInput === twoFactorCode) {
                 try {
-                    const snapshot = await get(ref(db, `users/${username}/password`));
-                    if (snapshot.exists()) {
-                        await update(ref(db, `users/${username}`), {
-                            password: passwordInput
-                        });
-                        alert('Password updated successfully');
-                    }
+                    await update(ref(db, `users/${username}`), {
+                        password: passwordInput
+                    });
+                    showNotification('Password updated successfully');
                 } catch (error) {
                     console.error("Error updating password: ", error);
+                    showNotification('Error updating password', true);
                 }
             } else if (twofaInput !== twoFactorCode) {
-                alert('Invalid 2FA code! Please try again.');
+                showNotification('Invalid 2FA code! Please try again.', true);
             } else {
-                alert('Please enter a new password.');
+                showNotification('Please enter a new password.', true);
             }
+        }
+
+        function changeBackgroundColor() {
+            const color = document.getElementById('colorSelect').value;
+            document.body.style.backgroundColor = color;
+            localStorage.setItem('backgroundColor', color);
+            showNotification('Background color changed successfully');
+        }
+
+        function changeTextSize() {
+            const size = document.getElementById('textSizeSelect').value;
+            document.body.style.fontSize = size;
+            localStorage.setItem('textSize', size);
+            showNotification('Text size changed successfully');
+        }
+
+        function changeTheme() {
+            const theme = document.getElementById('themeSelect').value;
+            if (theme === 'light') {
+                document.body.style.backgroundColor = '#ffffff';
+                document.body.style.color = '#000000';
+            } else {
+                document.body.style.backgroundColor = '#2c2f33';
+                document.body.style.color = '#ffffff';
+            }
+            localStorage.setItem('theme', theme);
+            showNotification('Theme changed successfully');
+        }
+
+        function toggleNotifications() {
+            const isEnabled = document.getElementById('notificationToggle').checked;
+            localStorage.setItem('notificationsEnabled', isEnabled);
+            showNotification(`Notifications are now ${isEnabled ? 'enabled' : 'disabled'}.`);
+        }
+
+        function changeLanguage() {
+            const language = document.getElementById('languageSelect').value;
+            localStorage.setItem('language', language);
+            showNotification(`Language changed to ${language}.`);
+        }
+
+        function showNotification(message, isError = false) {
+            const notification = document.createElement('div');
+            notification.className = `notification${isError ? ' error' : ''}`;
+            notification.innerText = message;
+            document.body.prepend(notification);
+
+            // Auto-hide the notification after 3 seconds
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => notification.remove(), 500); // Remove after fade out
+            }, 3000);
+
+            // Click handler to dismiss notification
+            notification.onclick = () => {
+                notification.style.opacity = '0';
+                setTimeout(() => notification.remove(), 500); // Remove after fade out
+            };
         }
 
         function showSection(sectionId) {
@@ -53,8 +110,26 @@
             document.getElementById(sectionId).style.display = 'block';
         }
 
-        // Other functions for changing settings...
+        function goBack() {
+            window.location.href = 'dashboard.html';
+        }
 
+        // Load saved settings on page load
+        window.onload = function () {
+            const storedColor = localStorage.getItem('backgroundColor') || '#2c2f33';
+            const storedTextSize = localStorage.getItem('textSize') || '16px';
+            const storedTheme = localStorage.getItem('theme');
+
+            document.body.style.backgroundColor = storedColor;
+            document.body.style.fontSize = storedTextSize;
+            if (storedTheme === 'light') {
+                document.body.style.color = '#000000';
+            } else {
+                document.body.style.color = '#ffffff';
+            }
+
+            showSection('accountSection');
+        };
     </script>
     <style>
         body {
@@ -64,7 +139,10 @@
             color: #ffffff;
             font-family: Arial, sans-serif;
             display: flex;
+            flex-direction: column;
             height: 100vh;
+            position: relative;
+            overflow: hidden;
         }
         .sidebar {
             background-color: #23272a;
@@ -122,6 +200,25 @@
         button.apply:hover {
             background-color: #5d7ae0;
         }
+        /* Notification styles */
+        .notification {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #4caf50; /* Change to the desired color */
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px;
+            transition: opacity 0.5s;
+            opacity: 1;
+            z-index: 1000;
+            cursor: pointer;
+        }
+        .notification.error {
+            background: #f44336; /* Red color for errors */
+        }
     </style>
 </head>
 <body>
@@ -138,8 +235,8 @@
 <div class="container">
     <div id="accountSection" class="section">
         <h3>Account Settings</h3>
-        <input type="password" id="passwordInput" placeholder="Update your password">
-        <input type="text" id="twofaInput" placeholder="Enter 2FA Code">
+        <input type="password" id="passwordInput" placeholder="Update your password" required>
+        <input type="text" id="twofaInput" placeholder="Enter 2FA Code" required>
         <button class="apply" onclick="updatePassword()">Update Password</button>
     </div>
 
@@ -188,36 +285,7 @@
         <button class="apply" onclick="changeLanguage()">Change Language</button>
     </div>
 
-    <div id="welcomeMessage"></div>
 </div>
-
-<script>
-    // Function implementations for changing settings here
-
-    function goBack() {
-        window.location.href = 'dashboard.html';
-    }
-
-    // Load saved settings on page load
-    window.onload = function() {
-        const storedColor = localStorage.getItem('backgroundColor') || '#2c2f33';
-        const storedTextSize = localStorage.getItem('textSize') || '16px';
-        const storedTheme = localStorage.getItem('theme');
-
-        document.body.style.backgroundColor = storedColor;
-        document.body.style.fontSize = storedTextSize;
-        if (storedTheme === 'light') {
-            document.body.style.color = '#000000';
-        } else {
-            document.body.style.color = '#ffffff';
-        }
-
-        const welcomeMessage = `Welcome back! Your saved settings have been applied.`;
-        document.getElementById('welcomeMessage').innerText = welcomeMessage;
-
-        showSection('accountSection');
-    };
-</script>
 
 </body>
 </html>
