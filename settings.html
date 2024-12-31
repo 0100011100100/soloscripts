@@ -20,19 +20,21 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        let username = localStorage.getItem('username') || 'exampleUser'; // Fetch the logged-in user's username
-        const twoFactorCode = '123456'; // Placeholder for a dynamically generated 2FA code
+        let username = 'exampleUser'; // Replace with actual logic to fetch the logged-in user's username
+        const twoFactorCode = '123456'; // This should be generated dynamically
 
         async function updatePassword() {
             const passwordInput = document.getElementById('passwordInput').value;
             const twofaInput = document.getElementById('twofaInput').value;
-
             if (passwordInput && twofaInput === twoFactorCode) {
                 try {
-                    await update(ref(db, `users/${username}`), {
-                        password: passwordInput
-                    });
-                    alert('Password updated successfully');
+                    const snapshot = await get(ref(db, `users/${username}/password`));
+                    if (snapshot.exists()) {
+                        await update(ref(db, `users/${username}`), {
+                            password: passwordInput
+                        });
+                        alert('Password updated successfully');
+                    }
                 } catch (error) {
                     console.error("Error updating password: ", error);
                 }
@@ -43,42 +45,6 @@
             }
         }
 
-        function changeBackgroundColor() {
-            const color = document.getElementById('colorSelect').value;
-            document.body.style.backgroundColor = color;
-            localStorage.setItem('backgroundColor', color);
-        }
-
-        function changeTextSize() {
-            const size = document.getElementById('textSizeSelect').value;
-            document.body.style.fontSize = size;
-            localStorage.setItem('textSize', size);
-        }
-
-        function changeTheme() {
-            const theme = document.getElementById('themeSelect').value;
-            if (theme === 'light') {
-                document.body.style.backgroundColor = '#ffffff';
-                document.body.style.color = '#000000';
-            } else {
-                document.body.style.backgroundColor = '#2c2f33';
-                document.body.style.color = '#ffffff';
-            }
-            localStorage.setItem('theme', theme);
-        }
-
-        function toggleNotifications() {
-            const isEnabled = document.getElementById('notificationToggle').checked;
-            localStorage.setItem('notificationsEnabled', isEnabled);
-            alert(`Notifications are now ${isEnabled ? 'enabled' : 'disabled'}.`);
-        }
-
-        function changeLanguage() {
-            const language = document.getElementById('languageSelect').value;
-            localStorage.setItem('language', language);
-            alert(`Language changed to ${language}.`);
-        }
-
         function showSection(sectionId) {
             const sections = document.querySelectorAll('.section');
             sections.forEach(section => {
@@ -87,29 +53,8 @@
             document.getElementById(sectionId).style.display = 'block';
         }
 
-        function goBack() {
-            window.location.href = 'dashboard.html';
-        }
+        // Other functions for changing settings...
 
-        // Load saved settings on page load
-        window.onload = function () {
-            const storedColor = localStorage.getItem('backgroundColor') || '#2c2f33';
-            const storedTextSize = localStorage.getItem('textSize') || '16px';
-            const storedTheme = localStorage.getItem('theme');
-
-            document.body.style.backgroundColor = storedColor;
-            document.body.style.fontSize = storedTextSize;
-            if (storedTheme === 'light') {
-                document.body.style.color = '#000000';
-            } else {
-                document.body.style.color = '#ffffff';
-            }
-
-            const welcomeMessage = `Welcome back! Your saved settings have been applied.`;
-            document.getElementById('welcomeMessage').innerText = welcomeMessage;
-
-            showSection('accountSection');
-        };
     </script>
     <style>
         body {
@@ -193,8 +138,8 @@
 <div class="container">
     <div id="accountSection" class="section">
         <h3>Account Settings</h3>
-        <input type="password" id="passwordInput" placeholder="Update your password" required>
-        <input type="text" id="twofaInput" placeholder="Enter 2FA Code" required>
+        <input type="password" id="passwordInput" placeholder="Update your password">
+        <input type="text" id="twofaInput" placeholder="Enter 2FA Code">
         <button class="apply" onclick="updatePassword()">Update Password</button>
     </div>
 
@@ -245,6 +190,34 @@
 
     <div id="welcomeMessage"></div>
 </div>
+
+<script>
+    // Function implementations for changing settings here
+
+    function goBack() {
+        window.location.href = 'dashboard.html';
+    }
+
+    // Load saved settings on page load
+    window.onload = function() {
+        const storedColor = localStorage.getItem('backgroundColor') || '#2c2f33';
+        const storedTextSize = localStorage.getItem('textSize') || '16px';
+        const storedTheme = localStorage.getItem('theme');
+
+        document.body.style.backgroundColor = storedColor;
+        document.body.style.fontSize = storedTextSize;
+        if (storedTheme === 'light') {
+            document.body.style.color = '#000000';
+        } else {
+            document.body.style.color = '#ffffff';
+        }
+
+        const welcomeMessage = `Welcome back! Your saved settings have been applied.`;
+        document.getElementById('welcomeMessage').innerText = welcomeMessage;
+
+        showSection('accountSection');
+    };
+</script>
 
 </body>
 </html>
