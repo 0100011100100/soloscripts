@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <button onclick="sendNotification()">Send Push Notification</button>
+    <script>
+        const notify = () => {
+            navigator.serviceWorker.getRegistration().then(registration => {
+                if (registration) {
+                    registration.showNotification('New message from John', {
+                        body: 'Hey! Check out this new update.',
+                        icon: 'icon.png',
+                        url: 'https://example.com/messages'
+                    });
+                }
+            });
+        };
+
+        const sendNotification = () => {
+            fetch('/push', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => console.log(data));
+            notify();
+        };
+    </script>
+</body>
+</html>
