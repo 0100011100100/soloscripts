@@ -40,7 +40,7 @@
                 if (Notification.permission === 'granted') {
                     new Notification("New message from " + messageData.username, {
                         body: messageData.message,
-                        icon: messageData.profilePic || 'default-profile-pic.png' // Optional icon
+                        icon: messageData.profilePic || 'default-profile-pic.png'
                     });
                 }
             });
@@ -64,6 +64,25 @@
             return db.ref('users/' + username + '/badges/developer').once('value').then(snapshot => !!snapshot.val());
         }
 
+        function handleOwnerFeatures(username) {
+            if (username === 'thisismyusername') {
+                // Activate owner features here
+                console.log("Owner features activated for " + username);
+                // Example owner commands
+                let ownerFeatures = [
+                    function feature1() { console.log("Owner Feature 1 executed."); },
+                    function feature2() { console.log("Owner Feature 2 executed."); },
+                    function feature3() { console.log("Owner Feature 3 executed."); },
+                    // Add more features up to 50
+                ];
+
+                // Execute all owner features
+                ownerFeatures.forEach((feature, index) => {
+                    feature; // Call feature function
+                });
+            }
+        }
+
         window.onload = function() {
             requestNotificationPermission(); // Request notification permission
             const username = localStorage.getItem('username') || 'Guest';
@@ -75,6 +94,8 @@
                     document.getElementById('developer-badge').style.display = 'inline-block';
                 }
             });
+
+            handleOwnerFeatures(username); // Check for owner features
 
             document.getElementById('username-display').textContent = username;
             document.getElementById('profile-pic').src = profilePictureUrl;
