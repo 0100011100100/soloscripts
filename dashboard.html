@@ -35,15 +35,17 @@
             db.ref('messages').on('child_added', (snapshot) => {
                 const messageData = snapshot.val();
                 addMessageToChat(messageData.username, messageData.message, messageData.profilePic);
-
-                // Show notification if permission is granted
-                if (Notification.permission === 'granted') {
-                    new Notification("New message from " + messageData.username, {
-                        body: messageData.message,
-                        icon: messageData.profilePic || 'default-profile-pic.png' // Optional icon
-                    });
-                }
+                notifyNewMessage(messageData);
             });
+        }
+
+        function notifyNewMessage(messageData) {
+            if (Notification.permission === 'granted') {
+                new Notification("New message from " + messageData.username, {
+                    body: messageData.message,
+                    icon: messageData.profilePic || 'default-profile-pic.png'
+                });
+            }
         }
 
         function requestNotificationPermission() {
@@ -65,7 +67,7 @@
         }
 
         window.onload = function() {
-            requestNotificationPermission(); // Request notification permission
+            requestNotificationPermission();
             const username = localStorage.getItem('username') || 'Guest';
             const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
 
@@ -94,7 +96,6 @@
 
             const text = document.createElement('span');
             let badgeText = '';
-
             if (username === 'thisismyusername') {
                 badgeText = '<strong class="profile-owner-badge">Owner:</strong>';
             } else if (username.toLowerCase() === 'thisismyusername') {
@@ -105,6 +106,7 @@
             message.appendChild(profileImage);
             message.appendChild(text);
             document.getElementById('messages-container').appendChild(message);
+            message.scrollIntoView({ behavior: "smooth" });
         }
 
         function openProfileModal(username, profilePicUrl) {
@@ -122,6 +124,16 @@
             localStorage.removeItem('profilePic');
             window.location.href = 'login.html';
         }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+        }
+
+        function insertEmoji(emoji) {
+            const chatInput = document.getElementById('chat-input');
+            chatInput.value += emoji;
+            chatInput.focus();
+        }
     </script>
 
     <style>
@@ -131,6 +143,11 @@
             background-color: #36393f;
             color: #dcddde;
             font-family: "Helvetica", Arial, sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .dark-mode {
+            background-color: #2f3136; /* Dark mode background */
+            color: #ffffff; /* Dark mode text */
         }
 
         .header {
@@ -197,13 +214,19 @@
         }
 
         .chat-box input {
-            width: 100%;
+            width: 80%;
             padding: 10px;
             border-radius: 5px;
             border: none;
             font-size: 14px;
             background-color: #40444b;
             color: #dcddde;
+        }
+
+        .emoji-picker {
+            display: inline-block;
+            margin-left: 10px;
+            cursor: pointer;
         }
 
         .messages {
@@ -271,6 +294,7 @@
         .close-btn:hover {
             background-color: #5b6eae;
         }
+
     </style>
 </head>
 <body>
@@ -282,6 +306,7 @@
         <div id="owner-badge" class="profile-owner-badge" style="display: none;">Owner</div>
         <div id="developer-badge" class="profile-developer-badge" style="display: none;">Contributor</div>
     </div>
+    <button onclick="toggleDarkMode()">Toggle Dark Mode</button>
 </div>
 
 <div class="nav-buttons">
@@ -292,6 +317,7 @@
 
 <div class="chat-box">
     <input type="text" id="chat-input" placeholder="Type your message here...">
+    <div class="emoji-picker" onclick="insertEmoji('😊')">😊</div>
     <div class="messages" id="messages-container"></div>
 </div>
 
