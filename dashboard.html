@@ -9,7 +9,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script>
-        // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAe0hXfAJ0ijKNiGgAVfv4zG1ngADF2E4c",
             authDomain: "chatapp-90c78.firebaseapp.com",
@@ -23,10 +22,6 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let currentUserName = localStorage.getItem('username') || 'Guest';
-        const messageSound = new Audio('notification.mp3'); // Add your notification sound file here
-        const typingIndicatorRef = db.ref('typing/' + currentUserName);
-
         function sendMessage(username, messageText, profilePicUrl) {
             db.ref('messages').push().set({
                 username: username,
@@ -34,17 +29,12 @@
                 profilePic: profilePicUrl,
                 timestamp: new Date().toISOString()
             });
-            notifyNewMessage();
-        }
-
-        function notifyNewMessage() {
-            messageSound.play();
         }
 
         function listenForMessages() {
             db.ref('messages').on('child_added', (snapshot) => {
                 const messageData = snapshot.val();
-                addMessageToChat(messageData.username, messageData.message, messageData.profilePic, snapshot.key);
+                addMessageToChat(messageData.username, messageData.message, messageData.profilePic);
             });
         }
 
@@ -60,21 +50,32 @@
             return db.ref('users/' + username + '/badges/developer').once('value').then(snapshot => !!snapshot.val());
         }
 
-        function editMessage(messageId, newText) {
-            db.ref('messages/' + messageId).update({ message: newText });
-        }
+        window.onload = function() {
+            const username = localStorage.getItem('username') || 'Guest';
+            const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
 
-        function deleteMessage(messageId) {
-            db.ref('messages/' + messageId).remove();
-        }
+            checkUserBan(username);
+            hasDeveloperBadge(username).then(hasBadge => {
+                if (hasBadge) {
+                    document.getElementById('developer-badge').style.display = 'inline-block';
+                }
+            });
 
-        function addMessageToChat(username, messageText, profilePicUrl, messageId) {
+            document.getElementById('username-display').textContent = username;
+            document.getElementById('profile-pic').src = profilePictureUrl;
+            listenForMessages();
+        };
+
+        function addMessageToChat(username, messageText, profilePicUrl) {
             const message = document.createElement('div');
             message.classList.add('message');
 
             const profileImage = document.createElement('img');
             profileImage.src = profilePicUrl || 'default-profile-pic.png';
             profileImage.classList.add('profile-pic');
+            profileImage.onclick = function() {
+                openProfileModal(username, profilePicUrl);
+            };
 
             const text = document.createElement('span');
             let badgeText = '';
@@ -86,47 +87,19 @@
             }
 
             text.innerHTML = `${badgeText} ${username}: ${messageText}`;
-
-            // Buttons for editing and deleting messages
-            const editButton = document.createElement('button');
-            editButton.textContent = 'Edit';
-            editButton.onclick = () => {
-                const newText = prompt("Edit your message:", messageText);
-                if (newText) editMessage(messageId, newText);
-            };
-            message.appendChild(editButton);
-
-            const deleteButton = document.createElement('button');
-            deleteButton.textContent = 'Delete';
-            deleteButton.onclick = () => deleteMessage(messageId);
-            message.appendChild(deleteButton);
-
             message.appendChild(profileImage);
             message.appendChild(text);
             document.getElementById('messages-container').appendChild(message);
         }
 
-        function sendTypingIndicator() {
-            typingIndicatorRef.set(true);
-            setTimeout(() => typingIndicatorRef.remove(), 1000);
+        function openProfileModal(username, profilePicUrl) {
+            document.getElementById('modal-username').textContent = username;
+            document.getElementById('modal-profile-pic').src = profilePicUrl || 'default-profile-pic.png';
+            document.getElementById('profile-modal').style.display = 'flex';
         }
 
-        window.onload = function() {
-            checkUserBan(currentUserName);
-            hasDeveloperBadge(currentUserName).then(hasBadge => {
-                if (hasBadge) {
-                    document.getElementById('developer-badge').style.display = 'inline-block';
-                }
-            });
-
-            document.getElementById('username-display').textContent = currentUserName;
-            document.getElementById('profile-pic').src = localStorage.getItem('profilePic') || 'default-profile-pic.png';
-            listenForMessages();
-        };
-
-        // Toggle light/dark mode
-        function toggleTheme() {
-            document.body.classList.toggle('light-mode');
+        function closeProfileModal() {
+            document.getElementById('profile-modal').style.display = 'none';
         }
 
         function signOut() {
@@ -143,12 +116,6 @@
             background-color: #36393f;
             color: #dcddde;
             font-family: "Helvetica", Arial, sans-serif;
-            transition: background-color 0.3s;
-        }
-        
-        body.light-mode {
-            background-color: #f0f0f0;
-            color: #000;
         }
 
         .header {
@@ -226,8 +193,6 @@
 
         .messages {
             margin-top: 20px;
-            max-height: 400px;
-            overflow-y: auto;
         }
 
         .messages .message {
@@ -301,7 +266,6 @@
         <div class="username" id="username-display"></div>
         <div id="owner-badge" class="profile-owner-badge" style="display: none;">Owner</div>
         <div id="developer-badge" class="profile-developer-badge" style="display: none;">Contributor</div>
-        <button onclick="toggleTheme()">Toggle Theme</button>
     </div>
 </div>
 
@@ -325,13 +289,14 @@
 </div>
 
 <script>
-    document.getElementById('chat-input').addEventListener('keydown', function (event) {
+    document.getElementById('chat-input').addEventListener('keypress', function (event) {
         if (event.key === 'Enter') {
-            const messageText = event.target.value.trim();
+            const messageText = event.target.value;
             if (messageText) {
-                sendMessage(currentUserName, messageText, localStorage.getItem('profilePic') || 'default-profile-pic.png');
+                const username = localStorage.getItem('username') || 'Guest';
+                const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
+                sendMessage(username, messageText, profilePictureUrl);
                 event.target.value = '';
-                sendTypingIndicator();
             }
         }
     });
