@@ -5,203 +5,139 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Owner Dashboard</title>
 
-    <!-- Firebase Configuration -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script>
-        // Your web app's Firebase configuration
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getDatabase, ref, get, child, update, set, remove, onValue } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+
+        // Your Firebase configuration
         const firebaseConfig = {
-            apiKey: "AIzaSyAe0hXfAJ0ijKNiGgAVfv4zG1ngADF2E4c",
-            authDomain: "chatapp-90c78.firebaseapp.com",
-            projectId: "chatapp-90c78",
-            storageBucket: "chatapp-90c78.appspot.com",
-            messagingSenderId: "195015101932",
-            appId: "1:195015101932:web:f352296f341c58458a84c9",
-            databaseURL: "https://chatapp-90c78-default-rtdb.firebaseio.com"
+            apiKey: "AIzaSyClD-3xfEnSFwoGdGCbkJMce36UkDLeVnE",
+            authDomain: "realtimeaccountcreation.firebaseapp.com",
+            databaseURL: "https://realtimeaccountcreation-default-rtdb.firebaseio.com",
+            projectId: "realtimeaccountcreation",
+            storageBucket: "realtimeaccountcreation.appspot.com",
+            messagingSenderId: "658896933674",
+            appId: "1:658896933674:web:3275d0678c39b54e8f8453"
         };
+
         // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
-        const username = localStorage.getItem('username') || 'Guest';
-        const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
-
-        function sendMessage(username, messageText, profilePicUrl) {
-            const messageRef = db.ref('messages').push();
-            messageRef.set({
-                username: username,
-                message: messageText,
-                profilePic: profilePicUrl,
-                timestamp: new Date().toISOString()
-            });
-        }
-
+        // Helper functions
         function showPopup(message, type = 'success') {
             const popup = document.getElementById('popup');
             popup.textContent = message;
-            popup.classList.add(type, 'show');
+            popup.className = 'popup show ' + type;
 
             setTimeout(() => {
-                popup.classList.remove('show');
-                popup.classList.add('hide');
-
+                popup.className = 'popup hide ' + type;
                 setTimeout(() => {
-                    popup.classList.remove('hide');
-                    popup.classList.remove(type);
+                    popup.className = 'popup';
                 }, 600);
             }, 3000);
         }
 
         function loadGlobalStats() {
-            db.ref('users').once('value').then(snapshot => {
-                const totalUsers = snapshot.numChildren();
+            const usersRef = ref(db, 'users');
+            onValue(usersRef, (snapshot) => {
+                const totalUsers = snapshot.size;
                 document.getElementById('total-users').innerText = `Total Users: ${totalUsers}`;
 
-                // Count banned users
-                db.ref('bannedUsers').once('value').then(bannedSnapshot => {
-                    const totalBanned = bannedSnapshot.numChildren();
+                const bannedUsersRef = ref(db, 'bannedUsers');
+                onValue(bannedUsersRef, (bannedSnapshot) => {
+                    const totalBanned = bannedSnapshot.size;
                     document.getElementById('total-banned').innerText = `Banned Users: ${totalBanned}`;
+                    loadBannedUsers(); // Function to load banned users
                 });
             });
-        }
-
-        function notifyAllUsers(message) {
-            const usersRef = db.ref('users');
-            usersRef.once('value').then(snapshot => {
-                snapshot.forEach(childSnapshot => {
-                    const username = childSnapshot.key;
-                    // Logic to send email notification (not implemented here)
-                    console.log(`Notification sent to ${username}: ${message}`);
-                });
-                showPopup('Notification sent to all users.', 'success');
-            });
-        }
-
-        function downloadUserData() {
-            db.ref('users').once('value').then(snapshot => {
-                let csvContent = "data:text/csv;charset=utf-8,";
-                csvContent += "Username,Created At\n"; // Header
-
-                snapshot.forEach(childSnapshot => {
-                    const username = childSnapshot.key;
-                    const createdAt = childSnapshot.val().created_at || "N/A";
-                    csvContent += `${username},${createdAt}\n`; // Append user data
-                });
-
-                const encodedUri = encodeURI(csvContent);
-                const link = document.createElement("a");
-                link.setAttribute("href", encodedUri);
-                link.setAttribute("download", "user_data.csv");
-                document.body.appendChild(link); // Required for Firefox
-
-                link.click(); // Download
-                link.remove();
-            }).catch(error => showPopup(`Error downloading user data: ${error.message}`, 'error'));
-        }
-
-        function updateUserPrivileges(username, privilege) {
-            db.ref('users/' + username + '/privilege').set(privilege)
-                .then(() => showPopup(`${username} privilege updated to ${privilege}.`, 'success'))
-                .catch(error => showPopup(`Error updating privilege: ${error.message}`, 'error'));
-        }
-
-        function toggleTheme() {
-            const body = document.body;
-            body.classList.toggle('light-theme');
-            const themeButton = document.getElementById('theme-toggle');
-            themeButton.textContent = body.classList.contains('light-theme') ? 'Switch to Dark Theme' : 'Switch to Light Theme';
         }
 
         function loadUserList() {
-            db.ref('users').once('value').then(snapshot => {
-                const userList = document.getElementById('user-list');
-                userList.innerHTML = ''; // Clear existing list
+            const usersRef = ref(db, 'users');
+            const userListDiv = document.getElementById('user-list');
+            userListDiv.innerHTML = ''; // Clear existing list
+
+            onValue(usersRef, (snapshot) => {
                 snapshot.forEach(childSnapshot => {
                     const username = childSnapshot.key;
                     const userDiv = document.createElement('div');
                     userDiv.className = 'user-entry';
-
                     userDiv.innerHTML = `
                         <span>${username}</span>
                         <button class="action-button" onclick="banUser('${username}')">Ban</button>
                         <button class="action-button" onclick="unbanUser('${username}')">Unban</button>
                         <button class="action-button" onclick="deleteUser('${username}')">Delete</button>
-                        <button class="action-button" onclick="assignDeveloperBadge('${username}')">Dev Badge</button>
                         <button class="action-button" onclick="editUser('${username}')">Edit</button>
                     `;
-                    userList.appendChild(userDiv);
+                    userListDiv.appendChild(userDiv);
                 });
-            }).catch(error => {
-                showPopup(`Error loading user list: ${error.message}`, 'error');
             });
         }
 
-        function editUser(username) {
-            const newRole = prompt('Enter new role for ' + username);
-            if (newRole) {
-                updateUserPrivileges(username, newRole);
-            }
+        function loadBannedUsers() {
+            const bannedUsersRef = ref(db, 'bannedUsers');
+            const bannedListDiv = document.getElementById('banned-users-list');
+            bannedListDiv.innerHTML = ''; // Clear existing list
+
+            onValue(bannedUsersRef, (snapshot) => {
+                snapshot.forEach(childSnapshot => {
+                    const username = childSnapshot.key;
+                    const bannedDiv = document.createElement('div');
+                    bannedDiv.className = 'banned-entry';
+                    bannedDiv.innerHTML = `
+                        <span>${username} (Banned)</span>
+                        <button class="action-button" onclick="unbanUser('${username}')">Unban</button>
+                    `;
+                    bannedListDiv.appendChild(bannedDiv);
+                });
+            });
         }
 
         function banUser(username) {
-            if (!confirm(`Are you sure you want to ban ${username}?`)) return;
-
-            db.ref('bannedUsers/' + username).set(true)
+            const bannedUsersRef = ref(db, `bannedUsers/${username}`);
+            set(bannedUsersRef, true)
                 .then(() => {
                     showPopup(`${username} has been banned!`, 'success');
-                    deleteUserMessages(username);
-                    loadUserList();
+                    loadUserList(); // Reload user list
                 })
                 .catch(error => showPopup(`Error banning user: ${error.message}`, 'error'));
         }
 
         function unbanUser(username) {
-            if (!confirm(`Are you sure you want to unban ${username}?`)) return;
-
-            db.ref('bannedUsers/' + username).remove()
+            const bannedUsersRef = ref(db, `bannedUsers/${username}`);
+            remove(bannedUsersRef)
                 .then(() => {
                     showPopup(`${username} has been unbanned!`, 'success');
-                    loadUserList();
+                    loadBannedUsers(); // Reload banned users list
                 })
                 .catch(error => showPopup(`Error unbanning user: ${error.message}`, 'error'));
         }
 
-        function deleteUser(username) {
-            if (!confirm(`Are you sure you want to delete ${username}? All their data will be lost.`)) return;
+        function editUser(username) {
+            const newRole = prompt('Enter new role for ' + username);
+            if (newRole) {
+                update(ref(db, `users/${username}/role`), newRole)
+                    .then(() => {
+                        showPopup(`${username}'s role has been updated to ${newRole}.`, 'success');
+                    })
+                    .catch(error => showPopup(`Error updating privilege: ${error.message}`, 'error'));
+            }
+        }
 
-            db.ref('users/' + username).remove()
+        function deleteUser(username) {
+            const userRef = ref(db, `users/${username}`);
+            remove(userRef)
                 .then(() => {
                     showPopup(`${username} has been deleted!`, 'success');
-                    loadUserList();
+                    loadUserList(); // Reload user list
                 })
                 .catch(error => showPopup(`Error deleting user: ${error.message}`, 'error'));
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('username-display').textContent = username;
-            document.getElementById('profile-pic').src = profilePictureUrl;
-
-            loadGlobalStats(); // Load statistics on page load
-            loadUserList(); // Load user list on page load
-
-            const chatInput = document.getElementById('chat-input');
-            chatInput.addEventListener('keypress', function (event) {
-                if (event.key === 'Enter') {
-                    const messageText = event.target.value;
-                    if (messageText) {
-                        sendMessage(username, messageText, profilePictureUrl);
-                        event.target.value = '';
-                    }
-                }
-            });
-
-            document.getElementById('notify-button').onclick = () => {
-                const message = document.getElementById('notify-message').value;
-                notifyAllUsers(message);
-            };
-
-            document.getElementById('download-button').onclick = downloadUserData;
-            document.getElementById('theme-toggle').onclick = toggleTheme;
+            loadGlobalStats();  // Load stats when page loads
+            loadUserList();     // Load users when page loads
         });
     </script>
 
@@ -213,78 +149,6 @@
             color: white;
             font-family: Arial, sans-serif;
             transition: background-color 0.3s;
-        }
-
-        /* Light Theme */
-        .light-theme {
-            background-color: #ffffff;
-            color: #000000;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: #444;
-            padding: 10px 20px;
-        }
-
-        .profile {
-            display: flex;
-            align-items: center;
-        }
-
-        .profile img {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            margin-right: 10px;
-            border: 3px solid white;
-        }
-
-        .username {
-            font-size: 18px;
-        }
-
-        .chat-box {
-            padding: 20px;
-        }
-
-        .messages {
-            margin-top: 20px;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        .message {
-            margin: 10px 0;
-            padding: 15px;
-            background-color: #333;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            transition: background-color 0.3s ease;
-        }
-
-        .action-button, .theme-button, .notify-button {
-            margin-left: 10px;
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: background-color 0.3s, transform 0.2s;
-        }
-
-        .action-button:hover, .theme-button:hover, .notify-button:hover {
-            background-color: #0056b3;
-            transform: translateY(-2px);
-        }
-
-        .action-button:active, .theme-button:active, .notify-button:active {
-            transform: translateY(1px);
         }
 
         .popup {
@@ -309,11 +173,11 @@
             top: -100px;
         }
 
-        .popup.success {
+        .success {
             background-color: green;
         }
 
-        .popup.error {
+        .error {
             background-color: red;
         }
 
@@ -324,72 +188,56 @@
             margin-top: 20px;
         }
 
-        #user-list {
+        #user-list, #banned-users-list {
             max-height: 200px;
             overflow-y: auto;
             margin-top: 10px;
-        }
-
-        #notification-center {
-            margin-top: 20px;
-            padding: 15px;
             background-color: #444;
+            padding: 15px;
             border-radius: 8px;
         }
 
-        @media (max-width: 600px) {
-            .owner-controls {
-                padding: 10px;
-            }
+        .user-entry, .banned-entry {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+        }
 
-            .chat-box {
-                padding: 10px;
-            }
+        .action-button {
+            padding: 5px 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .action-button:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
-
 <body>
 
     <div class="header">
-        <div class="profile">
-            <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture">
-            <div class="username" id="username-display"></div>
-        </div>
-        <button class="theme-button" id="theme-toggle">Switch to Light Theme</button>
-    </div>
-
-    <div class="chat-box">
-        <input type="text" id="chat-input" placeholder="Type your message here..." />
-        <div class="messages" id="messages-container"></div>
+        <h1>Owner Dashboard</h1>
     </div>
 
     <div class="owner-controls">
-        <h3>Owner Controls</h3>
         <div id="user-stats">
             <div id="total-users">Total Users: 0</div>
             <div id="total-banned">Banned Users: 0</div>
         </div>
 
-        <input type="text" id="new-username" placeholder="New Username">
-        <button class="action-button" onclick="createUser()">Create User</button>
-
-        <input type="text" id="search-query" placeholder="Search Users" oninput="searchUsers()">
+        <h3>User Management</h3>
         <div id="user-list"></div>
 
-        <input type="text" id="notify-message" placeholder="Notification Message">
-        <button class="notify-button" id="notify-button">Notify All Users</button>
-
-        <button class="action-button" id="download-button">Download User Data</button>
-    </div>
-
-    <div id="notification-center">
-        <h3>Notifications</h3>
-        <ul id="notification-list"></ul>
+        <h3>Banned Users</h3>
+        <div id="banned-users-list"></div>
     </div>
 
     <div id="popup" class="popup"></div>
 
 </body>
-
 </html>
