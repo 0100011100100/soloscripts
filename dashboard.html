@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Discord-like Chat Dashboard</title>
+    <title>Discord-like Chat Application</title>
 
-    <!-- Firebase Configuration -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <style>
         body {
             margin: 0;
@@ -17,6 +18,7 @@
             font-family: "Helvetica", Arial, sans-serif;
             display: flex;
         }
+
         .sidebar {
             width: 250px;
             background-color: #23272a;
@@ -25,6 +27,7 @@
             display: flex;
             flex-direction: column;
         }
+
         .header {
             display: flex;
             justify-content: space-between;
@@ -33,29 +36,37 @@
             background-color: #2f3136;
             border-bottom: 1px solid #7289da;
         }
+
         .profile {
             display: flex;
             align-items: center;
         }
+
         .profile img {
             width: 40px;
             height: 40px;
             border-radius: 50%;
             margin-right: 10px;
         }
-        .channel, .direct-message {
+
+        .channel,
+        .direct-message {
             padding: 10px;
             cursor: pointer;
         }
-        .channel:hover, .direct-message:hover {
+
+        .channel:hover,
+        .direct-message:hover {
             background-color: #40444b;
         }
+
         .chat-container {
             flex-grow: 1;
             padding: 10px;
             display: flex;
             flex-direction: column;
         }
+
         .messages {
             flex-grow: 1;
             overflow-y: auto;
@@ -65,9 +76,11 @@
             background-color: #40444b;
             padding: 10px;
         }
+
         .chat-box {
             display: flex;
         }
+
         .chat-box input {
             flex-grow: 1;
             padding: 10px;
@@ -77,137 +90,207 @@
             background-color: #40444b;
             color: #dcddde;
         }
+
         .reactions {
             display: flex;
             cursor: pointer;
         }
+
         .emoji {
             margin-right: 5px;
+        }
+
+        .roles {
+            margin-top: 20px;
+        }
+
+        .role {
             display: inline-block;
+            background-color: #7289da;
+            color: #fff;
+            border-radius: 5px;
+            padding: 3px 8px;
+            margin: 4px;
         }
     </style>
 </head>
+
 <body>
 
-<!-- Sidebar -->
-<div class="sidebar">
-    <div class="header">
-        <div class="profile">
-            <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture">
-            <div class="username" id="username-display"></div>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="header">
+            <div class="profile">
+                <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture">
+                <div class="username" id="username-display"></div>
+            </div>
+            <button id="logout-button">Logout</button>
+        </div>
+
+        <h3>Channels</h3>
+        <div id="channels">
+            <div class="channel" onclick="loadChannel('general')"># General</div>
+            <div class="channel" onclick="loadChannel('random')"># Random</div>
+        </div>
+
+        <h3>Direct Messages</h3>
+        <div id="direct-messages"></div>
+
+        <h3>Friends</h3>
+        <div id="friends-list"></div>
+
+        <h3>Roles</h3>
+        <div class="roles">
+            <span class="role">Member</span>
+            <span class="role">Admin</span>
+            <span class="role">Moderator</span>
         </div>
     </div>
-    <h3>Channels</h3>
-    <div id="channels">
-        <div class="channel" onclick="loadChannel('general')"># General</div>
-        <div class="channel" onclick="loadChannel('random')"># Random</div>
+
+    <!-- Chat Container -->
+    <div class="chat-container">
+        <h2 id="current-channel">Welcome!</h2>
+        <div class="messages" id="messages"></div>
+        <div class="chat-box">
+            <input type="text" id="chat-input" placeholder="Type a message...">
+        </div>
     </div>
-    <h3>Direct Messages</h3>
-    <div id="direct-messages"></div>
-    <h3>Friends</h3>
-    <div id="friends-list"></div>
-</div>
 
-<!-- Chat Container -->
-<div class="chat-container">
-    <h2 id="current-channel">Welcome!</h2>
-    <div class="messages" id="messages"></div>
-    <div class="chat-box">
-        <input type="text" id="chat-input" placeholder="Type a message...">
-    </div>
-</div>
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID",
+        };
 
-<script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyAe0hXfAJ0ijKNiGgAVfv4zG1ngADF2E4c",
-        authDomain: "chatapp-90c78.firebaseapp.com",
-        projectId: "chatapp-90c78",
-        storageBucket: "chatapp-90c78.appspot.com",
-        messagingSenderId: "195015101932",
-        appId: "1:195015101932:web:f352296f341c58458a84c9",
-        databaseURL: "https://chatapp-90c78-default-rtdb.firebaseio.com"
-    };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const auth = firebase.auth();
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    // Load Channels
-    function loadChannel(channel) {
-        document.getElementById('current-channel').textContent = `# ${channel.charAt(0).toUpperCase() + channel.slice(1)}`;
-        document.getElementById('messages').innerHTML = ''; // Clear messages
-
-        // Listen to messages in the channel
-        listenForMessages(channel);
-    }
-
-    // Send Message
-    function sendMessage(channel, username, messageText, profilePicUrl) {
-        db.ref(`${channel}/messages`).push().set({
-            username: username,
-            message: messageText,
-            profilePic: profilePicUrl,
-            timestamp: new Date().toISOString()
-        });
-    }
-
-    // Listen for Messages
-    function listenForMessages(channel) {
-        db.ref(`${channel}/messages`).on('child_added', (snapshot) => {
-            const messageData = snapshot.val();
-            addMessageToChat(messageData.username, messageData.message, messageData.profilePic);
-        });
-    }
-
-    function addMessageToChat(username, messageText, profilePicUrl) {
-        const messageEmbed = document.createElement('div');
-        messageEmbed.classList.add('message-embed');
-
-        const profileImage = document.createElement('img');
-        profileImage.src = profilePicUrl || 'default-profile-pic.png';
-        profileImage.classList.add('profile-pic');
-
-        const content = document.createElement('div');
-        content.classList.add('message-content');
-        content.innerHTML = `<strong>${username}:</strong> ${messageText}`;
-
-        const reactionsDiv = document.createElement('div');
-        reactionsDiv.classList.add('reactions');
-        ['👍', '❤️', '😂', '😮', '😢', '😡'].forEach(emoji => {
-            const emojiSpan = document.createElement('span');
-            emojiSpan.innerText = emoji;
-            emojiSpan.classList.add('emoji');
-            emojiSpan.onclick = () => alert(`Reacted with ${emoji}`);
-            reactionsDiv.appendChild(emojiSpan);
+        // Firebase Authentication
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                loadUserData(user);
+            } else {
+                // No user is signed in; show login
+                window.location.href = '/login.html'; // Redirect to a login page
+            }
         });
 
-        messageEmbed.appendChild(profileImage);
-        messageEmbed.appendChild(content);
-        messageEmbed.appendChild(reactionsDiv);
-        document.getElementById('messages').appendChild(messageEmbed);
-    }
+        function loadUserData(user) {
+            document.getElementById('username-display').textContent = user.displayName || user.email;
+            document.getElementById('profile-pic').src = user.photoURL || 'default-profile-pic.png';
+            loadFriends();
+            loadChannel('general'); // Load a default channel
+        }
 
-    window.onload = function() {
-        const username = localStorage.getItem('username') || 'Guest';
-        const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
-        document.getElementById('username-display').textContent = username;
-        document.getElementById('profile-pic').src = profilePictureUrl;
+        function logout() {
+            auth.signOut().then(() => {
+                window.location.href = '/login.html'; // Redirect to a login page
+            });
+        }
 
-        loadChannel('general'); // Load default channel
-    };
+        // Load Friends
+        function loadFriends() {
+            const user = auth.currentUser;
+            const friends = ['User1', 'User2', 'User3']; // Simulated friends list
+            const friendsListContainer = document.getElementById('friends-list');
+            friendsListContainer.innerHTML = '';
+            friends.forEach(friend => {
+                const friendDiv = document.createElement('div');
+                friendDiv.className = 'direct-message';
+                friendDiv.textContent = friend;
+                friendDiv.onclick = () => startDM(friend);
+                friendsListContainer.appendChild(friendDiv);
+            });
+        }
 
-    document.getElementById('chat-input').addEventListener('keypress', function (event) {
-        if (event.key === 'Enter') {
-            const messageText = event.target.value;
-            const username = localStorage.getItem('username') || 'Guest';
-            const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
+        function startDM(friend) {
+            loadChannel(`dm_${friend}`); // Create or load DM channel
+        }
+
+        // Load Channels
+        function loadChannel(channel) {
+            document.getElementById('current-channel').textContent = `# ${channel.charAt(0).toUpperCase() + channel.slice(1)}`;
+            document.getElementById('messages').innerHTML = ''; // Clear messages
+            listenForMessages(channel);
+        }
+
+        // Send Message
+        function sendMessage(channel, user) {
+            const messageText = document.getElementById('chat-input').value;
             if (messageText) {
-                const currentChannel = document.getElementById('current-channel').textContent.slice(2).toLowerCase(); // Get channel name
-                sendMessage(currentChannel, username, messageText, profilePictureUrl);
-                event.target.value = '';
+                db.ref(`${channel}/messages`).push().set({
+                    username: user.displayName,
+                    message: messageText,
+                    profilePic: user.photoURL,
+                    timestamp: new Date().toISOString()
+                });
+                document.getElementById('chat-input').value = '';
             }
         }
-    });
-</script>
 
+        // Listen for Messages
+        function listenForMessages(channel) {
+            db.ref(`${channel}/messages`).on('child_added', snapshot => {
+                const messageData = snapshot.val();
+                addMessageToChat(messageData.username, messageData.message, messageData.profilePic);
+            });
+        }
+
+        function addMessageToChat(username, messageText, profilePicUrl) {
+            const messageEmbed = document.createElement('div');
+            messageEmbed.classList.add('message-embed');
+
+            const profileImage = document.createElement('img');
+            profileImage.src = profilePicUrl || 'default-profile-pic.png';
+            profileImage.classList.add('profile-pic');
+
+            const content = document.createElement('div');
+            content.classList.add('message-content');
+            content.innerHTML = `<strong>${username}:</strong> ${messageText}`;
+
+            const reactionsDiv = document.createElement('div');
+            reactionsDiv.classList.add('reactions');
+            ['👍', '❤️', '😂', '😮', '😢', '😡'].forEach(emoji => {
+                const emojiSpan = document.createElement('span');
+                emojiSpan.innerText = emoji;
+                emojiSpan.classList.add('emoji');
+                emojiSpan.onclick = () => alert(`Reacted with ${emoji}`);
+                reactionsDiv.appendChild(emojiSpan);
+            });
+
+            messageEmbed.appendChild(profileImage);
+            messageEmbed.appendChild(content);
+            messageEmbed.appendChild(reactionsDiv);
+            document.getElementById('messages').appendChild(messageEmbed);
+        }
+
+        document.getElementById('chat-input').addEventListener('keypress', function (event) {
+            if (event.key === 'Enter') {
+                const user = auth.currentUser;
+                sendMessage(document.getElementById('current-channel').textContent.slice(2).toLowerCase(), user);
+            }
+        });
+
+        document.getElementById('logout-button').onclick = logout;
+
+        // Initialize
+        window.onload = function () {
+            auth.onAuthStateChanged(user => {
+                if (user) {
+                    loadUserData(user);
+                } else {
+                    window.location.href = '/login.html'; // Redirect to a login page
+                }
+            });
+        }
+    </script>
 </body>
+
 </html>
