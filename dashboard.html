@@ -35,7 +35,21 @@
             db.ref('messages').on('child_added', (snapshot) => {
                 const messageData = snapshot.val();
                 addMessageToChat(messageData.username, messageData.message, messageData.profilePic);
+
+                // Show notification if permission is granted
+                if (Notification.permission === 'granted') {
+                    new Notification("New message from " + messageData.username, {
+                        body: messageData.message,
+                        icon: messageData.profilePic || 'default-profile-pic.png' // Optional icon
+                    });
+                }
             });
+        }
+
+        function requestNotificationPermission() {
+            if (Notification.permission !== 'granted') {
+                Notification.requestPermission();
+            }
         }
 
         function checkUserBan(username) {
@@ -51,6 +65,7 @@
         }
 
         window.onload = function() {
+            requestNotificationPermission(); // Request notification permission
             const username = localStorage.getItem('username') || 'Guest';
             const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
 
