@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
-
+    <title>Chat Dashboard</title>
+    
     <!-- Firebase Configuration -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
@@ -22,106 +22,72 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        function sendMessage(username, messageText, profilePicUrl) {
+        function sendMessage(username, messageText, profilePicUrl, isBot = false) {
             db.ref('messages').push().set({
                 username: username,
                 message: messageText,
                 profilePic: profilePicUrl,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
+                isBot: isBot // Indicate if the message is from the bot
             });
         }
 
         function listenForMessages() {
             db.ref('messages').on('child_added', (snapshot) => {
                 const messageData = snapshot.val();
-                addMessageToChat(messageData.username, messageData.message, messageData.profilePic);
-
-                // Show notification if permission is granted
-                if (Notification.permission === 'granted') {
-                    new Notification("New message from " + messageData.username, {
-                        body: messageData.message,
-                        icon: messageData.profilePic || 'default-profile-pic.png' // Optional icon
-                    });
-                }
+                addMessageToChat(messageData);
             });
         }
 
-        function requestNotificationPermission() {
-            if (Notification.permission !== 'granted') {
-                Notification.requestPermission();
-            }
-        }
-
-        function checkUserBan(username) {
-            db.ref('bannedUsers/' + username).once('value').then(snapshot => {
-                if (snapshot.val()) {
-                    window.location.href = 'login.html';
-                }
-            });
-        }
-
-        function hasDeveloperBadge(username) {
-            return db.ref('users/' + username + '/badges/developer').once('value').then(snapshot => !!snapshot.val());
-        }
-
-        window.onload = function() {
-            requestNotificationPermission(); // Request notification permission
-            const username = localStorage.getItem('username') || 'Guest';
-            const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
-
-            checkUserBan(username);
-            hasDeveloperBadge(username).then(hasBadge => {
-                if (hasBadge) {
-                    document.getElementById('developer-badge').style.display = 'inline-block';
-                }
-            });
-
-            document.getElementById('username-display').textContent = username;
-            document.getElementById('profile-pic').src = profilePictureUrl;
-            listenForMessages();
-        };
-
-        function addMessageToChat(username, messageText, profilePicUrl) {
+        function addMessageToChat(messageData) {
             const message = document.createElement('div');
             message.classList.add('message');
 
             const profileImage = document.createElement('img');
-            profileImage.src = profilePicUrl || 'default-profile-pic.png';
+            profileImage.src = messageData.profilePic || 'default-profile-pic.png';
             profileImage.classList.add('profile-pic');
-            profileImage.onclick = function() {
-                openProfileModal(username, profilePicUrl);
-            };
 
             const text = document.createElement('span');
             let badgeText = '';
 
-            if (username === 'thisismyusername') {
-                badgeText = '<strong class="profile-owner-badge">Owner:</strong>';
-            } else if (username.toLowerCase() === 'thisismyusername') {
-                badgeText = '<strong class="profile-developer-badge">Developer:</strong>';
+            if (messageData.isBot) {
+                badgeText = '<strong class="bot-badge">🤖 Bot:</strong>';
             }
 
-            text.innerHTML = `${badgeText} ${username}: ${messageText}`;
+            text.innerHTML = `${badgeText} ${messageData.username}: ${messageData.message}`;
             message.appendChild(profileImage);
             message.appendChild(text);
             document.getElementById('messages-container').appendChild(message);
         }
 
-        function openProfileModal(username, profilePicUrl) {
-            document.getElementById('modal-username').textContent = username;
-            document.getElementById('modal-profile-pic').src = profilePicUrl || 'default-profile-pic.png';
-            document.getElementById('profile-modal').style.display = 'flex';
+        function randomizeMessage(message) {
+            // Randomly change the case of the letters
+            const randomized = message.split('').map(c => Math.random() > 0.5 ? c.toUpperCase() : c.toLowerCase()).join('');
+            return `🤪 ${randomized}!!!`;
         }
 
-        function closeProfileModal() {
-            document.getElementById('profile-modal').style.display = 'none';
-        }
+        window.onload = function() {
+            const username = localStorage.getItem('username') || 'Guest';
+            const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
+            document.getElementById('username-display').textContent = username;
+            document.getElementById('profile-pic').src = profilePictureUrl;
+            listenForMessages();
 
-        function signOut() {
-            localStorage.removeItem('username');
-            localStorage.removeItem('profilePic');
-            window.location.href = 'login.html';
-        }
+            document.getElementById('chat-input').addEventListener('keypress', function(event) {
+                if (event.key === 'Enter') {
+                    const messageText = event.target.value;
+                    if (messageText) {
+                        sendMessage(username, messageText, profilePictureUrl);
+
+                        // Generate a goofy response from the bot based on the user's message
+                        const botResponse = randomizeMessage(messageText);
+                        sendMessage("ChatBot", botResponse, 'default-bot-pic.png', true);
+                        
+                        event.target.value = '';
+                    }
+                }
+            });
+        };
     </script>
 
     <style>
@@ -155,55 +121,9 @@
             border: 3px solid #7289da;
         }
 
-        .profile-owner-badge, .profile-developer-badge {
-            font-size: 12px;
-            padding: 3px 10px;
-            color: #fff;
-            border-radius: 5px;
-            margin-left: 10px;
-        }
-
-        .profile-owner-badge {
-            background: linear-gradient(90deg, #ffcc00, #e63946);
-        }
-
-        .profile-developer-badge {
-            background: linear-gradient(90deg, #ff00ff, #00ffff);
-            animation: rainbow 3s linear infinite;
-        }
-
-        .nav-buttons {
-            display: flex;
-            justify-content: center;
-            margin-top: 20px;
-        }
-
-        .nav-buttons button {
-            margin: 0 10px;
-            padding: 10px 20px;
-            background-color: #4f545c;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .nav-buttons button:hover {
-            background-color: #72767d;
-        }
-
-        .chat-box {
-            padding: 20px;
-        }
-
-        .chat-box input {
-            width: 100%;
-            padding: 10px;
-            border-radius: 5px;
-            border: none;
-            font-size: 14px;
-            background-color: #40444b;
-            color: #dcddde;
+        .bot-badge {
+            color: #3ba55c; /* Color for the bot's badge */
+            font-weight: bold;
         }
 
         .messages {
@@ -228,6 +148,20 @@
             cursor: pointer;
         }
 
+        .chat-box {
+            padding: 20px;
+        }
+
+        .chat-box input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            font-size: 14px;
+            background-color: #40444b;
+            color: #dcddde;
+        }
+
         /* Profile Modal Styles */
         .modal {
             display: none;
@@ -242,35 +176,7 @@
             z-index: 1000;
         }
 
-        .modal-content {
-            background-color: #36393f;
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-            color: white;
-            width: 300px;
-        }
-
-        .modal-content img {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            margin-bottom: 10px;
-        }
-
-        .close-btn {
-            margin-top: 10px;
-            padding: 5px 15px;
-            background-color: #7289da;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .close-btn:hover {
-            background-color: #5b6eae;
-        }
+        /* Additional styling */
     </style>
 </head>
 <body>
@@ -279,43 +185,13 @@
     <div class="profile">
         <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture">
         <div class="username" id="username-display"></div>
-        <div id="owner-badge" class="profile-owner-badge" style="display: none;">Owner</div>
-        <div id="developer-badge" class="profile-developer-badge" style="display: none;">Contributor</div>
     </div>
-</div>
-
-<div class="nav-buttons">
-    <button onclick="window.location.href='settings.html'">Settings</button>
-    <button onclick="window.location.href='profile.html'">Profile</button>
-    <button onclick="signOut()">Sign Out</button>
 </div>
 
 <div class="chat-box">
     <input type="text" id="chat-input" placeholder="Type your message here...">
     <div class="messages" id="messages-container"></div>
 </div>
-
-<div id="profile-modal" class="modal" onclick="closeProfileModal()">
-    <div class="modal-content" onclick="event.stopPropagation()">
-        <img id="modal-profile-pic" src="default-profile-pic.png" alt="Profile Picture">
-        <h2 id="modal-username">Username</h2>
-        <button class="close-btn" onclick="closeProfileModal()">Close</button>
-    </div>
-</div>
-
-<script>
-    document.getElementById('chat-input').addEventListener('keypress', function (event) {
-        if (event.key === 'Enter') {
-            const messageText = event.target.value;
-            if (messageText) {
-                const username = localStorage.getItem('username') || 'Guest';
-                const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
-                sendMessage(username, messageText, profilePictureUrl);
-                event.target.value = '';
-            }
-        }
-    });
-</script>
 
 </body>
 </html>
