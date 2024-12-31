@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
+
+    <!-- Firebase Configuration -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script>
@@ -62,19 +64,6 @@
             document.getElementById('username-display').textContent = username;
             document.getElementById('profile-pic').src = profilePictureUrl;
             listenForMessages();
-
-            // Load user preferences
-            const storedColor = localStorage.getItem('backgroundColor') || '#36393f';
-            const storedTextSize = localStorage.getItem('textSize') || '16px';
-            const storedTheme = localStorage.getItem('theme');
-
-            document.body.style.backgroundColor = storedColor;
-            document.body.style.fontSize = storedTextSize;
-            if (storedTheme === 'light') {
-                document.body.style.color = '#000000';
-            } else {
-                document.body.style.color = '#dcddde';
-            }
         };
 
         function addMessageToChat(username, messageText, profilePicUrl) {
@@ -93,7 +82,7 @@
 
             if (username === 'Samir') {
                 badgeText = '<strong class="profile-owner-badge">Owner:</strong>';
-            } else if (username.toLowerCase() === 'thisismyusername') {
+            } else if (username.toLowerCase() === 'piggy') {
                 badgeText = '<strong class="profile-developer-badge">Developer:</strong>';
             }
 
@@ -119,6 +108,7 @@
             window.location.href = 'login.html';
         }
     </script>
+
     <style>
         body {
             margin: 0;
