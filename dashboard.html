@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat Dashboard</title>
-    
+
     <!-- Firebase Configuration -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
@@ -51,7 +51,7 @@
             let badgeText = '';
 
             if (messageData.isBot) {
-                badgeText = '<strong class="bot-badge">🤖 Bot:</strong>';
+                badgeText = '<strong class="bot-badge">Bot:</strong>'; // Updated to remove emoji
             }
 
             text.innerHTML = `${badgeText} ${messageData.username}: ${messageData.message}`;
@@ -60,10 +60,20 @@
             document.getElementById('messages-container').appendChild(message);
         }
 
-        function randomizeMessage(message) {
-            // Randomly change the case of the letters
-            const randomized = message.split('').map(c => Math.random() > 0.5 ? c.toUpperCase() : c.toLowerCase()).join('');
-            return `🤪 ${randomized}!!!`;
+        function getRandomGoofyResponse() {
+            const responses = [
+                "Did someone mention bananas?",
+                "I just saw a flying toaster!",
+                "Why did the chicken cross the road? To get to the other side!",
+                "I dreamt of spaghetti last night!",
+                "Do you think cats know they are cute?",
+                "What if clouds are just fluffy thoughts?",
+                "I'm just a bot, but I'm loving this chat!",
+                "Have you ever tried to catch a rainbow?",
+                "It’s all about the jellybeans, right?",
+                "Just keep swimming, just keep swimming!"
+            ];
+            return responses[Math.floor(Math.random() * responses.length)];
         }
 
         window.onload = function() {
@@ -79,11 +89,11 @@
                     if (messageText) {
                         sendMessage(username, messageText, profilePictureUrl);
 
-                        // Generate a goofy response from the bot based on the user's message
-                        const botResponse = randomizeMessage(messageText);
-                        sendMessage("ChatBot", botResponse, 'default-bot-pic.png', true);
+                        // Randomly decide whether to use a goofy response or just an acknowledgment
+                        const botResponse = Math.random() > 0.5 ? getRandomGoofyResponse() : "That's interesting!";
+                        sendMessage("RandomBot", botResponse, 'default-bot-pic.png', true);
                         
-                        event.target.value = '';
+                        event.target.value = ''; // Clear the input
                     }
                 }
             });
@@ -161,22 +171,6 @@
             background-color: #40444b;
             color: #dcddde;
         }
-
-        /* Profile Modal Styles */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        /* Additional styling */
     </style>
 </head>
 <body>
