@@ -4,58 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Settings</title>
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import { getDatabase, ref, get, update, set } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyClD-3xfEnSFwoGdGCbkJMce36UkDLeVnE",
-            authDomain: "realtimeaccountcreation.firebaseapp.com",
-            databaseURL: "https://realtimeaccountcreation-default-rtdb.firebaseio.com",
-            projectId: "realtimeaccountcreation",
-            storageBucket: "realtimeaccountcreation.appspot.com",
-            messagingSenderId: "658896933674",
-            appId: "1:658896933674:web:3275d0678c39b54e8f8453"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        let username = 'exampleUser'; // Replace with actual logic to fetch the logged-in user's username
-        const twoFactorCode = '123456'; // This should be generated dynamically
-
-        async function updatePassword() {
-            const passwordInput = document.getElementById('passwordInput').value;
-            const twofaInput = document.getElementById('twofaInput').value;
-            if (passwordInput && twofaInput === twoFactorCode) {
-                try {
-                    const snapshot = await get(ref(db, `users/${username}/password`));
-                    if (snapshot.exists()) {
-                        await update(ref(db, `users/${username}`), {
-                            password: passwordInput
-                        });
-                        alert('Password updated successfully');
-                    }
-                } catch (error) {
-                    console.error("Error updating password: ", error);
-                }
-            } else if (twofaInput !== twoFactorCode) {
-                alert('Invalid 2FA code! Please try again.');
-            } else {
-                alert('Please enter a new password.');
-            }
-        }
-
-        function showSection(sectionId) {
-            const sections = document.querySelectorAll('.section');
-            sections.forEach(section => {
-                section.style.display = 'none';
-            });
-            document.getElementById(sectionId).style.display = 'block';
-        }
-
-        // Other functions for changing settings...
-
-    </script>
     <style>
         body {
             margin: 0;
@@ -85,7 +33,6 @@
             width: 100%;
             cursor: pointer;
             transition: background-color 0.3s, color 0.3s;
-            border-radius: 10px;
         }
         .sidebar button:hover {
             background-color: #7289da;
@@ -98,11 +45,11 @@
         h3 {
             margin-top: 0;
         }
-        input[type="text"], input[type="password"], select {
+        input[type="text"], select {
             margin: 10px 0;
             padding: 10px;
             width: 100%;
-            border-radius: 10px;
+            border-radius: 5px;
             border: 1px solid #40444b;
             background-color: #40444b;
             color: white;
@@ -113,7 +60,7 @@
             border: none;
             padding: 10px;
             font-size: 16px;
-            border-radius: 10px;
+            border-radius: 5px;
             cursor: pointer;
             transition: background-color 0.3s;
             margin-top: 10px;
@@ -138,8 +85,7 @@
 <div class="container">
     <div id="accountSection" class="section">
         <h3>Account Settings</h3>
-        <input type="password" id="passwordInput" placeholder="Update your password">
-        <input type="text" id="twofaInput" placeholder="Enter 2FA Code">
+        <input type="text" id="passwordInput" placeholder="Update your password">
         <button class="apply" onclick="updatePassword()">Update Password</button>
     </div>
 
@@ -192,7 +138,67 @@
 </div>
 
 <script>
-    // Function implementations for changing settings here
+    function showSection(sectionId) {
+        // Hide all sections
+        const sections = document.querySelectorAll('.section');
+        sections.forEach(section => {
+            section.style.display = 'none';
+        });
+        // Show the selected section
+        document.getElementById(sectionId).style.display = 'block';
+    }
+
+    function updatePassword() {
+        const password = document.getElementById('passwordInput').value;
+        if (password) {
+            localStorage.setItem('password', password);
+            alert('Password updated!');
+        }
+    }
+
+    function changeBackgroundColor() {
+        const color = document.getElementById('colorSelect').value;
+        if (color) {
+            document.body.style.backgroundColor = color;
+            localStorage.setItem('backgroundColor', color);
+        }
+    }
+
+    function changeTextSize() {
+        const size = document.getElementById('textSizeSelect').value;
+        if (size) {
+            document.body.style.fontSize = size;
+            localStorage.setItem('textSize', size);
+        }
+    }
+
+    function changeTheme() {
+        const theme = document.getElementById('themeSelect').value;
+        if (theme) {
+            if (theme === 'light') {
+                document.body.style.backgroundColor = '#ffffff';
+                document.body.style.color = '#000000';
+            } else if (theme === 'dark') {
+                document.body.style.backgroundColor = '#2c2f33';
+                document.body.style.color = '#ffffff';
+            }
+            localStorage.setItem('theme', theme);
+        }
+    }
+
+    function toggleNotifications() {
+        const isEnabled = document.getElementById('notificationToggle').checked;
+        localStorage.setItem('notificationsEnabled', isEnabled);
+        alert(`Notifications are now ${isEnabled ? 'enabled' : 'disabled'}.`);
+    }
+
+    function changeLanguage() {
+        const language = document.getElementById('languageSelect').value;
+        if (language) {
+            localStorage.setItem('language', language);
+            alert(`Language changed to ${language}.`);
+        }
+    }
 
     function goBack() {
         window.location.href = 'dashboard.html';
@@ -200,21 +206,28 @@
 
     // Load saved settings on page load
     window.onload = function() {
-        const storedColor = localStorage.getItem('backgroundColor') || '#2c2f33';
-        const storedTextSize = localStorage.getItem('textSize') || '16px';
+        const storedColor = localStorage.getItem('backgroundColor');
+        const storedTextSize = localStorage.getItem('textSize');
         const storedTheme = localStorage.getItem('theme');
 
-        document.body.style.backgroundColor = storedColor;
-        document.body.style.fontSize = storedTextSize;
+        if (storedColor) {
+            document.body.style.backgroundColor = storedColor;
+        }
+        if (storedTextSize) {
+            document.body.style.fontSize = storedTextSize;
+        }
         if (storedTheme === 'light') {
+            document.body.style.backgroundColor = '#ffffff';
             document.body.style.color = '#000000';
-        } else {
+        } else if (storedTheme === 'dark') {
+            document.body.style.backgroundColor = '#2c2f33';
             document.body.style.color = '#ffffff';
         }
 
         const welcomeMessage = `Welcome back! Your saved settings have been applied.`;
         document.getElementById('welcomeMessage').innerText = welcomeMessage;
 
+        // Show the Account section by default
         showSection('accountSection');
     };
 </script>
