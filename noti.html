@@ -3,29 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Push Notification Example</title>
 </head>
 <body>
-    <button onclick="sendNotification()">Send Push Notification</button>
+    <h1>Push Notification Demo</h1>
+    <button id="subscribe">Send Push Notification</button>
+
     <script>
-        const notify = () => {
-            navigator.serviceWorker.getRegistration().then(registration => {
-                if (registration) {
-                    registration.showNotification('New message from John', {
-                        body: 'Hey! Check out this new update.',
-                        icon: 'icon.png',
-                        url: 'https://example.com/messages'
-                    });
-                }
+        // Register the service worker
+        if ('serviceWorker' in navigator && 'PushManager' in window) {
+            navigator.serviceWorker.register('service-worker.js')
+            .then(registration => {
+                console.log('Service Worker registered with scope:', registration.scope);
+            })
+            .catch(error => {
+                console.error('Service Worker registration failed:', error);
+            });
+        } else {
+            console.warn('Push messaging is not supported');
+        }
+
+        // Function to send a simulated push notification
+        const sendNotification = () => {
+            const title = 'New message from John';
+            const body = 'Hey! Check out this new update.';
+            const icon = 'icon.png'; // Path to an icon image (should be included)
+            const url = 'https://example.com/messages';
+
+            // Show the notification using the service worker
+            navigator.serviceWorker.ready.then(registration => {
+                registration.showNotification(title, {
+                    body,
+                    icon,
+                    data: {
+                        url
+                    }
+                });
             });
         };
 
-        const sendNotification = () => {
-            fetch('/push', { method: 'POST' })
-                .then(response => response.json())
-                .then(data => console.log(data));
-            notify();
-        };
+        // Set up the button to trigger the notification
+        document.getElementById('subscribe').addEventListener('click', sendNotification);
     </script>
 </body>
 </html>
