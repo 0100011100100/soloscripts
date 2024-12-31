@@ -4,10 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Settings</title>
-    
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import { getDatabase, ref, update } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+        import { getDatabase, ref, get, update, set } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyClD-3xfEnSFwoGdGCbkJMce36UkDLeVnE",
@@ -33,15 +32,14 @@
                     await update(ref(db, `users/${username}`), {
                         password: passwordInput
                     });
-                    showNotification('Password updated successfully');
+                    alert('Password updated successfully');
                 } catch (error) {
                     console.error("Error updating password: ", error);
-                    showNotification('Error updating password', true);
                 }
             } else if (twofaInput !== twoFactorCode) {
-                showNotification('Invalid 2FA code! Please try again.', true);
+                alert('Invalid 2FA code! Please try again.');
             } else {
-                showNotification('Please enter a new password.', true);
+                alert('Please enter a new password.');
             }
         }
 
@@ -49,14 +47,12 @@
             const color = document.getElementById('colorSelect').value;
             document.body.style.backgroundColor = color;
             localStorage.setItem('backgroundColor', color);
-            showNotification('Background color changed successfully');
         }
 
         function changeTextSize() {
             const size = document.getElementById('textSizeSelect').value;
             document.body.style.fontSize = size;
             localStorage.setItem('textSize', size);
-            showNotification('Text size changed successfully');
         }
 
         function changeTheme() {
@@ -69,38 +65,18 @@
                 document.body.style.color = '#ffffff';
             }
             localStorage.setItem('theme', theme);
-            showNotification('Theme changed successfully');
         }
 
         function toggleNotifications() {
             const isEnabled = document.getElementById('notificationToggle').checked;
             localStorage.setItem('notificationsEnabled', isEnabled);
-            showNotification(`Notifications are now ${isEnabled ? 'enabled' : 'disabled'}.`);
+            alert(`Notifications are now ${isEnabled ? 'enabled' : 'disabled'}.`);
         }
 
         function changeLanguage() {
             const language = document.getElementById('languageSelect').value;
             localStorage.setItem('language', language);
-            showNotification(`Language changed to ${language}.`);
-        }
-
-        function showNotification(message, isError = false) {
-            const notification = document.createElement('div');
-            notification.className = `notification${isError ? ' error' : ''}`;
-            notification.innerText = message;
-            document.body.prepend(notification);
-
-            // Auto-hide the notification after 3 seconds
-            setTimeout(() => {
-                notification.style.opacity = '0';
-                setTimeout(() => notification.remove(), 500); // Remove after fade out
-            }, 3000);
-
-            // Click handler to dismiss notification
-            notification.onclick = () => {
-                notification.style.opacity = '0';
-                setTimeout(() => notification.remove(), 500); // Remove after fade out
-            };
+            alert(`Language changed to ${language}.`);
         }
 
         function showSection(sectionId) {
@@ -129,10 +105,12 @@
                 document.body.style.color = '#ffffff';
             }
 
+            const welcomeMessage = `Welcome back! Your saved settings have been applied.`;
+            document.getElementById('welcomeMessage').innerText = welcomeMessage;
+
             showSection('accountSection');
         };
     </script>
-    
     <style>
         body {
             margin: 0;
@@ -141,24 +119,18 @@
             color: #ffffff;
             font-family: Arial, sans-serif;
             display: flex;
-            flex-direction: column;
             height: 100vh;
-            position: relative;
-            overflow: hidden;
         }
-        
         .sidebar {
             background-color: #23272a;
             width: 220px;
             padding: 20px;
             box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
         }
-        
         .sidebar h2 {
             margin-top: 0;
             font-size: 20px;
         }
-        
         .sidebar button {
             background-color: transparent;
             color: #ffffff;
@@ -170,21 +142,17 @@
             transition: background-color 0.3s, color 0.3s;
             border-radius: 10px;
         }
-        
         .sidebar button:hover {
             background-color: #7289da;
         }
-        
         .container {
             padding: 20px;
             width: calc(100% - 220px);
             overflow-y: auto;
         }
-        
         h3 {
             margin-top: 0;
         }
-        
         input[type="text"], input[type="password"], select {
             margin: 10px 0;
             padding: 10px;
@@ -194,7 +162,6 @@
             background-color: #40444b;
             color: white;
         }
-        
         button.apply {
             background-color: #7289da;
             color: white;
@@ -207,30 +174,8 @@
             margin-top: 10px;
             width: 100%;
         }
-        
         button.apply:hover {
             background-color: #5d7ae0;
-        }
-
-        /* Notification styles */
-        .notification {
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #4caf50; /* Success color */
-            color: white;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 10px;
-            transition: opacity 0.5s;
-            opacity: 1;
-            z-index: 1000;
-            cursor: pointer;
-        }
-
-        .notification.error {
-            background: #f44336; /* Red color for errors */
         }
     </style>
 </head>
@@ -297,6 +242,8 @@
         </select>
         <button class="apply" onclick="changeLanguage()">Change Language</button>
     </div>
+
+    <div id="welcomeMessage"></div>
 </div>
 
 </body>
