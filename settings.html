@@ -4,9 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Settings</title>
+    
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import { getDatabase, ref, get, update, set } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+        import { getDatabase, ref, update } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyClD-3xfEnSFwoGdGCbkJMce36UkDLeVnE",
@@ -131,6 +132,7 @@
             showSection('accountSection');
         };
     </script>
+    
     <style>
         body {
             margin: 0;
@@ -144,16 +146,19 @@
             position: relative;
             overflow: hidden;
         }
+        
         .sidebar {
             background-color: #23272a;
             width: 220px;
             padding: 20px;
             box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
         }
+        
         .sidebar h2 {
             margin-top: 0;
             font-size: 20px;
         }
+        
         .sidebar button {
             background-color: transparent;
             color: #ffffff;
@@ -165,17 +170,21 @@
             transition: background-color 0.3s, color 0.3s;
             border-radius: 10px;
         }
+        
         .sidebar button:hover {
             background-color: #7289da;
         }
+        
         .container {
             padding: 20px;
             width: calc(100% - 220px);
             overflow-y: auto;
         }
+        
         h3 {
             margin-top: 0;
         }
+        
         input[type="text"], input[type="password"], select {
             margin: 10px 0;
             padding: 10px;
@@ -185,6 +194,7 @@
             background-color: #40444b;
             color: white;
         }
+        
         button.apply {
             background-color: #7289da;
             color: white;
@@ -197,16 +207,18 @@
             margin-top: 10px;
             width: 100%;
         }
+        
         button.apply:hover {
             background-color: #5d7ae0;
         }
+
         /* Notification styles */
         .notification {
             position: absolute;
             top: 0;
             left: 50%;
             transform: translateX(-50%);
-            background: #4caf50; /* Change to the desired color */
+            background: #4caf50; /* Success color */
             color: white;
             padding: 15px;
             border-radius: 5px;
@@ -216,6 +228,7 @@
             z-index: 1000;
             cursor: pointer;
         }
+
         .notification.error {
             background: #f44336; /* Red color for errors */
         }
@@ -284,7 +297,6 @@
         </select>
         <button class="apply" onclick="changeLanguage()">Change Language</button>
     </div>
-
 </div>
 
 </body>
