@@ -8,147 +8,6 @@
     <!-- Firebase Configuration -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyAe0hXfAJ0ijKNiGgAVfv4zG1ngADF2E4c",
-            authDomain: "chatapp-90c78.firebaseapp.com",
-            projectId: "chatapp-90c78",
-            storageBucket: "chatapp-90c78.appspot.com",
-            messagingSenderId: "195015101932",
-            appId: "1:195015101932:web:f352296f341c58458a84c9",
-            databaseURL: "https://chatapp-90c78-default-rtdb.firebaseio.com"
-        };
-
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
-        // Handle sending messages
-        function sendMessage(room, username, messageText, profilePicUrl, isDM = false) {
-            db.ref(`${room}/messages`).push().set({
-                username: username,
-                message: messageText,
-                profilePic: profilePicUrl,
-                timestamp: new Date().toISOString(),
-                isDM: isDM
-            });
-        }
-
-        function listenForMessages(room) {
-            db.ref(`${room}/messages`).on('child_added', (snapshot) => {
-                const messageData = snapshot.val();
-                addMessageToChat(messageData.username, messageData.message, messageData.profilePic, messageData.isDM);
-            });
-        }
-
-        function sendFriendRequest() {
-            const username = localStorage.getItem('username');
-            const requestee = document.getElementById('friend-username-input').value.trim();
-            if (requestee) {
-                db.ref(`friendRequests/${requestee}/${username}`).set(true);
-                alert(`Friend request sent to ${requestee}`);
-            }
-        }
-
-        function acceptRequest(username, requester) {
-            db.ref(`friendRequests/${username}/${requester}`).remove(); // Remove request
-            db.ref(`friends/${username}/${requester}`).set(true); // Add to friends
-            db.ref(`friends/${requester}/${username}`).set(true); // Reciprocal addition
-            loadFriendsList(); // Reload friends list
-            loadFriendRequests(); // Reload friend requests
-        }
-
-        function rejectRequest(username, requester) {
-            db.ref(`friendRequests/${username}/${requester}`).remove(); // Remove request
-            loadFriendRequests(); // Reload friend requests
-        }
-
-        function loadFriendsList() {
-            const username = localStorage.getItem('username');
-            db.ref(`friends/${username}`).once('value').then(snapshot => {
-                const friends = snapshot.val() || {};
-                document.getElementById('friends-list').innerHTML = '';
-                for (let friend in friends) {
-                    document.getElementById('friends-list').innerHTML += `<div>${friend} <button onclick="startDM('${friend}')">DM</button></div>`;
-                }
-            });
-        }
-
-        function loadFriendRequests() {
-            const username = localStorage.getItem('username');
-            db.ref(`friendRequests/${username}`).once('value').then(snapshot => {
-                const requests = snapshot.val() || {};
-                document.getElementById('friend-requests').innerHTML = '';
-                for (let requester in requests) {
-                    document.getElementById('friend-requests').innerHTML += `
-                        <div>
-                            ${requester} 
-                            <button onclick="acceptRequest('${username}', '${requester}')">Accept</button>
-                            <button onclick="rejectRequest('${username}', '${requester}')">Reject</button>
-                        </div>`;
-                }
-            });
-        }
-
-        function startDM(friend) {
-            const username = localStorage.getItem('username');
-            document.getElementById('dm-header').textContent = `Direct Messages with ${friend}`;
-            document.getElementById('dm-input').setAttribute('placeholder', `Message ${friend}...`);
-            listenForMessages(`dms/${username}_${friend}`);
-        }
-
-        function addMessageToChat(username, messageText, profilePicUrl, isDM) {
-            const messageEmbed = document.createElement('div');
-            messageEmbed.classList.add('message-embed');
-
-            const profileImage = document.createElement('img');
-            profileImage.src = profilePicUrl || 'default-profile-pic.png';
-            profileImage.classList.add('profile-pic');
-
-            const content = document.createElement('div');
-            content.classList.add('message-content');
-            content.innerHTML = `<strong>${username}:</strong> ${messageText}`;
-            messageEmbed.appendChild(profileImage);
-            messageEmbed.appendChild(content);
-            
-            document.getElementById(isDM ? 'dm-container' : 'public-messages').appendChild(messageEmbed);
-        }
-
-        window.onload = function() {
-            const username = localStorage.getItem('username') || 'Guest';
-            const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
-            document.getElementById('username-display').textContent = username;
-            document.getElementById('profile-pic').src = profilePictureUrl;
-            listenForMessages('public'); // Start listening to the public chat
-            loadFriendsList(); // Load friends list
-            loadFriendRequests(); // Load friend requests
-        };
-
-        document.getElementById('chat-input').addEventListener('keypress', function (event) {
-            if (event.key === 'Enter') {
-                const messageText = event.target.value;
-                const username = localStorage.getItem('username') || 'Guest';
-                const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
-                if (messageText) {
-                    sendMessage('public', username, messageText, profilePictureUrl);
-                    event.target.value = '';
-                }
-            }
-        });
-
-        document.getElementById('dm-input').addEventListener('keypress', function (event) {
-            if (event.key === 'Enter') {
-                const messageText = event.target.value;
-                const username = localStorage.getItem('username') || 'Guest';
-                const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
-                const recipient = document.getElementById('dm-header').textContent.split(' ')[3]; // Get friend’s name
-                if (messageText) {
-                    sendMessage(`dms/${username}_${recipient}`, username, messageText, profilePictureUrl, true);
-                    event.target.value = '';
-                }
-            }
-        });
-    </script>
-
     <style>
         body {
             margin: 0;
@@ -158,7 +17,6 @@
             font-family: "Helvetica", Arial, sans-serif;
             display: flex;
         }
-
         .sidebar {
             width: 250px;
             background-color: #23272a;
@@ -167,7 +25,6 @@
             display: flex;
             flex-direction: column;
         }
-
         .header {
             display: flex;
             justify-content: space-between;
@@ -176,55 +33,41 @@
             background-color: #2f3136;
             border-bottom: 1px solid #7289da;
         }
-
         .profile {
             display: flex;
             align-items: center;
         }
-
         .profile img {
             width: 40px;
             height: 40px;
             border-radius: 50%;
             margin-right: 10px;
-            border: 3px solid #7289da;
         }
-
-        .message-embed {
-            display: flex;
-            align-items: flex-start;
-            background-color: #40444b;
-            border-radius: 5px;
+        .channel, .direct-message {
             padding: 10px;
-            margin: 10px 0;
+            cursor: pointer;
         }
-
-        .message-content {
-            margin-left: 10px;
-            flex-grow: 1;
+        .channel:hover, .direct-message:hover {
+            background-color: #40444b;
         }
-
         .chat-container {
             flex-grow: 1;
             padding: 10px;
             display: flex;
             flex-direction: column;
         }
-
-        .messages, .dm-messages {
+        .messages {
             flex-grow: 1;
             overflow-y: auto;
             margin-bottom: 10px;
-            padding: 10px;
             border: 1px solid #7289da;
             border-radius: 5px;
             background-color: #40444b;
+            padding: 10px;
         }
-
         .chat-box {
             display: flex;
         }
-
         .chat-box input {
             flex-grow: 1;
             padding: 10px;
@@ -234,68 +77,19 @@
             background-color: #40444b;
             color: #dcddde;
         }
-
-        .nav-buttons button {
-            margin: 0 10px;
-            padding: 10px 20px;
-            background-color: #4f545c;
-            color: white;
-            border: none;
-            border-radius: 5px;
+        .reactions {
+            display: flex;
             cursor: pointer;
         }
-
-        .nav-buttons button:hover {
-            background-color: #72767d;
-        }
-
-        .friend-request {
-            padding: 10px;
-            background-color: #40444b;
-            border-radius: 5px;
-            margin: 5px 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .friend-requests, .friends-list {
-            margin-top: 20px;
-            background-color: #40444b;
-            padding: 10px;
-            border-radius: 5px;
-            overflow-y: auto;
-            flex-grow: 1;
-        }
-
-        .friend-requests h3, .friends-list h3 {
-            border-bottom: 1px solid #7289da;
-            padding-bottom: 5px;
-            margin-bottom: 10px;
-        }
-
-        .friend-input {
-            display: flex;
-            margin-top: 10px;
-        }
-
-        .friend-input input {
-            flex-grow: 1;
-            padding: 10px;
-            border-radius: 5px;
-            border: none;
-            background-color: #40444b;
-            color: #dcddde;
-        }
-
-        /* DM Container */
-        #dm-container {
-            display: none;
+        .emoji {
+            margin-right: 5px;
+            display: inline-block;
         }
     </style>
 </head>
 <body>
 
+<!-- Sidebar -->
 <div class="sidebar">
     <div class="header">
         <div class="profile">
@@ -303,38 +97,103 @@
             <div class="username" id="username-display"></div>
         </div>
     </div>
-
-    <div class="friend-requests">
-        <h3>Friend Requests</h3>
-        <div id="friend-requests"></div>
-        <div class="friend-input">
-            <input type="text" id="friend-username-input" placeholder="Username to Add">
-            <button onclick="sendFriendRequest()">Send Request</button>
-        </div>
+    <h3>Channels</h3>
+    <div id="channels">
+        <div class="channel" onclick="loadChannel('general')"># General</div>
+        <div class="channel" onclick="loadChannel('random')"># Random</div>
     </div>
-
-    <div class="friends-list">
-        <h3>Your Friends</h3>
-        <div id="friends-list"></div>
-    </div>
+    <h3>Direct Messages</h3>
+    <div id="direct-messages"></div>
+    <h3>Friends</h3>
+    <div id="friends-list"></div>
 </div>
 
+<!-- Chat Container -->
 <div class="chat-container">
-    <h2>Public Chat</h2>
-    <div class="messages" id="public-messages"></div>
+    <h2 id="current-channel">Welcome!</h2>
+    <div class="messages" id="messages"></div>
     <div class="chat-box">
         <input type="text" id="chat-input" placeholder="Type a message...">
-    </div>
-
-    <h2 id="dm-header" style="display: none;">Direct Messages</h2>
-    <div class="dm-messages" id="dm-container"></div>
-    <div class="chat-box" id="dm-input-box" style="display: none;">
-        <input type="text" id="dm-input" placeholder="Message...">
     </div>
 </div>
 
 <script>
-    document.getElementById('dm-input').style.display = 'none';
+    const firebaseConfig = {
+        apiKey: "AIzaSyAe0hXfAJ0ijKNiGgAVfv4zG1ngADF2E4c",
+        authDomain: "chatapp-90c78.firebaseapp.com",
+        projectId: "chatapp-90c78",
+        storageBucket: "chatapp-90c78.appspot.com",
+        messagingSenderId: "195015101932",
+        appId: "1:195015101932:web:f352296f341c58458a84c9",
+        databaseURL: "https://chatapp-90c78-default-rtdb.firebaseio.com"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Load Channels
+    function loadChannel(channel) {
+        document.getElementById('current-channel').textContent = `# ${channel.charAt(0).toUpperCase() + channel.slice(1)}`;
+        document.getElementById('messages').innerHTML = ''; // Clear messages
+
+        // Listen to messages in the channel
+        listenForMessages(channel);
+    }
+
+    // Send Message
+    function sendMessage(channel, username, messageText, profilePicUrl) {
+        db.ref(`${channel}/messages`).push().set({
+            username: username,
+            message: messageText,
+            profilePic: profilePicUrl,
+            timestamp: new Date().toISOString()
+        });
+    }
+
+    // Listen for Messages
+    function listenForMessages(channel) {
+        db.ref(`${channel}/messages`).on('child_added', (snapshot) => {
+            const messageData = snapshot.val();
+            addMessageToChat(messageData.username, messageData.message, messageData.profilePic);
+        });
+    }
+
+    function addMessageToChat(username, messageText, profilePicUrl) {
+        const messageEmbed = document.createElement('div');
+        messageEmbed.classList.add('message-embed');
+
+        const profileImage = document.createElement('img');
+        profileImage.src = profilePicUrl || 'default-profile-pic.png';
+        profileImage.classList.add('profile-pic');
+
+        const content = document.createElement('div');
+        content.classList.add('message-content');
+        content.innerHTML = `<strong>${username}:</strong> ${messageText}`;
+
+        const reactionsDiv = document.createElement('div');
+        reactionsDiv.classList.add('reactions');
+        ['👍', '❤️', '😂', '😮', '😢', '😡'].forEach(emoji => {
+            const emojiSpan = document.createElement('span');
+            emojiSpan.innerText = emoji;
+            emojiSpan.classList.add('emoji');
+            emojiSpan.onclick = () => alert(`Reacted with ${emoji}`);
+            reactionsDiv.appendChild(emojiSpan);
+        });
+
+        messageEmbed.appendChild(profileImage);
+        messageEmbed.appendChild(content);
+        messageEmbed.appendChild(reactionsDiv);
+        document.getElementById('messages').appendChild(messageEmbed);
+    }
+
+    window.onload = function() {
+        const username = localStorage.getItem('username') || 'Guest';
+        const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
+        document.getElementById('username-display').textContent = username;
+        document.getElementById('profile-pic').src = profilePictureUrl;
+
+        loadChannel('general'); // Load default channel
+    };
 
     document.getElementById('chat-input').addEventListener('keypress', function (event) {
         if (event.key === 'Enter') {
@@ -342,20 +201,8 @@
             const username = localStorage.getItem('username') || 'Guest';
             const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
             if (messageText) {
-                sendMessage('public', username, messageText, profilePictureUrl);
-                event.target.value = '';
-            }
-        }
-    });
-
-    document.getElementById('dm-input').addEventListener('keypress', function (event) {
-        if (event.key === 'Enter') {
-            const messageText = event.target.value;
-            const username = localStorage.getItem('username') || 'Guest';
-            const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
-            const recipient = document.getElementById('dm-header').textContent.split(' ')[3]; // Get friend’s name
-            if (messageText) {
-                sendMessage(`dms/${username}_${recipient}`, username, messageText, profilePictureUrl, true);
+                const currentChannel = document.getElementById('current-channel').textContent.slice(2).toLowerCase(); // Get channel name
+                sendMessage(currentChannel, username, messageText, profilePictureUrl);
                 event.target.value = '';
             }
         }
