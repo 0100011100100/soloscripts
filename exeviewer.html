@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EXE File Contents</title>
+</head>
+<body>
+    <h1>EXE File Contents</h1>
+    <form id="file-form">
+        <input type="file" id="file-input" accept=".exe" required>
+        <button type="submit">View HexDump</button>
+    </form>
+    <pre id="hexdump"></pre>
+
+    <script>
+        // Get the file input and hexdump elements
+        const fileInput = document.getElementById('file-input');
+        const hexdumpElement = document.getElementById('hexdump');
+
+        // Add event listener to the file input
+        fileInput.addEventListener('change', () => {
+            // Get the file selected by the user
+            const file = fileInput.files[0];
+
+            // Create a FileReader object
+            const reader = new FileReader();
+
+            // Define the callback function for when the file is loaded
+            reader.onload = function(e) {
+                // Get the loaded file data as an array of bytes
+                const fileData = new Uint8Array(e.target.result);
+
+                // Create a hexadecimal dump string
+                let hexDump = '';
+                for (let i = 0; i < fileData.length; i++) {
+                    const byte = fileData[i];
+                    hexDump += `0x${byte.toString(16).padStart(2, '0')} `;
+                    if ((i + 1) % 16 === 0) {
+                        hexDump += '\n';
+                    }
+                }
+
+                // Display the hexadecimal dump in the hexdump element
+                hexdumpElement.innerText = hexDump;
+            };
+
+            // Read the selected file
+            reader.readAsArrayBuffer(file);
+        });
+    </script>
+</body>
+</html>
