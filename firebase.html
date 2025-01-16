@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Firebase Display</title>
+    <title>Firebase Realtime Database Display</title>
     <script src="https://www.gstatic.com/firebasejs/5.4.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/5.4.0/firebase-messaging.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/5.4.0/firebase-database.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -20,8 +20,8 @@
 </head>
 <body>
 
-    <h1>Firebase Configuration</h1>
-    <pre id="firebaseConfig"></pre>
+    <h1>Firebase Realtime Database Content</h1>
+    <pre id="databaseContent">Loading...</pre>
 
     <script>
         // Initialize Firebase
@@ -38,8 +38,26 @@
         // Initialize the app with the config
         firebase.initializeApp(config);
 
-        // Display the Firebase config in the preformatted text area
-        document.getElementById('firebaseConfig').textContent = JSON.stringify(config, null, 2);
+        // Reference to your database
+        var database = firebase.database();
+
+        // Function to get data from the database
+        function fetchDatabaseContent() {
+            var dbRef = database.ref('/'); // Change '/' to the desired path in your database
+            dbRef.once('value')
+                .then(function(snapshot) {
+                    // Get the data and display it
+                    var data = snapshot.val();
+                    document.getElementById('databaseContent').textContent = JSON.stringify(data, null, 2);
+                })
+                .catch(function(error) {
+                    console.error("Error fetching data: ", error);
+                    document.getElementById('databaseContent').textContent = "Error fetching data.";
+                });
+        }
+
+        // Fetch the content when the page loads
+        fetchDatabaseContent();
     </script>
 
 </body>
