@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Display</title>
+    <script src="https://www.gstatic.com/firebasejs/5.4.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/5.4.0/firebase-messaging.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        pre {
+            background-color: #f8f8f8;
+            padding: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Firebase Configuration</h1>
+    <pre id="firebaseConfig"></pre>
+
+    <script>
+        // Initialize Firebase
+        var config = {
+            apiKey: "AIzaSyBxzqOKnWodZ6w4M46rxka1BwZne9IIl3c",
+            authDomain: "onworks.firebaseapp.com",
+            databaseURL: "https://onworks.firebaseio.com",
+            projectId: "onworks",
+            storageBucket: "onworks.appspot.com",
+            messagingSenderId: "796898949162",
+            appId: "1:796898949162:web:cdad3affee39c481d8eb53"
+        };
+
+        // Initialize the app with the config
+        firebase.initializeApp(config);
+
+        // Display the Firebase config in the preformatted text area
+        document.getElementById('firebaseConfig').textContent = JSON.stringify(config, null, 2);
+    </script>
+
+</body>
+</html>
