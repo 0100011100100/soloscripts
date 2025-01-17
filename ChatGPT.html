@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+
+    <!-- Firebase Configuration -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAe0hXfAJ0ijKNiGgAVfv4zG1ngADF2E4c",
+            authDomain: "chatapp-90c78.firebaseapp.com",
+            projectId: "chatapp-90c78",
+            storageBucket: "chatapp-90c78.appspot.com",
+            messagingSenderId: "195015101932",
+            appId: "1:195015101932:web:f352296f341c58458a84c9",
+            databaseURL: "https://chatapp-90c78-default-rtdb.firebaseio.com"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        function sendMessage(username, messageText, profilePicUrl) {
+            db.ref('messages').push().set({
+                username: username,
+                message: messageText,
+                profilePic: profilePicUrl,
+                timestamp: new Date().toISOString()
+            });
+        }
+
+        function listenForMessages() {
+            db.ref('messages').on('child_added', (snapshot) => {
+                const messageData = snapshot.val();
+                addMessageToChat(messageData.username, messageData.message, messageData.profilePic);
+            });
+        }
+
+        // Function to send a question to DeepAI
+        function sendQuestionToDeepAI(message) {
+            const username = 'ChatGPT'; // Representing the bot as ChatGPT
+            const question = message.substring(3).trim(); // Strip out the "!q " part
+            const profilePictureUrl = 'https://www.deepai.org/favicon.ico'; // Custom bot icon
+
+            askDeepAI(question).then((response) => {
+                addMessageToChat(username, response, profilePictureUrl);
+            });
+        }
+
+        function askDeepAI(question) {
+            const deepAiApiKey = '8e37215c-5a32-46d8-9087-9f6c1c983a0c'; // Replace this with your DeepAI API key
+            const deepAiUrl = 'https://api.deepai.org/api/text-generator'; // DeepAI API endpoint
+
+            const headers = {
+                'Api-Key': deepAiApiKey,
+                'Content-Type': 'application/json'
+            };
+            const data = {
+                'text': question
+            };
+
+            return fetch(deepAiUrl, {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                return data.output; // Get the generated output from DeepAI
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                return "Sorry, I could not fetch the response."; // Default error message
+            });
+        }
+
+        window.onload = function() {
+            const username = localStorage.getItem('username') || 'Guest';
+            const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
+            listenForMessages();
+        };
+
+        function addMessageToChat(username, messageText, profilePicUrl) {
+            const message = document.createElement('div');
+            message.classList.add('message');
+
+            const profileImage = document.createElement('img');
+            profileImage.src = profilePicUrl || 'default-profile-pic.png';
+            profileImage.classList.add('profile-pic');
+
+            const text = document.createElement('span');
+            text.innerHTML = `${username}: ${messageText}`;
+            message.appendChild(profileImage);
+            message.appendChild(text);
+            document.getElementById('messages-container').appendChild(message);
+        }
+
+        document.getElementById('chat-input').addEventListener('keypress', function (event) {
+            if (event.key === 'Enter') {
+                const messageText = event.target.value;
+                if (messageText) {
+                    const username = localStorage.getItem('username') || 'Guest';
+                    const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
+                    
+                    // Send DeepAI response if message starts with !q
+                    if (messageText.startsWith('!q ')) {
+                        sendQuestionToDeepAI(messageText);
+                    } else {
+                        sendMessage(username, messageText, profilePictureUrl); // Send normal messages
+                    }
+
+                    event.target.value = ''; // Clear input
+                }
+            }
+        });
+    </script>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #36393f;
+            color: #dcddde;
+            font-family: "Helvetica", Arial, sans-serif;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #2f3136;
+            padding: 10px 20px;
+            box-shadow: 0px 4px 2px -2px rgba(0,0,0,0.5);
+        }
+
+        .profile {
+            display: flex;
+            align-items: center;
+        }
+
+        .profile img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+            border: 3px solid #7289da;
+        }
+
+        .messages {
+            margin-top: 20px;
+        }
+
+        .messages .message {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #2f3136;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+        }
+
+        .profile-pic {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin-right: 10px;
+            border: 3px solid #7289da;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="profile">
+        <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture">
+        <div class="username" id="username-display"></div>
+    </div>
+</div>
+
+<div class="chat-box">
+    <input type="text" id="chat-input" placeholder="Type your message here...">
+    <div class="messages" id="messages-container"></div>
+</div>
+
+</body>
+</html>
