@@ -22,24 +22,22 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let userStatus = "online";
-
         function sendMessage(username, messageText, profilePicUrl) {
             db.ref('messages').push().set({
                 username: username,
                 message: messageText,
                 profilePic: profilePicUrl,
-                timestamp: new Date().toISOString(),
-                status: userStatus
+                timestamp: new Date().toISOString()
             });
         }
 
         function listenForMessages() {
             db.ref('messages').on('child_added', (snapshot) => {
                 const messageData = snapshot.val();
-                addMessageToChat(messageData.username, messageData.message, messageData.profilePic, messageData.status);
-                
-                if (userStatus !== 'Do Not Disturb' && Notification.permission === 'granted') {
+                addMessageToChat(messageData.username, messageData.message, messageData.profilePic);
+
+                // Show notification if permission is granted
+                if (Notification.permission === 'granted') {
                     new Notification("New message from " + messageData.username, {
                         body: messageData.message,
                         icon: messageData.profilePic || 'default-profile-pic.png' // Optional icon
@@ -54,10 +52,16 @@
             }
         }
 
-        function updateStatus(newStatus) {
-            userStatus = newStatus;
-            document.getElementById('status-display').textContent = newStatus;
-            document.getElementById('status-indicator').className = 'status-indicator ' + newStatus.replace(/\s/g, '-').toLowerCase();
+        function checkUserBan(username) {
+            db.ref('bannedUsers/' + username).once('value').then(snapshot => {
+                if (snapshot.val()) {
+                    window.location.href = 'login.html';
+                }
+            });
+        }
+
+        function hasDeveloperBadge(username) {
+            return db.ref('users/' + username + '/badges/developer').once('value').then(snapshot => !!snapshot.val());
         }
 
         window.onload = function() {
@@ -65,30 +69,52 @@
             const username = localStorage.getItem('username') || 'Guest';
             const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
 
+            checkUserBan(username);
+            hasDeveloperBadge(username).then(hasBadge => {
+                if (hasBadge) {
+                    document.getElementById('developer-badge').style.display = 'inline-block';
+                }
+            });
+
             document.getElementById('username-display').textContent = username;
             document.getElementById('profile-pic').src = profilePictureUrl;
-
             listenForMessages();
         };
 
-        function addMessageToChat(username, messageText, profilePicUrl, status) {
+        function addMessageToChat(username, messageText, profilePicUrl) {
             const message = document.createElement('div');
             message.classList.add('message');
 
             const profileImage = document.createElement('img');
             profileImage.src = profilePicUrl || 'default-profile-pic.png';
             profileImage.classList.add('profile-pic');
-
-            const statusIndicator = document.createElement('span');
-            statusIndicator.className = 'status-indicator ' + status.replace(/\s/g, '-').toLowerCase();
+            profileImage.onclick = function() {
+                openProfileModal(username, profilePicUrl);
+            };
 
             const text = document.createElement('span');
-            text.innerHTML = `${username}: ${messageText}`;
+            let badgeText = '';
 
+            if (username === 'thisismyusername') {
+                badgeText = '<strong class="profile-owner-badge">Owner:</strong>';
+            } else if (username.toLowerCase() === 'thisismyusername') {
+                badgeText = '<strong class="profile-developer-badge">Developer:</strong>';
+            }
+
+            text.innerHTML = `${badgeText} ${username}: ${messageText}`;
             message.appendChild(profileImage);
-            message.appendChild(statusIndicator);
             message.appendChild(text);
             document.getElementById('messages-container').appendChild(message);
+        }
+
+        function openProfileModal(username, profilePicUrl) {
+            document.getElementById('modal-username').textContent = username;
+            document.getElementById('modal-profile-pic').src = profilePicUrl || 'default-profile-pic.png';
+            document.getElementById('profile-modal').style.display = 'flex';
+        }
+
+        function closeProfileModal() {
+            document.getElementById('profile-modal').style.display = 'none';
         }
 
         function signOut() {
@@ -129,27 +155,21 @@
             border: 3px solid #7289da;
         }
 
-        .status-indicator {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            margin-right: 5px;
+        .profile-owner-badge, .profile-developer-badge {
+            font-size: 12px;
+            padding: 3px 10px;
+            color: #fff;
+            border-radius: 5px;
+            margin-left: 10px;
         }
 
-        .online {
-            background-color: green;
+        .profile-owner-badge {
+            background: linear-gradient(90deg, #ffcc00, #e63946);
         }
 
-        .do-not-disturb {
-            background-color: red;
-        }
-
-        .idle {
-            background-color: yellow;
-        }
-
-        .invisible {
-            background-color: gray;
+        .profile-developer-badge {
+            background: linear-gradient(90deg, #ff00ff, #00ffff);
+            animation: rainbow 3s linear infinite;
         }
 
         .nav-buttons {
@@ -170,16 +190,6 @@
 
         .nav-buttons button:hover {
             background-color: #72767d;
-        }
-
-        .status-select {
-            margin-left: 10px;
-            padding: 5px;
-            background-color: #40444b;
-            color: white;
-            border-radius: 5px;
-            border: none;
-            cursor: pointer;
         }
 
         .chat-box {
@@ -269,13 +279,8 @@
     <div class="profile">
         <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture">
         <div class="username" id="username-display"></div>
-        <span id="status-indicator" class="status-indicator online"></span>
-        <select class="status-select" onchange="updateStatus(this.value)">
-            <option value="online">Online</option>
-            <option value="Do Not Disturb">Do Not Disturb</option>
-            <option value="invisible">Invisible</option>
-            <option value="idle">Idle</option>
-        </select>
+        <div id="owner-badge" class="profile-owner-badge" style="display: none;">Owner</div>
+        <div id="developer-badge" class="profile-developer-badge" style="display: none;">Contributor</div>
     </div>
 </div>
 
