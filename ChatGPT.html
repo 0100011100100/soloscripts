@@ -161,7 +161,7 @@
             });
         }
 
-        document.getElementById('chat-input').addEventListener('keypress', function (event) {
+        document.getElementById('chat-input').addEventListener('keydown', function (event) {
             if (event.key === 'Enter') {
                 const messageText = event.target.value;
                 if (messageText) {
@@ -327,6 +327,16 @@
 
         .close-btn:hover {
             background-color: #5b6eae;
+        }
+
+        /* Add animation for Rainbow effect */
+        @keyframes rainbow {
+            0% {
+                background: linear-gradient(90deg, #ff00ff, #00ffff);
+            }
+            100% {
+                background: linear-gradient(90deg, #00ffff, #ff00ff);
+            }
         }
     </style>
 </head>
