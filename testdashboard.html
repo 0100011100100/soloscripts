@@ -1,323 +1,153 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Chat Application</title>
 
     <!-- Firebase Configuration -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
     <script>
+        // Your Firebase Configuration
         const firebaseConfig = {
-            apiKey: "AIzaSyB9Q6b4z8w9z5Q5z1z9v7z1z2z",
-            authDomain: "chatapp-3f5f1.firebaseapp.com",
-            projectId: "chatapp-3f5f1",
-            storageBucket: "chatapp-3f5f1.appspot.com",
-            messagingSenderId: "102123123123",
-            appId: "1:102123123123:web:456789456789",
-            databaseURL: "https://chatapp-3f5f1-default-rtdb.firebaseio.com"
+            apiKey: "AIzaSyAe0hXfAJ0ijKNiGgAVfv4zG1ngADF2E4c",
+            authDomain: "chatapp-90c78.firebaseapp.com",
+            projectId: "chatapp-90c78",
+            storageBucket: "chatapp-90c78.appspot.com",
+            messagingSenderId: "195015101932",
+            appId: "1:195015101932:web:f352296f341c58458a84c9",
+            databaseURL: "https://chatapp-90c78-default-rtdb.firebaseio.com"
         };
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+        const storage = firebase.storage();
 
-        let currentUser = localStorage.getItem('username') || 'Guest';
-        let profilePicUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
-
-        // Initialize Chat Interface
-        function initChatInterface() {
-            const chatInterface = document.getElementById('chat-interface');
-            const usernameInput = document.createElement('input');
-            usernameInput.placeholder = 'Search for User or Type Message';
-            usernameInput.id = 'search-bar';
-            chatInterface.appendChild(usernameInput);
-            chatInterface.innerHTML += `
-                <div class="chat-users">Chat Users:</div>
-                <ul class="chat-users-list" id="chat-users-list"></ul>
-                <input class="send-btn" type="submit" value="Send">
-            `;
-            document.getElementById('search-bar').oninput = function (event) {
-                const searchBar = event.target;
-                const userList = document.getElementById('chat-users-list');
-                const filteredUsers = [];
-                for (let i = 0; i < document.querySelectorAll('.username-display').length; i++) {
-                    if (document.querySelectorAll('.username-display')[i].textContent.toLowerCase().includes(searchBar.value.toLowerCase())) {
-                        filteredUsers.push(document.querySelectorAll('.username-display')[i]);
-                    }
-                }
-                userList.innerHTML = ``;
-                filteredUsers.forEach((user, index) => {
-                    const listElement = document.createElement('li');
-                    listElement.innerHTML = `
-                        <img class="profile-pic" src="${profilePicUrl}" alt="Profile Picture" onclick="sendDirectMessage('${user.textContent}')">
-                        <div class="user-name">${user.textContent}</div>
-                    `;
-                    userList.appendChild(listElement);
-                    userList.innerHTML += `
-                        <hr style="border-top: 1px solid #333;">
-                    `;
-                });
-            };
-            document.getElementById('search-bar').addEventListener('keypress', function (event) {
-                if (event.key === 'Enter') {
-                    const searchBar = event.target;
-                    const userList = document.getElementById('chat-users-list');
-                    const filteredUsers = [];
-                    for (let i = 0; i < document.querySelectorAll('.username-display').length; i++) {
-                        if (document.querySelectorAll('.username-display')[i].textContent.toLowerCase().includes(searchBar.value.toLowerCase())) {
-                            filteredUsers.push(document.querySelectorAll('.username-display')[i]);
-                        }
-                    }
-                    userList.innerHTML = ``;
-                    filteredUsers.forEach((user, index) => {
-                        const listElement = document.createElement('li');
-                        listElement.innerHTML = `
-                            <img class="profile-pic" src="${profilePicUrl}" alt="Profile Picture" onclick="sendDirectMessage('${user.textContent}')">
-                            <div class="user-name">${user.textContent}</div>
-                        `;
-                        userList.appendChild(listElement);
-                        userList.innerHTML += `
-                            <hr style="border-top: 1px solid #333;">
-                        `;
-                    });
-                }
-            });
-            const chatInterface = document.getElementById('chat-interface');
-            const chatMessages = document.createElement('div');
-            chatMessages.id = 'chat-messages';
-            chatInterface.appendChild(chatMessages);
-            const dmContainer = document.createElement('div');
-            dmContainer.id = 'dm-container';
-            chatInterface.appendChild(dmContainer);
-            document.getElementById('chat-interface').addEventListener('click', function (event) {
-                if (event.target.classList.contains("profile-pic")) {
-                    const dmInterface = document.getElementById('dm-container');
-                    dmInterface.innerHTML = '';
-                    dmInterface.appendChild(document.createElement('button').innerHTML = 'Back');
-                    dmInterface.appendChild(createDMElement(event.target.dataset.username));
-                    const dmContainer = document.getElementById('dm-container');
-                    dmContainer.style.position = 'absolute';
-                    dmContainer.style.display = 'flex';
-                    dmContainer.style.justifyContent = 'center';
-                    dmContainer.style.alignItems = 'center';
-                    dmContainer.style.background = 'black';
-                    dmContainer.style.height = '100vh';
-                    dmContainer.style.width = '100vw';
-                    dmContainer.onclick = function () {
-                        dmContainer.style.display = 'none';
-                        document.getElementById('dm-container').innerHTML = '';
-                    };
-                    document.getElementById('chat-messages').style.display = 'none';
-                    const backButton = dmContainer.querySelector('button');
-                    backButton.onclick = function () {
-                        dmContainer.style.display = 'none';
-                        document.getElementById('chat-messages').style.display = 'block';
-                        document.getElementById('chat-interface').innerHTML = `
-                            <input class="send-btn" type="submit" value="Send">
-                            <div class="chat-users">Chat Users:</div>
-                            <ul class="chat-users-list" id="chat-users-list"></ul>
-                        `;
-                    };
-                    const sendButton = document.getElementById('chat-interface').querySelector('.send-btn');
-                    sendButton.style.display = 'none';
-                }
-            });
-            document.getElementById('chat-messages').addEventListener('click', function (event) {
-                if (event.target.classList.contains("profile-pic")) {
-                    if (event.target.classList.contains('direct-message')) {
-                        const dmInterface = document.getElementById('dm-container');
-                        dmInterface.innerHTML = '';
-                        dmInterface.appendChild(document.createElement('button').innerHTML = 'Back');
-                        dmInterface.appendChild(sendDM());
-                        const dmContainer = document.getElementById('dm-container');
-                        dmContainer.style.position = 'absolute';
-                        dmContainer.style.display = 'flex';
-                        dmContainer.style.justifyContent = 'center';
-                        dmContainer.style.alignItems = 'center';
-                        dmContainer.style.background = 'black';
-                        dmContainer.style.height = '100vh';
-                        dmContainer.style.width = '100vw';
-                        dmContainer.onclick = function () {
-                            dmContainer.style.display = 'none';
-                            document.getElementById('dm-container').innerHTML = '';
-                        };
-                        document.getElementById('chat-messages').style.display = 'none';
-                        const backButton = dmContainer.querySelector('button');
-                        backButton.onclick = function () {
-                            dmContainer.style.display = 'none';
-                            document.getElementById('chat-messages').style.display = 'block';
-                            document.getElementById('chat-interface').innerHTML = `
-                                <input class="send-btn" type="submit" value="Send">
-                                <div class="chat-users">Chat Users:</div>
-                                <ul class="chat-users-list" id="chat-users-list"></ul>
-                            `;
-                        };
-                        const sendButton = document.getElementById('chat-interface').querySelector('.send-btn');
-                        sendButton.style.display = 'none';
-                    } else {
-                        sendDirectMessage(event.target.dataset.username);
-                    }
-                }
-            });
-            document.getElementById('send-btn').addEventListener('click', function (event) {
-                const sender = localStorage.getItem('username') || 'Guest';
-                const message = event.target.previousSibling.value;
-                const recipient = event.target.previousElementSibling.textContent;
-                const messageRef = db.ref('messages').push();
-                messageRef.set({
-                    sender: sender,
-                    message: message,
-                    timestamp: new Date().toISOString(),
-                    recipient: recipient
-                });
-                event.target.previousSibling.value = '';
-                document.getElementById('chat-messages').style.display = 'block';
-            });
-            const sendMsg = document.getElementById('send-msg');
-            sendMsg.addEventListener('click', function (event) {
-                event.preventDefault();
-                const sender = localStorage.getItem('username') || 'Guest';
-                const message = document.getElementById('chat-input').value;
-                const messageRef = db.ref('messages').push();
-                messageRef.set({
-                    sender: sender,
-                    message: message,
-                    timestamp: new Date().toISOString(),
-                    recipient: null
-                });
-                document.getElementById('chat-input').value = '';
-                document.getElementById('chat-messages').style.display = 'block';
+        function sendMessage(username, messageText, profilePicUrl) {
+            const timestamp = new Date().toISOString();
+            db.ref('messages').push().set({
+                username: username,
+                message: messageText,
+                profilePic: profilePicUrl,
+                timestamp: timestamp
             });
         }
 
-        function addProfileImageClickHandler(username) {
+        function sendImage(username, imageUrl) {
+            const timestamp = new Date().toISOString();
+            db.ref('messages').push().set({
+                username: username,
+                imageUrl: imageUrl,
+                profilePic: localStorage.getItem('profilePic') || 'default-profile-pic.png',
+                timestamp: timestamp
+            });
+        }
+
+        function listenForMessages() {
+            db.ref('messages').on('child_added', (snapshot) => {
+                const messageData = snapshot.val();
+                if (messageData.imageUrl) {
+                    addImageToChat(messageData.username, messageData.imageUrl, messageData.profilePic, messageData.timestamp);
+                } else {
+                    addMessageToChat(messageData.username, messageData.message, messageData.profilePic, messageData.timestamp);
+                }
+            });
+        }
+
+        function addMessageToChat(username, messageText, profilePicUrl, timestamp) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message');
+
             const profileImage = document.createElement('img');
-            profileImage.src = profilePicUrl;
+            profileImage.src = profilePicUrl || 'default-profile-pic.png';
             profileImage.classList.add('profile-pic');
-            profileImage.classList.add('direct-message');
-            profileImage.dataset.username = username;
-            return profileImage;
-        }
 
-        function sendDirectMessage(username) {
-            const dmInterface = document.getElementById('dm-container');
-            dmInterface.innerHTML = '';
-            const backButton = document.createElement('button');
-            backButton.innerHTML = 'Back';
-            backButton.onclick = function () {
-                dmContainer.style.display = 'none';
-                document.getElementById('dm-container').innerHTML = '';
-            };
-            dmInterface.appendChild(backButton);
-            dmInterface.appendChild(sendDM(username));
-            const dmContainer = document.getElementById('dm-container');
-            dmContainer.style.position = 'absolute';
-            dmContainer.style.display = 'flex';
-            dmContainer.style.justifyContent = 'center';
-            dmContainer.style.alignItems = 'center';
-            dmContainer.style.background = 'black';
-            dmContainer.style.height = '100vh';
-            dmContainer.style.width = '100vw';
-            dmContainer.onclick = function () {
-                dmContainer.style.display = 'none';
-                document.getElementById('dm-container').innerHTML = '';
-            };
-            document.getElementById('chat-messages').style.display = 'none';
-            const backButton = dmContainer.querySelector('button');
-            backButton.onclick = function () {
-                dmContainer.style.display = 'none';
-                document.getElementById('chat-messages').style.display = 'block';
-                initChatInterface();
-            };
-        }
-
-        function sendDM(recipient = null) {
-            let recipientUsername = recipient;
-            if (localStorage.getItem('username') && localStorage.getItem('username') !== 'Guest') {
-                recipientUsername = localStorage.getItem('username');
-            }
-            const dmElement = document.createElement('div');
-            dmElement.innerHTML = `
-                <img class="profile-pic" src="${profilePicUrl}" alt="Profile Picture">
-                <input type="text" id="dm-input">
-            `;
-            const dmInput = dmElement.querySelector('#dm-input');
-            dmInput.value = '';
-            dmInput.focus();
-            dmInput.addEventListener('keypress', function (event) {
-                if (event.key === 'Enter') {
-                    const sender = localStorage.getItem('username') || 'Guest';
-                    const message = event.target.value;
-                    db.ref('privateMessages/' + recipientUsername).push().set({
-                        sender: sender,
-                        message: message,
-                        profilePic: profilePicUrl,
-                        timestamp: new Date().toISOString()
-                    });
-                    event.target.value = '';
-                }
-            });
-            return dmElement;
-        };
-
-        function displayMessageInChat(sender, messageText, profilePicUrl) {
-            const message = document.createElement('div');
-            message.classList.add('message');
-            const profilePicture = document.createElement('img');
-            profilePicture.src = profilePicUrl;
             const text = document.createElement('span');
-            text.textContent = `${sender}: ${messageText}`;
-            message.appendChild(profilePicture);
-            message.appendChild(text);
-            message.appendChild(addProfileImageClickHandler(sender));
-            document.getElementById('chat-messages').appendChild(message);
+            text.innerHTML = `${username}: ${parseMentions(messageText)} <small class="timestamp">${new Date(timestamp).toLocaleTimeString()}</small>`;
+            messageDiv.appendChild(profileImage);
+            messageDiv.appendChild(text);
+            addReactionsToMessage(messageDiv);
+            document.getElementById('messages-container').appendChild(messageDiv);
+        }
+
+        function addImageToChat(username, imageUrl, profilePicUrl, timestamp) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message');
+
+            const profileImage = document.createElement('img');
+            profileImage.src = profilePicUrl || 'default-profile-pic.png';
+            profileImage.classList.add('profile-pic');
+
+            const userText = document.createElement('span');
+            userText.innerHTML = `${username}: <small class="timestamp">${new Date(timestamp).toLocaleTimeString()}</small>`;
+            const image = document.createElement('img');
+            image.src = imageUrl;
+            image.classList.add('sent-image');
+
+            messageDiv.appendChild(profileImage);
+            messageDiv.appendChild(userText);
+            messageDiv.appendChild(image);
+            addReactionsToMessage(messageDiv);
+            document.getElementById('messages-container').appendChild(messageDiv);
+        }
+
+        function parseMentions(messageText) {
+            return messageText.replace(/@(\w+)/g, `<span class="mention">@${'$1'}</span>`);
+        }
+
+        function addReactionsToMessage(messageDiv) {
+            const reactions = ['👍', '❤️', '😂', '😮', '😢'];
+            const reactionContainer = document.createElement('div');
+            reactions.forEach(reaction => {
+                const reactionButton = document.createElement('button');
+                reactionButton.innerText = reaction;
+                reactionButton.onclick = function () {
+                    // Logic to handle adding the reaction to the message (e.g., save to Firebase)
+                    console.log(`Reacted with ${reaction}`);
+                };
+                reactionContainer.appendChild(reactionButton);
+            });
+            messageDiv.appendChild(reactionContainer);
+        }
+
+        function uploadFile(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const storageRef = storage.ref('files/' + Date.now() + '_' + file.name);
+                storageRef.put(file).then((snapshot) => {
+                    snapshot.ref.getDownloadURL().then((downloadURL) => {
+                        const username = localStorage.getItem('username') || 'Guest';
+                        sendMessage(username, `Shared a file: ${downloadURL}`, localStorage.getItem('profilePic'));
+                    });
+                });
+            }
+        }
+
+        function uploadImage(file) {
+            const username = localStorage.getItem('username') || 'Guest';
+            const storageRef = storage.ref('images/' + Date.now() + '_' + file.name);
+            storageRef.put(file).then((snapshot) => {
+                snapshot.ref.getDownloadURL().then((downloadURL) => {
+                    sendImage(username, downloadURL);
+                });
+            });
         }
 
         window.onload = function () {
-            db.ref('users').once('value', function (snapshot) {
-                const usersData = snapshot.val();
-                const chatUsers = document.getElementById('chat-users-list');
-                Object.keys(usersData).forEach((username, index) => {
-                    const user = document.createElement('li');
-                    user.innerHTML = `
-                        <img class="profile-pic" src="${profilePicUrl}" alt="Profile Picture" onclick="sendDirectMessage('${username}')">
-                        <div class="user-name">${username}</div>
-                    `;
-                    chatUsers.appendChild(user);
-                });
-            });
-            initChatInterface();
             listenForMessages();
-        };
 
-        function listenForMessages() {
-            db.ref('messages').on('child_added', function (snapshot) {
-                const messageData = snapshot.val();
-                displayMessageInChat(messageData.sender, messageData.message, 'default-profile-pic.png');
+            // Check for online/offline events
+            window.addEventListener('online', function () {
+                console.log('You are back online!');
+                // Optionally handle offline messages here
+            });
+
+            window.addEventListener('offline', function () {
+                console.log('You are offline.');
             });
         };
-
-        // Send Message
-        let sendButtonClicked = false;
-        document.getElementById('send-btn').addEventListener('click', function (event) {
-            event.preventDefault();
-        });
-        document.getElementById('send-msg').addEventListener('click', function (event) {
-            sendButtonClicked = true;
-            const sender = localStorage.getItem('username') || 'Guest';
-            const message = document.getElementById('chat-input').value;
-            const messageRef = db.ref('messages').push();
-            messageRef.set({
-                sender: sender,
-                message: message,
-                timestamp: new Date().toISOString(),
-                recipient: null
-            });
-            document.getElementById('chat-input').value = '';
-        });
     </script>
 
     <style>
@@ -329,13 +159,18 @@
             font-family: "Helvetica", Arial, sans-serif;
         }
 
+        .light-theme {
+            background-color: #ffffff;
+            color: #000000;
+        }
+
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             background-color: #2f3136;
             padding: 10px 20px;
-            box-shadow: 0px 4px 2px -2px rgba(0,0,0,0.5);
+            box-shadow: 0px 4px 2px -2px rgba(0, 0, 0, 0.5);
         }
 
         .profile {
@@ -352,62 +187,70 @@
         }
 
         .chat-box {
-            display: flex;
-            flex-direction: column;
-            width: 300px;
-            height: 500px;
+            padding: 20px;
+        }
+
+        .chat-box input[type="text"] {
+            width: calc(100% - 120px);
             padding: 10px;
-            background-color: #333;
-            border: 2px solid #333;
-            border-radius: 10px;
-            margin: 10px;
+            border-radius: 5px;
+            border: none;
+            font-size: 14px;
+            background-color: #40444b;
+            color: #dcddde;
+        }
+
+        .send-button {
+            padding: 10px 10px;
+            border: none;
+            color: white;
+            background-color: #4caf50;
+            border-radius: 5px;
+            cursor: pointer;
         }
 
         .messages {
             margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .message {
+            margin: 10px 0;
             padding: 10px;
-            background-color: #333;
-            border: 2px solid #333;
-            border-radius: 10px;
-            display: flex;
-            flex-direction: column;
-            width: 90vw;
-        }
-
-        .chat-container {
-            display: flex;
-        }
-
-        .dm-element {
+            background-color: #2f3136;
+            border-radius: 5px;
             display: flex;
             align-items: center;
-            margin-bottom: 10px;
-            padding: 10px;
-            border: 1px solid #3e4149;
-            border-radius: 10px;
-            backdrop-filter: blur(5px);
-            background-color: rgba(0, 0, 0, 0.5);
         }
 
-        .back-button {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            z-index: 1;
-            padding: 5px;
-            border: none;
-            border-radius: 5px;
-            background-color: #7289da;
-            color: #dcddde;
+        .profile-pic {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin-right: 10px;
+            border: 3px solid #7289da;
             cursor: pointer;
         }
-        .dm-container {
-            position: absolute;
-            display: none;
+
+        .sent-image {
+            max-width: 150px;
+            max-height: 150px;
+            border-radius: 5px;
+            margin-left: 10px;
+        }
+
+        .timestamp {
+            font-size: 0.8em;
+            color: #b9bbbe;
+            margin-left: 10px;
+        }
+
+        .mention {
+            color: #7289da;
         }
     </style>
 </head>
-
 <body>
 
 <div class="header">
@@ -415,21 +258,45 @@
         <img id="profile-pic" src="default-profile-pic.png" alt="Profile Picture">
         <div class="username" id="username-display"></div>
     </div>
-    <div class="send-btn">
-        <form id="send-form">
-            <input id="chat-input" type="text" placeholder="Type your message here...">
-            <button id="send-msg" type="submit"></button>
-        </form>
-    </div>
+    <button id="theme-toggle">Toggle Theme</button>
 </div>
 
-<div class="chat-container">
-    <div class="chat-box">
-        <div class="chat-messages" id="chat-messages"></div>
-    </div>
-    <div class="dm-container" id="dm-container"></div>
-    <div class="chat-users" id="chat-users-list"></div>
+<div class="chat-box">
+    <input type="text" id="chat-input" placeholder="Type your message here...">
+    <input type="file" id="image-input" accept="image/*" style="display: none;" onchange="uploadImage(this.files[0])">
+    <label for="image-input" class="send-button">📷 Send Image</label>
+    <input type="file" id="file-input" accept=".pdf,.doc,.ppt" onchange="uploadFile(event)">
+    <button class="send-button" id="send-button">Send</button>
+    <div class="messages" id="messages-container"></div>
 </div>
+
+<script>
+    document.getElementById('chat-input').addEventListener('keypress', function (event) {
+        if (event.key === 'Enter') {
+            const messageText = event.target.value;
+            if (messageText) {
+                const username = localStorage.getItem('username') || 'Guest';
+                const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
+                sendMessage(username, messageText, profilePictureUrl);
+                event.target.value = '';
+            }
+        }
+    });
+
+    document.getElementById('send-button').addEventListener('click', function() {
+        const messageText = document.getElementById('chat-input').value;
+        if (messageText) {
+            const username = localStorage.getItem('username') || 'Guest';
+            const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
+            sendMessage(username, messageText, profilePictureUrl);
+            document.getElementById('chat-input').value = '';
+        }
+    });
+
+    document.getElementById('theme-toggle').addEventListener('click', function() {
+        document.body.classList.toggle('light-theme');
+    });
+</script>
 
 </body>
 </html>
