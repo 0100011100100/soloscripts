@@ -195,11 +195,38 @@
                 kickUser(username);
             };
 
+            // Reset Password Button
+            const resetPasswordButton = document.createElement('button');
+            resetPasswordButton.classList.add('button', 'reset-password-button');
+            resetPasswordButton.textContent = 'Reset Password';
+            resetPasswordButton.onclick = function() {
+                resetUserPassword(username);
+            };
+
+            // View Profile Button
+            const viewProfileButton = document.createElement('button');
+            viewProfileButton.classList.add('button', 'view-profile-button');
+            viewProfileButton.textContent = 'View Profile';
+            viewProfileButton.onclick = function() {
+                viewUserProfile(username);
+            };
+
+            // Edit Profile Button
+            const editProfileButton = document.createElement('button');
+            editProfileButton.classList.add('button', 'edit-profile-button');
+            editProfileButton.textContent = 'Edit Profile';
+            editProfileButton.onclick = function() {
+                editUserProfile(username);
+            };
+
             buttons.appendChild(deleteButton);
             buttons.appendChild(banButton);
             buttons.appendChild(unbanButton);
             buttons.appendChild(muteButton);
             buttons.appendChild(kickButton);
+            buttons.appendChild(resetPasswordButton);
+            buttons.appendChild(viewProfileButton);
+            buttons.appendChild(editProfileButton);
 
             message.appendChild(profileImage);
             message.appendChild(text);
@@ -220,11 +247,100 @@
                 });
         }
 
+        // Function to view user profile
+        function viewUserProfile(username) {
+            showPopup(`Viewing profile of ${username}`, 'info');
+            // Additional logic can be added to actually show the user profile
+        }
+
+        // Function to edit user profile
+        function editUserProfile(username) {
+            showPopup(`Editing profile of ${username}`, 'info');
+            // Additional logic can be added to actually edit the user profile
+        }
+
+        // Function to send a private message
+        function sendPrivateMessage(username) {
+            const privateMessageRef = db.ref('private-messages/' + username);
+            privateMessageRef.push(messageText);
+            privateMessageRef.on('child_added', snapshot => {
+                const messageData = snapshot.val();
+                if (username === localStorage.getItem('username')) {
+                    addPrivateMessageToChat(messageKey, messageData.username, messageData.message);
+                }
+            });
+        }
+
+        // Function to add private messages to the chat
+        function addPrivateMessageToChat(messageKey, username, messageText) {
+            const privateMessage = document.createElement('div');
+            privateMessage.classList.add('private-message');
+            privateMessage.id = 'private-message-' + messageKey;
+
+            const profileImage = document.createElement('img');
+            profileImage.src = profilePicUrl || 'default-profile-pic.png';
+
+            const text = document.createElement('span');
+            text.textContent = `${username}: ${messageText}`;
+
+            privateMessage.appendChild(profileImage);
+            privateMessage.appendChild(text);
+
+            privateMessagesContainer.appendChild(privateMessage);
+        }
+
+        // Function to send a report
+        function sendReport(messageText) {
+            sendMessage('Server', `Report from ${localStorage.getItem('username')}: ${messageText}`, 'server-pic.png');
+            showPopup(`Report sent: "${messageText}"`, 'success');
+        }
+
+        // Function to listen for reports
+        function listenForReports() {
+            db.ref('reports').on('child_added', snapshot => {
+                const reportData = snapshot.val();
+                showPopup(`Report from ${reportData.username}: ${reportData.message}`, 'info');
+            });
+        }
+
+        // Function to add a report
+        function addReport(messageText) {
+            const reportRef = db.ref('reports').push();
+            reportRef.set({
+                username: localStorage.getItem('username'),
+                message: messageText,
+                timestamp: new Date().toISOString()
+            });
+        }
+
+        // Function to view reports
+        function viewReports() {
+            db.ref('reports').once('value').then(snapshot => {
+                let reportMessages = [];
+                snapshot.forEach(childSnapshot => {
+                    reportMessages.push(childSnapshot.val().message);
+                });
+                showPopup("Reports: " + reportMessages.join(", "), 'info');
+            });
+        }
+
+        // Listen for new messages
+        function listenForMutedUsers() {
+            db.ref('mutedUsers').on('child_added', snapshot => {
+                const mutedUserData = snapshot.val();
+                if (localStorage.getItem('username') !== mutedUserData.username) {
+                    showPopup(`${mutedUserData.username} has been muted!`, 'success');
+                }
+            });
+        }
+
         // On page load, check user restrictions
         window.onload = function() {
             const username = localStorage.getItem('username') || 'Guest';
             checkUserBan(username);
             listenForMessages();
+            listenForReports();
+            listenForMutedUsers();
         };
     </script>
 
@@ -369,6 +485,71 @@
             background-color: darkblue;
         }
 
+        .reset-password-button {
+            background-color: yellow;
+            color: black;
+        }
+
+        .reset-password-button:hover {
+            background-color: darkyellow;
+        }
+
+        .view-profile-button {
+            background-color: gray;
+            color: white;
+        }
+
+        .view-profile-button:hover {
+            background-color: darkgray;
+        }
+
+        .edit-profile-button {
+            background-color: pink;
+            color: black;
+        }
+
+        .edit-profile-button:hover {
+            background-color: darkpink;
+        }
+
+        .private-message {
+            margin: 10px 0;
+            padding: 15px;
+            background-color: #333;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background-color 0.3s ease;
+        }
+
+        .private-message img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 15px;
+            border: 2px solid white;
+        }
+
+        .report {
+            margin: 10px 0;
+            padding: 15px;
+            background-color: #333;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background-color 0.3s ease;
+        }
+
+        .report img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 15px;
+            border: 2px solid white;
+        }
+
         .popup {
             position: fixed;
             top: -100px;
@@ -420,7 +601,10 @@
 <div class="chat-box">
     <input type="text" id="chat-input" placeholder="Type your message here...">
     <div class="messages" id="messages-container"></div>
+    <div class="private-messages" id="private-messages-container"></div>
 </div>
+
+<div id="report" class="report"></div>
 
 <div id="popup" class="popup"></div>
 
@@ -430,6 +614,8 @@
     const ownerBadge = document.getElementById('owner-badge');
     const developerBadge = document.getElementById('developer-badge');
     const messagesContainer = document.getElementById('messages-container');
+    const privateMessagesContainer = document.getElementById('private-messages-container');
+    const report = document.getElementById('report');
 
     // Fetch username from localStorage
     const username = localStorage.getItem('username') || 'Guest';
@@ -460,12 +646,34 @@
         }
     });
 
+    // Handle sending private messages
+    document.getElementById('chat-input').addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') {
+            const usernameToMessage = prompt('Enter the username of the person you want to message:');
+            if (usernameToMessage) {
+                db.ref('users').once('value').then(snapshot => {
+                    const userRef = db.ref('users/' + usernameToMessage);
+                    userRef.once('value').then(snapshot => {
+                        if (snapshot.exists()) {
+                            const messageText = event.target.value;
+                            if (messageText) {
+                                sendPrivateMessage(usernameToMessage, messageText);
+                                event.target.value = ''; // Clear the input field after sending
+                            }
+                        } else {
+                            showPopup('Error: User not found!', 'error');
+                        }
+                    });
+                });
+            }
+        }
+    });
+
     // On page load, check if the user is banned
     window.onload = function() {
         checkUserBan(username);
         listenForMessages();
+        listenForPrivateMessages();
+        listenForReports();
     };
 </script>
-
-</body>
-</html>
