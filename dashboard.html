@@ -8,6 +8,7 @@
     <!-- Firebase Configuration -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyAe0hXfAJ0ijKNiGgAVfv4zG1ngADF2E4c",
@@ -36,11 +37,10 @@
                 const messageData = snapshot.val();
                 addMessageToChat(messageData.username, messageData.message, messageData.profilePic);
 
-                // Show notification if permission is granted
                 if (Notification.permission === 'granted') {
                     new Notification("New message from " + messageData.username, {
                         body: messageData.message,
-                        icon: messageData.profilePic || 'default-profile-pic.png' // Optional icon
+                        icon: messageData.profilePic || 'default-profile-pic.png'
                     });
                 }
             });
@@ -65,7 +65,28 @@
         }
 
         window.onload = function() {
-            requestNotificationPermission(); // Request notification permission
+            requestNotificationPermission();
+            if (!localStorage.getItem('acceptedTOS')) {
+                showTOSModal();
+            } else {
+                initializeDashboard();
+            }
+        };
+
+        function showTOSModal() {
+            document.getElementById('tos-modal').style.display = 'flex';
+            setTimeout(() => {
+                document.getElementById('enter-button').disabled = false;
+            }, 5000); // Enable button after 5 seconds
+        }
+
+        function enterWebsite() {
+            localStorage.setItem('acceptedTOS', 'true');
+            document.getElementById('tos-modal').style.display = 'none';
+            initializeDashboard();
+        }
+
+        function initializeDashboard() {
             const username = localStorage.getItem('username') || 'Guest';
             const profilePictureUrl = localStorage.getItem('profilePic') || 'default-profile-pic.png';
 
@@ -79,7 +100,7 @@
             document.getElementById('username-display').textContent = username;
             document.getElementById('profile-pic').src = profilePictureUrl;
             listenForMessages();
-        };
+        }
 
         function addMessageToChat(username, messageText, profilePicUrl) {
             const message = document.createElement('div');
@@ -95,9 +116,9 @@
             const text = document.createElement('span');
             let badgeText = '';
 
-            if (username === 'frontman') {
+            if (username === 'thisismyusername') {
                 badgeText = '<strong class="profile-owner-badge">Owner:</strong>';
-            } else if (username.toLowerCase() === 'frontman') {
+            } else if (username.toLowerCase() === 'thisismyusername') {
                 badgeText = '<strong class="profile-developer-badge">Developer:</strong>';
             }
 
@@ -271,9 +292,87 @@
         .close-btn:hover {
             background-color: #5b6eae;
         }
+
+        /* ToS Modal Styles */
+        #tos-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            color: #fff;
+            text-align: center;
+        }
+
+        #tos-content {
+            background-color: #36393f;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 80%;
+        }
+
+        #enter-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #7289da;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            disabled: true; /* Start as disabled */
+        }
+
+        #enter-button:disabled {
+            background-color: #5b6eae;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
+
+<div id="tos-modal">
+    <div id="tos-content">
+        <h2>Terms of Service</h2>
+        <p>Please read and accept our Terms of Service to continue using the website.
+Official Terms of Service by Swiss07
+
+
+
+
+No swearing
+
+
+No inappropriate content
+
+
+No insulting people (unless approved by an admin/owner)
+
+
+Do not use inappropriate usernames (they will be permanently banned or changed)
+
+
+No Spamming (you will get one strike)
+
+
+
+Admins:
+
+No false bans
+
+No false punishments
+
+Please use reasonable punishments (Strike/Ban)
+
+Use strike as a warning. If they get 3 strikes, they are banned</p>
+        <button id="enter-button" onclick="enterWebsite()" disabled>Enter Website</button>
+    </div>
+</div>
 
 <div class="header">
     <div class="profile">
