@@ -1,7 +1,7 @@
 {
     "name": "yes",
     "short_name": "yes",
-    "start_url": "index.html",
+    "start_url": "yes.html",
     "display": "standalone",
     "background_color": "#f0f0f0",
     "theme_color": "#2867B2",
