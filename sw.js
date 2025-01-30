@@ -1,24 +1,25 @@
-self.addEventListener('push', function(event) {
-    const data = event.data.json();
-    const title = data.title || 'New message';
-    const options = {
-        body: data.body || 'You have a new message!',
-        icon: data.icon || 'icon.png', // Path to an icon image
-        data: {
-            url: data.url // URL to navigate to when the notification is clicked
-        }
-    };
-
+self.addEventListener('install', (event) => {
+    console.log('Service worker installing...');
+    // Perform install steps
     event.waitUntil(
-        self.registration.showNotification(title, options)
+        caches.open('v1').then((cache) => {
+            console.log('Caching app shell');
+            return cache.addAll([
+                '/',
+                'yes.html', // or your custom HTML file name
+                'manifest.json',
+                'icon.png',
+                // Add any additional assets you want to cache here
+            ]);
+        })
     );
 });
 
-self.addEventListener('notificationclick', function(event) {
-    event.notification.close(); // Close the notification when clicked
-
-    // Open the URL specified in the notification data
-    event.waitUntil(
-        clients.openWindow(event.notification.data.url)
+self.addEventListener('fetch', (event) => {
+    console.log('Fetching:', event.request.url);
+    event.respondWith(
+        caches.match(event.request).then((response) => {
+            return response || fetch(event.request);
+        })
     );
 });
