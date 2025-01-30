@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>yes</title>
+    <title>Redirect to GitHub</title>
     <link rel="manifest" href="manifest.json">
     <style>
         body {
@@ -30,11 +30,47 @@
 </head>
 <body>
     <button id="redirectButton">Go to GitHub</button>
-
     <script>
+        // Register the Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                .then((registration) => {
+                    console.log('Service Worker registered with scope:', registration.scope);
+                })
+                .catch((error) => {
+                    console.error('Service Worker registration failed:', error);
+                });
+            });
+        }
+
+        // Redirect button functionality
         document.getElementById('redirectButton').onclick = function() {
-            window.location.href = 'https://github.com'; // Replace with your URL
+            window.location.href = 'https://github.com/your-github-username/your-repo-name'; // Replace with your actual URL
         };
+
+        // Prompt for installation
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            // Show a custom install button or show a message
+            const installButton = document.createElement('button');
+            installButton.innerText = "Install App";
+            document.body.appendChild(installButton);
+            installButton.addEventListener('click', () => {
+                installButton.style.display = 'none';
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted the A2HS prompt');
+                    } else {
+                        console.log('User dismissed the A2HS prompt');
+                    }
+                    deferredPrompt = null;
+                });
+            });
+        });
     </script>
 </body>
 </html>
