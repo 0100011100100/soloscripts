@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archived classes</title>
+    <style>
+        body {
+            background-color: transparent; /* Changed to transparent */
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: white;
+            width: 90vw; /* Increased width */
+            max-width: 1200px; /* Increased max width */
+            height: 80vh; /* Increased height */
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            background-color: #F0F0F0;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .welcome-container {
+            position: absolute;
+            left: 50%;
+            top: 50%; /* Center vertically */
+            transform: translate(-50%, -50%); /* Center horizontally */
+            display: flex;
+            align-items: center;
+        }
+        .welcome {
+            font-size: 22px; /* Increased font size */
+            font-weight: bold;
+            margin: 0 10px;
+        }
+        .header img {
+            width: 40px; /* Increased profile image size */
+            height: 40px;
+            border-radius: 50%;
+        }
+        .header button, .nav button {
+            background-color: black;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .header button:hover, .nav button:hover {
+            background-color: #444;
+        }
+        .nav {
+            display: flex;
+            justify-content: space-around;
+            background-color: #F0F0F0;
+            padding: 10px 0;
+        }
+        .content {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <button onclick="window.location.href='https://google.com'">Back</button>
+            <div class="welcome-container">
+                <img src="https://lh3.googleusercontent.com/ogw/AF2bZygFn07SJevQDvEt384wQa5EORfGSHkbM-pfYpA2jGuFN0s=s32-c-mo" alt="Profile Picture">
+                <div class="welcome">Welcome, zeptional</div>
+            </div>
+            <div style="visibility: hidden;"> <!-- Placeholder for alignment -->
+                <button onclick="window.location.href='https://google.com'">Placeholder</button>
+            </div>
+        </div>
+        <div class="nav">
+            <button onclick="window.location.href='https://0100011100100.github.io/zeptionalsscripts/googleclass.html'">CHAT</button>
+            <button onclick="window.location.href='https://0100011100100.github.io/zeptionalsscripts/DragonX_V2_International%20(1)%20(1).html'">GAMES</button>
+            <button onclick="window.location.href='https://classroom.google.com/h'">CLASSROOM</button>
+        </div>
+        <div class="content">
+            <iframe src="https://0100011100100.github.io/zeptionalsscripts/googleclass.html"></iframe>
+        </div>
+    </div>
+</body>
+</html>
