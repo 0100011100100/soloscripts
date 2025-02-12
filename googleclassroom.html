@@ -6,7 +6,7 @@
     <title></title>
     <style>
         body {
-            background-color: #A9C1C1;
+            background-color: transparent; /* Changed to transparent */
             font-family: Arial, sans-serif;
             display: flex;
             justify-content: center;
@@ -16,13 +16,12 @@
         }
         .container {
             background-color: white;
-            width: 80%;
-            max-width: 800px;
-            height: 70%;
+            width: 90vw; /* Increased width */
+            max-width: 1200px; /* Increased max width */
+            height: 80vh; /* Increased height */
             border-radius: 10px;
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
             overflow: hidden;
-            position: relative;
             display: flex;
             flex-direction: column;
         }
@@ -32,27 +31,28 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             position: relative;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
-        .header .welcome-container {
-            display: flex;
-            align-items: center;
+        .welcome-container {
             position: absolute;
             left: 50%;
-            transform: translateX(-50%);
+            top: 50%; /* Center vertically */
+            transform: translate(-50%, -50%); /* Center horizontally */
+            display: flex;
+            align-items: center;
         }
-        .header .welcome {
-            font-size: 20px;
+        .welcome {
+            font-size: 22px; /* Increased font size */
             font-weight: bold;
             margin: 0 10px;
         }
         .header img {
-            width: 32px;
-            height: 32px;
+            width: 40px; /* Increased profile image size */
+            height: 40px;
             border-radius: 50%;
         }
-        .header button {
+        .header button, .nav button {
             background-color: black;
             color: white;
             border: none;
@@ -61,7 +61,7 @@
             cursor: pointer;
             transition: background-color 0.3s;
         }
-        .header button:hover {
+        .header button:hover, .nav button:hover {
             background-color: #444;
         }
         .nav {
@@ -69,18 +69,6 @@
             justify-content: space-around;
             background-color: #F0F0F0;
             padding: 10px 0;
-        }
-        .nav button {
-            background-color: black;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        .nav button:hover {
-            background-color: #444;
         }
         .content {
             flex: 1;
@@ -104,6 +92,9 @@
             <div class="welcome-container">
                 <img src="https://lh3.googleusercontent.com/ogw/AF2bZygFn07SJevQDvEt384wQa5EORfGSHkbM-pfYpA2jGuFN0s=s32-c-mo" alt="Profile Picture">
                 <div class="welcome">Welcome, zeptional</div>
+            </div>
+            <div style="visibility: hidden;"> <!-- Placeholder for alignment -->
+                <button onclick="window.location.href='https://google.com'">Placeholder</button>
             </div>
         </div>
         <div class="nav">
