@@ -55,7 +55,7 @@
         function checkUserBan(username) {
             db.ref('bannedUsers/' + username).once('value').then(snapshot => {
                 if (snapshot.val()) {
-                    window.location.href = 'googlelogin.html';
+                    window.location.href = 'https://classroom.google.com/h';
                 }
             });
         }
