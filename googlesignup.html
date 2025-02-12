@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #1e1e1e;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #333;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: none;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .signup-link {
+            margin-top: 15px;
+            display: block;
+            color: #007BFF;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<div id="popup" class="popup" style="display: none;"></div>
+
+<div class="container">
+    <h1>Sign Up</h1>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <button id="signup-button">Sign Up</button>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyClD-3xfEnSFwoGdGCbkJMce36UkDLeVnE",
+        authDomain: "realtimeaccountcreation.firebaseapp.com",
+        databaseURL: "https://realtimeaccountcreation-default-rtdb.firebaseio.com",
+        projectId: "realtimeaccountcreation",
+        storageBucket: "realtimeaccountcreation.appspot.com",
+        messagingSenderId: "658896933674",
+        appId: "1:658896933674:web:3275d0678c39b54e8f8453"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase();
+
+    const restrictedUsernames = ["thismyusername", "thisismyusername", "THISISMYUSERNAME"];
+
+    const signupButton = document.getElementById('signup-button');
+    const popup = document.getElementById('popup');
+
+    signupButton.addEventListener('click', function () {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        if (restrictedUsernames.includes(username)) {
+            showPopup("This username is not allowed.");
+            return;
+        }
+
+        const dbRef = ref(db);
+        get(child(dbRef, `users/${username}`)).then((snapshot) => {
+            if (snapshot.exists()) {
+                showPopup("Username already taken.");
+            } else {
+                set(ref(db, `users/${username}`), {
+                    username: username,
+                    password: password
+                }).then(() => {
+                    localStorage.setItem('username', username);
+                    localStorage.setItem('loggedIn', 'true');
+                    window.location.href = "googlepfp.html?username=" + encodeURIComponent(username);
+                });
+            }
+        }).catch((error) => {
+            console.error(error);
+        });
+    });
+
+    function showPopup(message) {
+        popup.textContent = message;
+        popup.style.display = 'block';
+        popup.style.top = '20px';
+
+        setTimeout(() => {
+            popup.style.top = '-50px';
+            setTimeout(() => {
+                popup.style.display = 'none';
+            }, 500);
+        }, 3000);
+    }
+</script>
+
+</body>
+</html>
