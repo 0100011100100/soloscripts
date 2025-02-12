@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Picture</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #1e1e1e;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #333;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .profile-pic-preview {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 2px solid white;
+            margin-bottom: 20px;
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .upload-button, .next-button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .upload-button:hover, .next-button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Popup Styles */
+        .popup {
+            position: fixed;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 255, 0, 0.9);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 5px;
+            transition: top 0.5s ease;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+
+<div id="popup" class="popup" style="display: none;"></div>
+
+<div class="container">
+    <h1>Profile Picture</h1>
+    <div id="profile-pic-preview" class="profile-pic-preview">
+        <span>No Image</span>
+    </div>
+    <input type="file" id="profile-pic-input" accept="image/*" class="upload-button">
+    <button id="next-button" class="next-button">Next</button>
+</div>
+
+<script>
+    const profilePicInput = document.getElementById('profile-pic-input');
+    const profilePicPreview = document.getElementById('profile-pic-preview');
+    const nextButton = document.getElementById('next-button');
+    const popup = document.getElementById('popup');
+
+    // Update profile picture preview
+    profilePicInput.addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                profilePicPreview.style.backgroundImage = `url(${e.target.result})`;
+                profilePicPreview.innerHTML = ''; // Clear the "No Image" text
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Handle next button click
+    nextButton.addEventListener('click', function() {
+        const file = profilePicInput.files[0];
+        if (file) {
+            // Save profile picture to local storage
+            const reader = new FileReader();
+            reader.onloadend = function() {
+                localStorage.setItem('profilePic', reader.result);
+                showPopup('Profile picture set successfully! Redirecting to Dashboard...');
+                
+                // Redirect to dashboard after a brief delay
+                setTimeout(() => {
+                    window.location.href = 'googleclass.html';
+                }, 2000);
+            }
+            reader.readAsDataURL(file);
+        } else {
+            showPopup('Please upload a profile picture.');
+        }
+    });
+
+    // Show popup function
+    function showPopup(message) {
+        popup.textContent = message;
+        popup.style.display = 'block';
+        popup.style.top = '20px';
+
+        setTimeout(() => {
+            popup.style.top = '-50px';
+            setTimeout(() => {
+                popup.style.display = 'none';
+            }, 500);
+        }, 3000);
+    }
+</script>
+
+</body>
+</html>
