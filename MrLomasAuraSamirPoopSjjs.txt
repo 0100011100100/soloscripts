@@ -1,0 +1,329 @@
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Camera = workspace.CurrentCamera
+local LocalPlayer = Players.LocalPlayer
+local Mouse = LocalPlayer:GetMouse()
+
+-- Settings
+local AimbotEnabled = true
+local FOVRadius = 150
+local Smoothness = 0.3
+local TargetPart = "Head"
+local ESPEnabled = true
+local ESPColor = Color3.fromRGB(255, 0, 0)
+
+-- Infinite Jump Settings
+local InfiniteJumpEnabled = true -- Toggle for infinite jump
+local WalkSpeed = 16 -- Default walk speed
+
+-- GUI Setup
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Parent = game.CoreGui
+
+local Frame = Instance.new("Frame")
+Frame.Size = UDim2.new(0, 240, 0, 300)
+Frame.Position = UDim2.new(0.5, -120, 0.5, -150)
+Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+Frame.BorderSizePixel = 0
+Frame.Visible = true
+Frame.Active = true
+Frame.Draggable = true
+Frame.Parent = ScreenGui
+
+-- Utility Functions for Buttons and Sliders
+local function CreateButton(text, position, callback)
+    local Button = Instance.new("TextButton")
+    Button.Size = UDim2.new(1, 0, 0, 30)
+    Button.Position = position
+    Button.Text = text
+    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    Button.Font = Enum.Font.SourceSans
+    Button.TextSize = 16
+    Button.Parent = Frame
+    Button.MouseButton1Click:Connect(callback)
+    return Button
+end
+
+local function CreateSlider(text, position, defaultValue, callback)
+    local Slider = Instance.new("TextBox")
+    Slider.Size = UDim2.new(1, 0, 0, 30)
+    Slider.Position = position
+    Slider.Text = text .. ": " .. defaultValue
+    Slider.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Slider.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    Slider.Font = Enum.Font.SourceSans
+    Slider.TextSize = 16
+    Slider.Parent = Frame
+    Slider.FocusLost:Connect(function()
+        local newValue = tonumber(Slider.Text:match("%d+%.?%d*"))
+        if newValue then
+            callback(newValue)
+            Slider.Text = text .. ": " .. newValue
+        end
+    end)
+    return Slider
+end
+
+-- Add Buttons and Sliders to GUI
+CreateButton("ESP: ON", UDim2.new(0, 0, 0, 0), function()
+    ESPEnabled = not ESPEnabled
+end)
+
+CreateSlider("FOV Radius", UDim2.new(0, 0, 0, 40), FOVRadius, function(value) FOVRadius = value end)
+CreateSlider("Smoothness", UDim2.new(0, 0, 0, 80), Smoothness, function(value) Smoothness = value end)
+
+-- Infinite Jump Toggle
+CreateButton("Infinite Jump: ON", UDim2.new(0, 0, 0, 120), function()
+    InfiniteJumpEnabled = not InfiniteJumpEnabled
+    print("Infinite Jump toggled:", InfiniteJumpEnabled)
+end)
+
+-- Walk Speed Slider
+CreateSlider("Walk Speed", UDim2.new(0, 0, 0, 160), WalkSpeed, function(value)
+    WalkSpeed = value
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid.WalkSpeed = WalkSpeed
+    end
+end)
+
+-- FOV Circle
+local FOVCircle = Drawing.new("Circle")
+FOVCircle.Thickness = 2
+FOVCircle.Color = Color3.new(0, 1, 0)
+FOVCircle.Filled = false
+
+RunService.RenderStepped:Connect(function()
+    -- Update the FOV Circle position to follow the mouse
+    FOVCircle.Position = Vector2.new(Mouse.X, Mouse.Y)
+    FOVCircle.Radius = FOVRadius
+    FOVCircle.Visible = AimbotEnabled
+end)
+
+-- ESP Handling
+local ESPBoxes = {}
+
+RunService.RenderStepped:Connect(function()
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local character = player.Character
+            local rootPart = character.HumanoidRootPart
+            local humanoid = character:FindFirstChild("Humanoid")
+            local screenPosition, onScreen = Camera:WorldToViewportPoint(rootPart.Position)
+
+            if onScreen then
+                local box = ESPBoxes[player] or {
+                    Box = Drawing.new("Square"),
+                    Label = Drawing.new("Text")
+                }
+                local size = Vector2.new(100, 100)
+
+                -- Update Box
+                box.Box.Position = Vector2.new(screenPosition.X - size.X / 2, screenPosition.Y - size.Y / 2)
+                box.Box.Size = size
+                box.Box.Color = ESPColor
+                box.Box.Thickness = 2
+                box.Box.Filled = false
+                box.Box.Visible = ESPEnabled
+
+                -- Update Health Label
+                if humanoid then
+                    box.Label.Position = Vector2.new(screenPosition.X, screenPosition.Y - size.Y / 2 - 20)
+                    box.Label.Text = string.format("HP: %d", math.floor(humanoid.Health))
+                    box.Label.Size = 16
+                    box.Label.Color = Color3.new(1, 1, 1)
+                    box.Label.Outline = true
+                    box.Label.Visible = ESPEnabled
+                end
+
+                ESPBoxes[player] = box
+            else
+                if ESPBoxes[player] then
+                    ESPBoxes[player].Box.Visible = false
+                    ESPBoxes[player].Label.Visible = false
+                end
+            end
+        elseif ESPBoxes[player] then
+            ESPBoxes[player].Box:Remove()
+            ESPBoxes[player].Label:Remove()
+            ESPBoxes[player] = nil
+        end
+    end
+end)
+
+-- Variables to manage the current target
+local CurrentTarget = nil
+
+-- Custom team check
+local function IsOnSameTeam(player)
+    if player.Team and LocalPlayer.Team then
+        return player.Team == LocalPlayer.Team
+    elseif player.Character and LocalPlayer.Character then
+        local playerTeam = player:FindFirstChild("TeamName") or player.Character:FindFirstChild("TeamName")
+        local localTeam = LocalPlayer:FindFirstChild("TeamName") or LocalPlayer.Character:FindFirstChild("TeamName")
+        if playerTeam and localTeam then
+            return playerTeam.Value == localTeam.Value
+        end
+    end
+    return false
+end
+
+-- Function to check if a target is valid
+local function IsValidTarget(player)
+    if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild(TargetPart) then
+        local character = player.Character
+        local humanoid = character:FindFirstChild("Humanoid")
+        local targetPart = character:FindFirstChild(TargetPart)
+
+        if IsOnSameTeam(player) then
+            return false
+        end
+
+        return humanoid and humanoid.Health > 0 and targetPart
+    end
+    return false
+end
+
+-- Function to get the nearest target
+local function GetNearestTarget()
+    local nearestDistance = FOVRadius
+    local target = nil
+
+    for _, player in pairs(Players:GetPlayers()) do
+        if IsValidTarget(player) then
+            local targetPart = player.Character[TargetPart]
+            local screenPosition, onScreen = Camera:WorldToViewportPoint(targetPart.Position)
+
+            if onScreen then
+                local distance = (Vector2.new(screenPosition.X, screenPosition.Y) - Vector2.new(Mouse.X, Mouse.Y)).Magnitude
+                if distance < nearestDistance then
+                    nearestDistance = distance
+                    target = targetPart
+                end
+            end
+        end
+    end
+
+    return target
+end
+
+-- Smooth aim logic
+local function SmoothAim(target)
+    if target then
+        local currentCFrame = Camera.CFrame
+        local targetPosition = target.Position
+        local direction = (targetPosition - currentCFrame.Position).Unit
+
+        if (Vector2.new(Mouse.X, Mouse.Y) - Vector2.new(Mouse.X, Mouse.Y)).Magnitude <= FOVRadius then
+            local newCFrame = CFrame.new(currentCFrame.Position, currentCFrame.Position + direction)
+            Camera.CFrame = currentCFrame:Lerp(newCFrame, Smoothness)
+        end
+    end
+end
+
+-- Aimbot logic
+RunService.RenderStepped:Connect(function()
+    if AimbotEnabled then
+        if not CurrentTarget or not CurrentTarget:IsDescendantOf(workspace) then
+            CurrentTarget = GetNearestTarget()
+        elseif (Vector2.new(Mouse.X, Mouse.Y) - Vector2.new(Mouse.X, Mouse.Y)).Magnitude > FOVRadius then
+            CurrentTarget = nil
+        end
+
+        if CurrentTarget then
+            SmoothAim(CurrentTarget)
+        end
+    else
+        CurrentTarget = nil
+    end
+end)
+
+-- Infinite Jump
+UserInputService.JumpRequest:Connect(function()
+    if InfiniteJumpEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+    end
+end)
+
+-- Update Walk Speed
+RunService.RenderStepped:Connect(function()
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid.WalkSpeed = WalkSpeed
+    end
+end)
+
+-- Toggle Aimbot with Q
+UserInputService.InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.Q then
+        AimbotEnabled = not AimbotEnabled
+        print("Aimbot toggled:", AimbotEnabled)
+    end
+end)
+local AutoFarmEnabled = false -- Auto farm toggle
+
+-- Add Auto-Farm Toggle to GUI
+local function CreateAutoFarmButton()
+    local AutoFarmButton = Instance.new("TextButton")
+    AutoFarmButton.Size = UDim2.new(1, 0, 0, 30)
+    AutoFarmButton.Position = UDim2.new(0, 0, 0, 200) -- Adjust position as needed
+    AutoFarmButton.Text = "Auto Farm: OFF"
+    AutoFarmButton.TextColor3 = Color3.new(1, 1, 1)
+    AutoFarmButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    AutoFarmButton.Font = Enum.Font.SourceSans
+    AutoFarmButton.TextSize = 16
+    AutoFarmButton.Parent = Frame
+
+    AutoFarmButton.MouseButton1Click:Connect(function()
+        AutoFarmEnabled = not AutoFarmEnabled
+        AutoFarmButton.Text = "Auto Farm: " .. (AutoFarmEnabled and "ON" or "OFF")
+        print("Auto Farm toggled:", AutoFarmEnabled)
+    end)
+end
+
+CreateAutoFarmButton()
+
+-- Function to find the nearest enemy
+local function GetNearestEnemy()
+    local nearestDistance = math.huge
+    local target = nil
+
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Humanoid") then
+            local humanoid = player.Character:FindFirstChild("Humanoid")
+            local rootPart = player.Character:FindFirstChild("HumanoidRootPart")
+
+            if humanoid and humanoid.Health > 0 and rootPart then
+                local distance = (LocalPlayer.Character.HumanoidRootPart.Position - rootPart.Position).Magnitude
+                if distance < nearestDistance then
+                    nearestDistance = distance
+                    target = player
+                end
+            end
+        end
+    end
+
+    return target
+end
+
+-- Auto-Farm Logic
+RunService.Heartbeat:Connect(function()
+    if AutoFarmEnabled then
+        local target = GetNearestEnemy()
+
+        if target and target.Character and target.Character:FindFirstChild("Humanoid") then
+            local humanoid = target.Character:FindFirstChild("Humanoid")
+            local rootPart = target.Character:FindFirstChild("HumanoidRootPart")
+
+            if humanoid.Health > 0 and rootPart then
+                -- Teleport behind the enemy
+                LocalPlayer.Character.HumanoidRootPart.CFrame =
+                    rootPart.CFrame * CFrame.new(0, 0, -3) -- Offset to stand behind
+
+                -- Simulate shooting
+                humanoid.Health = humanoid.Health - 10 -- Adjust damage value
+                wait(0.1) -- Add a small delay to mimic shooting
+            end
+        end
+    end
+end)
