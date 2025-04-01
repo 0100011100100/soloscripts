@@ -3,16 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fullscreen Image</title>
+    <title>Cropped Image</title>
     <style>
         body, html {
             margin: 0;
             height: 100%;
+            display: flex; /* Center the image */
+            justify-content: center; /* Center horizontally */
+            align-items: center; /* Center vertically */
             overflow: hidden; /* Prevent scrolling */
         }
         img {
-            width: 100vw; /* Full viewport width */
-            height: 100vh; /* Full viewport height */
+            width: 110px; /* Set width to 110 pixels */
+            height: 110px; /* Set height to 110 pixels */
             object-fit: cover; /* Cover the area without stretching */
             cursor: pointer; /* Change cursor to indicate that the image is clickable */
         }
@@ -20,11 +23,11 @@
 </head>
 <body>
 
-<img id="fullscreenImage" src="Screenshot 2025-04-01 7.29.51 AM.png" alt="Screenshot" onclick="toggleFullscreen()">
+<img id="croppedImage" src="Screenshot 2025-04-01 7.29.51 AM.png" alt="Screenshot" onclick="toggleFullscreen()">
 
 <script>
     function toggleFullscreen() {
-        const image = document.getElementById('fullscreenImage');
+        const image = document.getElementById('croppedImage');
         if (!document.fullscreenElement) {
             image.requestFullscreen().catch(err => {
                 alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
